@@ -1,0 +1,26 @@
+package shapes;
+
+import std.io.*;
+
+struct Circle {
+    var int radius;
+};
+
+struct Rectangle {
+    var int width;
+    var int height;
+};
+
+union Shape {
+    Circle;
+    Rectangle;
+};
+
+(var int area = 0) calculateCircleArea(int radius) {
+    area = radius * radius * 3;
+    return;
+}
+
+(var Shape shape = Circle(radius: 5)) createDefaultShape() {
+    return shape;
+}

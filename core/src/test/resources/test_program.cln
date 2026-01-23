@@ -1,0 +1,37 @@
+package main;
+
+import utils.helpers.*;
+
+struct Point {
+    var int x;
+    var int y;
+};
+
+struct Circle {
+    var int x;
+    var int y;
+    var int r;
+};
+
+union Shapes {
+    Point;
+    Circle;
+};
+
+(var int result = 0) add(int a, int b) {
+    result = a + b;
+    return;
+}
+
+(var int answer = 42) main() {
+    var Point p = Point(x: 10, y: 20);
+    var int sum = add(p.x, p.y);
+    
+    if (sum > 25) {
+        answer = sum;
+    } else {
+        answer = 0;
+    }
+    
+    return;
+}
