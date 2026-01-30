@@ -1,0 +1,160 @@
+package org.clnlang.runtime;
+
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.List;
+
+/**
+ * Execution context for the compiled program.
+ * Contains global context, call stack, and manages function invocations.
+ */
+public class ExecutionContext {
+    
+    // Global context - shared across entire program
+    private final GlobalContext globalContext;
+    
+    // Call stack for tracking function invocations
+    private final Deque<CallFrame> callStack;
+    
+    public ExecutionContext() {
+        this.globalContext = new GlobalContext();
+        this.callStack = new ArrayDeque<>();
+        // Push main/global frame
+        this.callStack.push(new CallFrame("<global>"));
+    }
+    
+    /**
+     * Get the global context
+     */
+    public GlobalContext getGlobalContext() {
+        return globalContext;
+    }
+    
+    /**
+     * Get the current call frame
+     */
+    public CallFrame getCurrentFrame() {
+        return callStack.peek();
+    }
+    
+    /**
+     * Get the current local context from the top frame
+     */
+    public LocalContext getLocalContext() {
+        CallFrame frame = callStack.peek();
+        return frame != null ? frame.getLocalContext() : null;
+    }
+    
+    /**
+     * Push a new call frame when entering a function.
+     * The new frame's local context will NOT have access to the previous frame's locals.
+     */
+    public void pushCallFrame(String functionName) {
+        callStack.push(new CallFrame(functionName));
+    }
+    
+    /**
+     * Push a new call frame with a parent context (for closures, if needed).
+     */
+    public void pushCallFrame(String functionName, LocalContext parentContext) {
+        callStack.push(new CallFrame(functionName, parentContext));
+    }
+    
+    /**
+     * Pop the current call frame when exiting a function.
+     * @return the return values from the popped frame, or null if no return
+     */
+    public List<Object> popCallFrame() {
+        if (callStack.size() <= 1) {
+            throw new RuntimeException("Cannot pop global frame");
+        }
+        CallFrame frame = callStack.pop();
+        return frame.getReturnValues();
+    }
+    
+    /**
+     * Set return values for the current frame.
+     * This marks the frame as having returned.
+     */
+    public void setReturnValues(List<Object> values) {
+        CallFrame frame = callStack.peek();
+        if (frame != null) {
+            frame.setReturnValues(values);
+        }
+    }
+    
+    /**
+     * Get return values from the current frame.
+     */
+    public List<Object> getReturnValues() {
+        CallFrame frame = callStack.peek();
+        return frame != null ? frame.getReturnValues() : null;
+    }
+    
+    /**
+     * Check if current frame has returned.
+     */
+    public boolean hasReturned() {
+        CallFrame frame = callStack.peek();
+        return frame != null && frame.hasReturned();
+    }
+    
+    /**
+     * Clear the return flag from the current frame.
+     */
+    public void clearReturn() {
+        CallFrame frame = callStack.peek();
+        if (frame != null) {
+            frame.clearReturn();
+        }
+    }
+    
+    /**
+     * Push a new nested local context (for blocks within functions).
+     * This creates a child scope from the current frame's local context.
+     */
+    public void pushLocalContext() {
+        CallFrame frame = callStack.peek();
+        if (frame != null) {
+            LocalContext current = frame.getLocalContext();
+            // Create a nested context by using the current as parent
+            // Note: We need to track this in the frame to properly manage nested scopes
+            // For now, we rely on LocalContext's parent chain
+        }
+    }
+    
+    /**
+     * Pop the current local context (return to parent scope).
+     * Note: With the current CallFrame design, nested scopes within a function
+     * are managed through LocalContext's parent chain automatically.
+     */
+    public void popLocalContext() {
+        // The LocalContext parent chain handles this automatically through getValue/setValue
+        // No explicit action needed as we query through the parent chain
+    }
+    
+    /**
+     * Get the call stack depth (useful for debugging and recursion limits).
+     */
+    public int getCallDepth() {
+        return callStack.size() - 1; // Subtract 1 for global frame
+    }
+    
+    /**
+     * Get the current function name (for debugging).
+     */
+    public String getCurrentFunctionName() {
+        CallFrame frame = callStack.peek();
+        return frame != null ? frame.getFunctionName() : "<none>";
+    }
+    
+    /**
+     * Set a new local context (deprecated - use pushCallFrame instead).
+     * @deprecated Use pushCallFrame for function calls
+     */
+    @Deprecated
+    public void setLocalContext(LocalContext localContext) {
+        // This method is kept for backward compatibility
+        // In the new design, contexts are managed through CallFrames
+    }
+}

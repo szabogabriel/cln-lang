@@ -1,7 +1,7 @@
 package org.clnlang.compile.expression;
 
 import org.clnlang.compile.CompiledAction;
-import org.clnlang.compile.ExecutionContext;
+import org.clnlang.runtime.ExecutionContext;
 
 /**
  * Base interface for compiled expressions.

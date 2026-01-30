@@ -1,6 +1,6 @@
 package org.clnlang.compile.expression;
 
-import org.clnlang.compile.ExecutionContext;
+import org.clnlang.runtime.ExecutionContext;
 
 /**
  * Compiled representation of a string literal.

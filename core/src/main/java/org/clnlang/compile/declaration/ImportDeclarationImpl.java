@@ -1,7 +1,7 @@
 package org.clnlang.compile.declaration;
 
 import org.clnlang.compile.CompiledAction;
-import org.clnlang.compile.ExecutionContext;
+import org.clnlang.runtime.ExecutionContext;
 
 /**
  * Compiled representation of an import declaration.

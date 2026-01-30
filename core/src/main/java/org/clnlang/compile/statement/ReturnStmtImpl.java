@@ -1,7 +1,7 @@
 package org.clnlang.compile.statement;
 
 import org.clnlang.compile.CompiledAction;
-import org.clnlang.compile.ExecutionContext;
+import org.clnlang.runtime.ExecutionContext;
 import org.clnlang.compile.expression.CompiledExpr;
 
 import java.util.ArrayList;
