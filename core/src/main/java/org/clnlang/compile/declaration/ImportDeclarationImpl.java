@@ -6,11 +6,11 @@ import org.clnlang.compile.ExecutionContext;
 /**
  * Compiled representation of an import declaration.
  */
-public class ImportDeclImpl implements CompiledAction {
+public class ImportDeclarationImpl implements CompiledAction {
     private String importPath;
     private boolean isWildcard;
 
-    public ImportDeclImpl(String importPath, boolean isWildcard) {
+    public ImportDeclarationImpl(String importPath, boolean isWildcard) {
         this.importPath = importPath;
         this.isWildcard = isWildcard;
     }
