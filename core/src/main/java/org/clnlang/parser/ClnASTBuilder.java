@@ -1,13 +1,37 @@
 package org.clnlang.parser;
 
-import org.antlr.v4.runtime.tree.ParseTree;
-import org.clnlang.ast.*;
-import org.clnlang.ast.declaration.*;
-import org.clnlang.ast.expression.*;
-import org.clnlang.ast.statement.*;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import org.clnlang.ast.ASTNode;
+import org.clnlang.ast.BlockNode;
+import org.clnlang.ast.declaration.FunctionDeclNode;
+import org.clnlang.ast.declaration.ImportDeclNode;
+import org.clnlang.ast.declaration.PackageDeclNode;
+import org.clnlang.ast.declaration.ProgramNode;
+import org.clnlang.ast.declaration.StructDeclNode;
+import org.clnlang.ast.declaration.UnionDeclNode;
+import org.clnlang.ast.expression.BinaryExpr;
+import org.clnlang.ast.expression.BoolLiteralExpr;
+import org.clnlang.ast.expression.CallExpr;
+import org.clnlang.ast.expression.Expr;
+import org.clnlang.ast.expression.IdentifierExpr;
+import org.clnlang.ast.expression.IndexAccessExpr;
+import org.clnlang.ast.expression.IntLiteralExpr;
+import org.clnlang.ast.expression.MemberAccessExpr;
+import org.clnlang.ast.expression.StringLiteralExpr;
+import org.clnlang.ast.expression.StructLiteralExpr;
+import org.clnlang.ast.expression.UnaryExpr;
+import org.clnlang.ast.statement.AssignStmt;
+import org.clnlang.ast.statement.EmptyStmt;
+import org.clnlang.ast.statement.ExprStmt;
+import org.clnlang.ast.statement.IfStmt;
+import org.clnlang.ast.statement.ReturnStmt;
+import org.clnlang.ast.statement.Stmt;
+import org.clnlang.ast.statement.SwitchStmt;
+import org.clnlang.ast.statement.TupleAssignStmt;
+import org.clnlang.ast.statement.VarDeclStmt;
+import org.clnlang.ast.statement.WhileStmt;
 
 /**
  * ANTLR visitor that builds an AST from the parse tree.

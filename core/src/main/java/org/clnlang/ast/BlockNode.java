@@ -26,7 +26,7 @@ public class BlockNode extends ASTNode {
     
     @Override
     public void accept(ASTVisitor visitor) {
-        // Blocks are typically traversed inline, not via visitor
+        visitor.visit(this);
     }
     
     @Override

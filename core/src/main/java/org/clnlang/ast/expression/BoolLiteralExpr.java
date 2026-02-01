@@ -15,8 +15,7 @@ public class BoolLiteralExpr extends Expr {
     }
     @Override
     public void accept(ASTVisitor visitor) {
-        //TODO 
-        // Can be extended if needed
+        visitor.visit(this);
     }
     public String toString() {
         return String.valueOf(value);

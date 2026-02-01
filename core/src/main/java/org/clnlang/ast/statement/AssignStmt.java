@@ -26,7 +26,7 @@ public class AssignStmt extends Stmt {
 
     @Override
     public void accept(ASTVisitor visitor) {
-        //TODO
+        visitor.visit(this);
     }
 
     // Can be extended if needed

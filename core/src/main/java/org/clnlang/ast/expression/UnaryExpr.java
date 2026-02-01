@@ -20,8 +20,7 @@ public class UnaryExpr extends Expr {
     }
     @Override
     public void accept(ASTVisitor visitor) {
-        //TODO: implement visitor pattern
-        // Can be extended if needed
+        visitor.visit(this);
     }
     public String toString() {
         return operator + operand;

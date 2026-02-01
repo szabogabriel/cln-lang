@@ -32,7 +32,7 @@ public class SwitchStmt extends Stmt {
 
     @Override
     public void accept(ASTVisitor visitor) {
-        // TODO
+        visitor.visit(this);
     }
 
     /**

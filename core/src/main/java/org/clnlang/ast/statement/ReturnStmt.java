@@ -35,7 +35,7 @@ public class ReturnStmt extends Stmt {
 
     @Override
     public void accept(ASTVisitor visitor) {
-        // TODO
+        visitor.visit(this);
     }
 
     public String toString() {

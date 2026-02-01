@@ -27,8 +27,7 @@ public class WhileStmt extends Stmt {
 
     @Override
     public void accept(ASTVisitor visitor) {
-        // Can be extended if needed
-        // TODO
+        visitor.visit(this);
     }
 
     public String toString() {

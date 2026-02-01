@@ -24,8 +24,7 @@ public class MemberAccessExpr extends Expr {
 
     @Override
     public void accept(ASTVisitor visitor) {
-        // TODO: implement visitor method
-        // Can be extended if needed
+        visitor.visit(this);
     }
 
     public String toString() {

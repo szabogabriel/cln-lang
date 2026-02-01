@@ -22,7 +22,7 @@ public class StructLiteralExpr extends Expr {
     }
     @Override
     public void accept(ASTVisitor visitor) {
-        // Can be extended if needed
+        visitor.visit(this);
     }
     public String toString() {
         StringBuilder sb = new StringBuilder();

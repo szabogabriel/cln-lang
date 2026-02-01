@@ -38,8 +38,7 @@ public class VarDeclStmt extends Stmt {
 
     @Override
     public void accept(ASTVisitor visitor) {
-        // TODO
-        // Can be extended if needed
+        visitor.visit(this);
     }
 
     public String toString() {
