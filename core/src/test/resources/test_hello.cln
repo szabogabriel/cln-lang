@@ -4,6 +4,5 @@ import std.console.writeLine;
 
 (var int ret = 0) main() {
     writeLine("Hello, World!");
-    writeLine("Hello, Janka :)");
     return;
 }
