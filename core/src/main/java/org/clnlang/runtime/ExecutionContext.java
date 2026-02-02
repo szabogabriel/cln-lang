@@ -175,4 +175,8 @@ public class ExecutionContext {
     public void registerImport(ImportDeclImpl importDecl) {
         imports.add(importDecl);
     }
+    
+    public List<ImportDeclImpl> getImports() {
+        return imports;
+    }
 }

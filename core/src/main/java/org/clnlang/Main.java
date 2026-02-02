@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -16,13 +17,17 @@ import org.clnlang.ast.declaration.ProgramNode;
 import org.clnlang.ast.visitor.ASTPrinterVisitor;
 import org.clnlang.ast.visitor.CompilerVisitor;
 import org.clnlang.ast.visitor.DetailedASTPrinter;
+import org.clnlang.compile.declaration.FunctionDeclImpl;
 import org.clnlang.compile.declaration.ProgramImpl;
 import org.clnlang.exception.ClnException;
 import org.clnlang.parser.ClnASTBuilder;
 import org.clnlang.parser.clnLexer;
 import org.clnlang.parser.clnParser;
 import org.clnlang.runtime.ExecutionContext;
+import org.clnlang.runtime.FunctionInvoker;
 import org.clnlang.runtime.Linker;
+import org.clnlang.runtime.Registry;
+import org.clnlang.runtime.lib.StandardLibrary;
 
 public class Main {
     private static boolean verbose = false;
@@ -45,6 +50,17 @@ public class Main {
      * Main program logic that can be tested. Throws exceptions instead of calling System.exit().
      */
     public static void run(String[] args) throws Exception {
+        // Create execution context and populate it
+        ExecutionContext context = new ExecutionContext();
+        Linker linker = new Linker();
+        Registry registry = new Registry();
+        
+        // Register standard library
+        log("Registering standard library...");
+        StandardLibrary stdlib = new StandardLibrary();
+        stdlib.registerAll(registry);
+        log("Standard library registered (" + stdlib.getComponentCount() + " components).");
+
         // Parse command-line arguments
         verbose = false;  // Reset the static field
         String fileName = null;
@@ -63,16 +79,12 @@ public class Main {
         ProgramImpl program = createProgram(fileName);
         log("Compilation completed successfully.");
         
-        // Create execution context and populate it
-        ExecutionContext context = new ExecutionContext();
-
         log("Populating program context...");
         program.populateContext(context);
         log("Program context populated.");
 
         log("Resolving imports...");
-        Linker linker = new Linker();
-        linker.resolveImports(context);
+        linker.resolveImports(context, registry);
         log("Imports resolved.");
 
         // Check for main function
@@ -85,7 +97,40 @@ public class Main {
 
         printProgramDetails();
         
-        // TODO: Execute main function
+        executeMainFunction(context);
+    }
+
+    /**
+     * Execute the main function of the program.
+     * Retrieves the main function from the global context and invokes it with no arguments.
+     * 
+     * @param context The execution context containing the main function
+     * @throws Exception If execution fails
+     */
+    private static void executeMainFunction(ExecutionContext context) throws Exception {
+        log("Executing main function...");
+        
+        // Get the main function from the global context
+        FunctionDeclImpl mainFunction = context.getGlobalContext().getFunction("main");
+        
+        if (mainFunction == null) {
+            throw new ClnException("Main function not found in global context");
+        }
+        
+        // Main function should have no parameters
+        if (mainFunction.getParameters() != null && !mainFunction.getParameters().isEmpty()) {
+            throw new ClnException("Main function should not have parameters");
+        }
+        
+        // Invoke the main function with no arguments
+        Object result = FunctionInvoker.invoke(mainFunction, new ArrayList<>(), context);
+        
+        log("Main function execution completed.");
+        
+        // If main function returns a value, it could be used as exit code
+        if (result != null && verbose) {
+            System.out.println("Main function returned: " + result);
+        }
     }
     
     private static void printProgramDetails() {

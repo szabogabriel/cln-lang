@@ -1,5 +1,7 @@
 package org.clnlang.runtime;
 
+import java.util.Objects;
+
 public class FullyQualifiedName {
     private final String packageName;
     private final String entityName;
@@ -26,4 +28,17 @@ public class FullyQualifiedName {
         return packageName + "." + entityName;
     }
     
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        FullyQualifiedName that = (FullyQualifiedName) o;
+        return Objects.equals(packageName, that.packageName) &&
+               Objects.equals(entityName, that.entityName);
+    }
+    
+    @Override
+    public int hashCode() {
+        return Objects.hash(packageName, entityName);
+    }
 }
