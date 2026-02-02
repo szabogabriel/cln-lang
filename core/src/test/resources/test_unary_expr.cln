@@ -1,0 +1,14 @@
+package main;
+
+import std.console.writeLine;
+import std.str.boolToStr;
+import std.str.strCat;
+
+(var int ret = 0) main() {
+    bool x = true;
+    writeLine("Acquired boolean value");
+    writeLine(boolToStr(x));
+    bool y = !x;
+    writeLine(strCat("Second value: ", boolToStr(y)));
+    return;
+}
