@@ -25,7 +25,7 @@ public class CompilerVisitorTest {
     @BeforeEach
     public void setUp() {
         context = new ExecutionContext();
-        compiler = new CompilerVisitor(context);
+        compiler = new CompilerVisitor();
     }
     
     /**
@@ -527,11 +527,25 @@ public class CompilerVisitorTest {
     }
     
     @Test
-    public void testContextInjection() {
-        ExecutionContext customContext = new ExecutionContext();
-        CompilerVisitor customCompiler = new CompilerVisitor(customContext);
+    public void testCompilerIsStateless() {
+        // CompilerVisitor should be stateless and not hold any ExecutionContext
+        // Verify that multiple compilations work correctly
+        String source = """
+            package test
+            
+            (var int x = 0) simple() {
+                x = 42;
+                return;
+            }
+        """;
         
-        assertSame(customContext, customCompiler.getContext());
+        ProgramImpl prog1 = compileProgram(source);
+        ProgramImpl prog2 = compileProgram(source);
+        
+        // Both compilations should succeed and produce distinct objects
+        assertNotNull(prog1);
+        assertNotNull(prog2);
+        assertNotSame(prog1, prog2);
     }
 
     @Test
@@ -574,7 +588,7 @@ public class CompilerVisitorTest {
         ProgramImpl program = compileProgram(source);
         
         // Execute the program to populate the context
-        program.execute(context);
+        program.populateContext(context);
         
         // 1. Test package
         assertEquals("testpkg", context.getGlobalContext().getPackageName(), 
@@ -657,7 +671,7 @@ public class CompilerVisitorTest {
         ProgramImpl program = compileProgram(source);
         
         // Execute the program to populate the context
-        program.execute(context);
+        program.populateContext(context);
         
         // 1. Test package
         assertEquals("main", context.getGlobalContext().getPackageName(), 
@@ -729,7 +743,7 @@ public class CompilerVisitorTest {
         assertFalse(context.getGlobalContext().hasGlobalVariable("immutableGlobal"));
         
         // Execute program
-        program.execute(context);
+        program.populateContext(context);
         
         // After execution, context should be populated
         assertEquals("myapp", context.getGlobalContext().getPackageName());
@@ -758,7 +772,7 @@ public class CompilerVisitorTest {
             """;
         
         ProgramImpl program = compileProgram(source);
-        program.execute(context);
+        program.populateContext(context);
         
         // Test mutable globals
         assertTrue(context.getGlobalContext().hasGlobalVariable("counter"));
@@ -802,7 +816,7 @@ public class CompilerVisitorTest {
         assertEquals(3, program.getDeclarations().size());
         
         // Execute and verify values are set
-        program.execute(context);
+        program.populateContext(context);
         
         assertTrue(context.getGlobalContext().hasGlobalVariable("publicVar"));
         assertEquals(10, context.getGlobalContext().getGlobalValue("publicVar"));

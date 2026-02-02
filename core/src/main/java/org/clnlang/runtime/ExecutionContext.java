@@ -1,6 +1,7 @@
 package org.clnlang.runtime;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 
@@ -69,7 +70,7 @@ public class ExecutionContext {
             throw new RuntimeException("Cannot pop global frame");
         }
         CallFrame frame = callStack.pop();
-        return frame.getReturnValues();
+        return frame.getReturnValueObjects();
     }
     
     /**
@@ -79,7 +80,16 @@ public class ExecutionContext {
     public void setReturnValues(List<Object> values) {
         CallFrame frame = callStack.peek();
         if (frame != null) {
-            frame.setReturnValues(values);
+            // For now, create ReturnValue wrappers without metadata
+            // TODO: Pass return variable metadata when available
+            List<ReturnValue> returnValues = new ArrayList<>();
+            for (Object value : values) {
+                // Create a simple ReturnVar without full metadata
+                org.clnlang.compile.declaration.FunctionDeclImpl.ReturnVar returnVar = 
+                    new org.clnlang.compile.declaration.FunctionDeclImpl.ReturnVar("unknown", "return" + returnValues.size());
+                returnValues.add(new ReturnValue(returnVar, value));
+            }
+            frame.setReturnValues(returnValues);
         }
     }
     
@@ -88,7 +98,7 @@ public class ExecutionContext {
      */
     public List<Object> getReturnValues() {
         CallFrame frame = callStack.peek();
-        return frame != null ? frame.getReturnValues() : null;
+        return frame != null ? frame.getReturnValueObjects() : null;
     }
     
     /**

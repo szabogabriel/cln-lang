@@ -7,7 +7,6 @@ import org.clnlang.compile.expression.*;
 import org.clnlang.compile.statement.*;
 import org.clnlang.parser.clnBaseVisitor;
 import org.clnlang.parser.clnParser;
-import org.clnlang.runtime.ExecutionContext;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,20 +16,6 @@ import java.util.List;
  * This is the bridge between parsing and execution.
  */
 public class CompilerVisitor extends clnBaseVisitor<Object> {
-    
-    private final ExecutionContext context;
-    
-    public CompilerVisitor() {
-        this.context = new ExecutionContext();
-    }
-    
-    public CompilerVisitor(ExecutionContext context) {
-        this.context = context;
-    }
-    
-    public ExecutionContext getContext() {
-        return context;
-    }
     
     /**
      * Compile a program from the parse tree

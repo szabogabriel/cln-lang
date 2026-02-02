@@ -36,13 +36,20 @@ public class UnionDeclImpl implements CompiledAction {
         return isExposed;
     }
 
-    @Override
-    public void execute(ExecutionContext context) throws Exception {
-        // Register union type in context
+    /**
+     * Create a UnionDefinition from this declaration
+     */
+    public org.clnlang.runtime.UnionDefinition toUnionDefinition() {
         org.clnlang.runtime.UnionDefinition definition = new org.clnlang.runtime.UnionDefinition(name, isExposed);
         for (String memberType : members) {
             definition.addMember(memberType);
         }
-        context.getGlobalContext().registerUnionType(name, definition);
+        return definition;
+    }
+
+    @Override
+    public void execute(ExecutionContext context) throws Exception {
+        // Union registration is handled by ProgramImpl
+        // This method is for potential future runtime logic
     }
 }

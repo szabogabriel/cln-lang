@@ -106,14 +106,14 @@ public class Main {
         // Compile the program
         CompilerVisitor compiler = new CompilerVisitor();
         ProgramImpl program = compiler.compileProgram(programContext);
-        ExecutionContext context = compiler.getContext();
         
         if (verbose) {
             System.out.println("Compilation completed successfully.");
         }
         
-        // Execute program to populate context
-        program.execute(context);
+        // Create execution context and populate it
+        ExecutionContext context = new ExecutionContext();
+        program.populateContext(context);
         
         if (verbose) {
             System.out.println("Program executed, context populated.");

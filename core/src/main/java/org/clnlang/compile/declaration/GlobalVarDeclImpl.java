@@ -44,10 +44,7 @@ public class GlobalVarDeclImpl implements CompiledAction {
 
     @Override
     public void execute(ExecutionContext context) throws Exception {
-        // Evaluate the initializer
-        Object value = initializer.evaluate(context);
-        
-        // Register in global context with declaration metadata
-        context.getGlobalContext().registerGlobalVariable(this, value);
+        // Global variable registration is handled by ProgramImpl
+        // This method is for potential future runtime logic
     }
 }
