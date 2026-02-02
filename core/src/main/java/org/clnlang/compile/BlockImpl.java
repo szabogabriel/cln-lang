@@ -27,6 +27,10 @@ public class BlockImpl implements CompiledAction {
     public void execute(ExecutionContext context) throws Exception {
         for (CompiledAction stmt : statements) {
             stmt.execute(context);
+            // Stop executing if a return statement was encountered
+            if (context.hasReturned()) {
+                break;
+            }
         }
     }
 }

@@ -1,6 +1,7 @@
 package org.clnlang.lib;
 
 import org.clnlang.lib.std.Console;
+import org.clnlang.lib.std.StringUtil;
 import org.clnlang.runtime.Registry;
 
 import java.util.ArrayList;
@@ -30,10 +31,12 @@ public class StandardLibrary {
         // I/O functions
         standardLibraryComponents.add(new Console());
         
+        // String utilities
+        standardLibraryComponents.add(new StringUtil());
+        
         // Future standard library components can be added here:
         // standardLibraryComponents.add(new File());
         // standardLibraryComponents.add(new Math());
-        // standardLibraryComponents.add(new String());
         // etc.
     }
     

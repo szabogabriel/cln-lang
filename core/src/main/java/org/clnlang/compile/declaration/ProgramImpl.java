@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.clnlang.compile.CompiledAction;
 import org.clnlang.runtime.ExecutionContext;
-import org.clnlang.runtime.Linker;
 
 /**
  * Compiled representation of a complete program.

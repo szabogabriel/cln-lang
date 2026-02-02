@@ -39,6 +39,11 @@ public class VarDeclStmtImpl implements CompiledAction {
     @Override
     public void execute(ExecutionContext context) throws Exception {
         Object value = initializer.evaluate(context);
-        // Store variable in context
+        // Store variable in local context
+        if (isVar) {
+            context.getLocalContext().setVariable(name, value);
+        } else {
+            context.getLocalContext().setConstant(name, value);
+        }
     }
 }

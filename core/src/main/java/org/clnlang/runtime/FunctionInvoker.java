@@ -41,6 +41,15 @@ public class FunctionInvoker {
                 context.getLocalContext().setConstant(paramName, argValue);
             }
             
+            // Initialize return variables in the local context
+            List<FunctionDeclImpl.ReturnVar> returnVars = funcDecl.getReturnVars();
+            for (FunctionDeclImpl.ReturnVar retVar : returnVars) {
+                String retVarName = retVar.getName();
+                Object defaultValue = getDefaultValue(retVar.getType());
+                // Return variables are mutable, so use setVariable
+                context.getLocalContext().setVariable(retVarName, defaultValue);
+            }
+            
             // Execute the function block
             funcDecl.getBlock().execute(context);
             
@@ -64,5 +73,21 @@ public class FunctionInvoker {
             context.popCallFrame();
             throw e;
         }
+    }
+    
+    /**
+     * Get the default value for a type.
+     * 
+     * @param type The type name
+     * @return The default value for that type
+     */
+    private static Object getDefaultValue(String type) {
+        return switch (type) {
+            case "int" -> 0;
+            case "float" -> 0.0;
+            case "bool" -> false;
+            case "String" -> "";
+            default -> null;
+        };
     }
 }

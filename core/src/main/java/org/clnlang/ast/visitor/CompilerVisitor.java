@@ -17,6 +17,9 @@ import java.util.List;
  */
 public class CompilerVisitor extends clnBaseVisitor<Object> {
     
+    // Track the current function being compiled to access return variables
+    private FunctionDeclImpl currentFunction = null;
+    
     /**
      * Compile a program from the parse tree
      */
@@ -120,9 +123,18 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
             }
         }
         
-        // Compile body
-        BlockImpl body = compileBlock(ctx.block());
-        func.setBlock(body);
+        // Set current function context for compiling return statements
+        FunctionDeclImpl previousFunction = this.currentFunction;
+        this.currentFunction = func;
+        
+        try {
+            // Compile body
+            BlockImpl body = compileBlock(ctx.block());
+            func.setBlock(body);
+        } finally {
+            // Restore previous function context
+            this.currentFunction = previousFunction;
+        }
         
         return func;
     }
@@ -341,8 +353,15 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
             }
             return new ReturnStmtImpl(values);
         } else {
-            // No return value
-            return new ReturnStmtImpl();
+            // No explicit return value - need to look up named return variables
+            // Get the names from the current function being compiled
+            List<String> returnVarNames = new ArrayList<>();
+            if (currentFunction != null) {
+                for (FunctionDeclImpl.ReturnVar retVar : currentFunction.getReturnVars()) {
+                    returnVarNames.add(retVar.getName());
+                }
+            }
+            return ReturnStmtImpl.withNamedReturnVars(returnVarNames);
         }
     }
     
@@ -533,7 +552,7 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
     /**
      * Compile struct literal
      */
-    private StructLiteralExprImpl compileStructLiteral(clnParser.StructLiteralContext ctx) {
+    private CompiledExpr compileStructLiteral(clnParser.StructLiteralContext ctx) {
         String typeName = ctx.qualifiedName().getText();
         List<StructLiteralExprImpl.FieldInit> fields = new ArrayList<>();
         
@@ -543,6 +562,15 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
                 CompiledExpr value = compileExpression(fieldCtx.expr());
                 fields.add(new StructLiteralExprImpl.FieldInit(fieldName, value));
             }
+        }
+        
+        // WORKAROUND: If this is a simple identifier with no fields (e.g., "test()"),
+        // it's actually a function call, not a struct literal. The grammar is ambiguous.
+        // Struct literals should have at least one field or be a qualified name.
+        if (fields.isEmpty() && !typeName.contains(".")) {
+            // This is actually a function call with no arguments, not a struct literal
+            CompiledExpr functionExpr = new IdentifierExprImpl(typeName);
+            return new CallExprImpl(functionExpr, new ArrayList<>());
         }
         
         return new StructLiteralExprImpl(typeName, fields);
