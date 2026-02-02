@@ -47,11 +47,7 @@ public class GlobalVarDeclImpl implements CompiledAction {
         // Evaluate the initializer
         Object value = initializer.evaluate(context);
         
-        // Register in global context
-        if (isMutable) {
-            context.getGlobalContext().setGlobalVariable(name, value);
-        } else {
-            context.getGlobalContext().setGlobalConstant(name, value);
-        }
+        // Register in global context with declaration metadata
+        context.getGlobalContext().registerGlobalVariable(this, value);
     }
 }

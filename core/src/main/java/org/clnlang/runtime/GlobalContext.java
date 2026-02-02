@@ -1,5 +1,8 @@
 package org.clnlang.runtime;
 
+import org.clnlang.compile.declaration.FunctionDeclImpl;
+import org.clnlang.compile.declaration.GlobalVarDeclImpl;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,13 +17,10 @@ public class GlobalContext {
     private final Map<String, UnionDefinition> unionTypes;
     
     // Storage for global functions
-    private final Map<String, Object> functions;
+    private final Map<String, FunctionDeclImpl> functions;
     
-    // Storage for global mutable variables (declared with "var")
-    private final Map<String, Object> globalVariables;
-    
-    // Storage for global constants (immutable, default)
-    private final Map<String, Object> globalConstants;
+    // Storage for global variables with their runtime values
+    private final Map<String, GlobalVariable> globalVariables;
     
     // Current package name
     private String packageName;
@@ -30,7 +30,6 @@ public class GlobalContext {
         this.unionTypes = new HashMap<>();
         this.functions = new HashMap<>();
         this.globalVariables = new HashMap<>();
-        this.globalConstants = new HashMap<>();
     }
     
     // Struct type methods
@@ -60,11 +59,11 @@ public class GlobalContext {
     }
     
     // Function methods
-    public void registerFunction(String name, Object function) {
+    public void registerFunction(String name, FunctionDeclImpl function) {
         functions.put(name, function);
     }
     
-    public Object getFunction(String name) {
+    public FunctionDeclImpl getFunction(String name) {
         return functions.get(name);
     }
     
@@ -72,14 +71,32 @@ public class GlobalContext {
         return functions.containsKey(name);
     }
 
-    public void setGlobalVariable(String name, Object value) {
-        globalVariables.put(name, value);
+    // Global variable methods
+    /**
+     * Register a global variable or constant with its declaration and initial value
+     */
+    public void registerGlobalVariable(GlobalVarDeclImpl declaration, Object value) {
+        globalVariables.put(declaration.getName(), new GlobalVariable(declaration, value));
     }
     
-    public Object getGlobalVariable(String name) {
+    /**
+     * Get the global variable wrapper (includes both declaration and value)
+     */
+    public GlobalVariable getGlobalVariable(String name) {
         return globalVariables.get(name);
     }
     
+    /**
+     * Get the value of a global variable or constant
+     */
+    public Object getGlobalValue(String name) {
+        GlobalVariable var = globalVariables.get(name);
+        return var != null ? var.getValue() : null;
+    }
+    
+    /**
+     * Check if a global variable exists
+     */
     public boolean hasGlobalVariable(String name) {
         return globalVariables.containsKey(name);
     }
@@ -89,51 +106,28 @@ public class GlobalContext {
      * or is a constant.
      */
     public boolean updateGlobalVariable(String name, Object value) {
-        if (globalVariables.containsKey(name)) {
-            globalVariables.put(name, value);
+        GlobalVariable var = globalVariables.get(name);
+        if (var != null && var.isMutable()) {
+            var.setValue(value);
             return true;
         }
         return false;
-    }
-    
-    // Global constant methods (immutable)
-    public void setGlobalConstant(String name, Object value) {
-        globalConstants.put(name, value);
-    }
-    
-    public Object getGlobalConstant(String name) {
-        return globalConstants.get(name);
-    }
-    
-    public boolean hasGlobalConstant(String name) {
-        return globalConstants.containsKey(name);
-    }
-    
-    /**
-     * Get any global value (variable or constant), checking both storages
-     */
-    public Object getGlobalValue(String name) {
-        if (globalVariables.containsKey(name)) {
-            return globalVariables.get(name);
-        }
-        if (globalConstants.containsKey(name)) {
-            return globalConstants.get(name);
-        }
-        return null;
-    }
-    
-    /**
-     * Check if a global value exists (variable or constant)
-     */
-    public boolean hasGlobalValue(String name) {
-        return globalVariables.containsKey(name) || globalConstants.containsKey(name);
     }
     
     /**
      * Check if a global value is mutable
      */
     public boolean isGlobalMutable(String name) {
-        return globalVariables.containsKey(name);
+        GlobalVariable var = globalVariables.get(name);
+        return var != null && var.isMutable();
+    }
+    
+    /**
+     * Get the declaration for a global variable
+     */
+    public GlobalVarDeclImpl getGlobalDeclaration(String name) {
+        GlobalVariable var = globalVariables.get(name);
+        return var != null ? var.getDeclaration() : null;
     }
     
     // Package methods

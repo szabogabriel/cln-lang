@@ -609,13 +609,13 @@ public class CompilerVisitorTest {
         // 6. Test global variables
         assertTrue(context.getGlobalContext().hasGlobalVariable("globalVar"),
                    "Should have global variable 'globalVar'");
-        assertEquals(42, context.getGlobalContext().getGlobalVariable("globalVar"),
+        assertEquals(42, context.getGlobalContext().getGlobalValue("globalVar"),
                      "Global variable 'globalVar' should be 42");
         
         // 7. Test global constants
-        assertTrue(context.getGlobalContext().hasGlobalConstant("globalConst"),
+        assertTrue(context.getGlobalContext().hasGlobalVariable("globalConst"),
                    "Should have global constant 'globalConst'");
-        assertEquals(100, context.getGlobalContext().getGlobalConstant("globalConst"),
+        assertEquals(100, context.getGlobalContext().getGlobalValue("globalConst"),
                      "Global constant 'globalConst' should be 100");
     }
 
@@ -726,7 +726,7 @@ public class CompilerVisitorTest {
         assertFalse(context.getGlobalContext().hasUnionType("Response"));
         assertFalse(context.getGlobalContext().hasFunction("process"));
         assertFalse(context.getGlobalContext().hasGlobalVariable("mutableGlobal"));
-        assertFalse(context.getGlobalContext().hasGlobalConstant("immutableGlobal"));
+        assertFalse(context.getGlobalContext().hasGlobalVariable("immutableGlobal"));
         
         // Execute program
         program.execute(context);
@@ -737,9 +737,9 @@ public class CompilerVisitorTest {
         assertTrue(context.getGlobalContext().hasUnionType("Response"));
         assertTrue(context.getGlobalContext().hasFunction("process"));
         assertTrue(context.getGlobalContext().hasGlobalVariable("mutableGlobal"));
-        assertEquals(50, context.getGlobalContext().getGlobalVariable("mutableGlobal"));
-        assertTrue(context.getGlobalContext().hasGlobalConstant("immutableGlobal"));
-        assertEquals(200, context.getGlobalContext().getGlobalConstant("immutableGlobal"));
+        assertEquals(50, context.getGlobalContext().getGlobalValue("mutableGlobal"));
+        assertTrue(context.getGlobalContext().hasGlobalVariable("immutableGlobal"));
+        assertEquals(200, context.getGlobalContext().getGlobalValue("immutableGlobal"));
     }
 
     @Test
@@ -762,20 +762,20 @@ public class CompilerVisitorTest {
         
         // Test mutable globals
         assertTrue(context.getGlobalContext().hasGlobalVariable("counter"));
-        assertEquals(0, context.getGlobalContext().getGlobalVariable("counter"));
+        assertEquals(0, context.getGlobalContext().getGlobalValue("counter"));
         assertTrue(context.getGlobalContext().isGlobalMutable("counter"));
         
         assertTrue(context.getGlobalContext().hasGlobalVariable("flag"));
-        assertEquals(true, context.getGlobalContext().getGlobalVariable("flag"));
+        assertEquals(true, context.getGlobalContext().getGlobalValue("flag"));
         assertTrue(context.getGlobalContext().isGlobalMutable("flag"));
         
         // Test immutable globals (constants)
-        assertTrue(context.getGlobalContext().hasGlobalConstant("maxValue"));
-        assertEquals(1000, context.getGlobalContext().getGlobalConstant("maxValue"));
+        assertTrue(context.getGlobalContext().hasGlobalVariable("maxValue"));
+        assertEquals(1000, context.getGlobalContext().getGlobalValue("maxValue"));
         assertFalse(context.getGlobalContext().isGlobalMutable("maxValue"));
         
-        assertTrue(context.getGlobalContext().hasGlobalConstant("message"));
-        assertEquals("Hello", context.getGlobalContext().getGlobalConstant("message"));
+        assertTrue(context.getGlobalContext().hasGlobalVariable("message"));
+        assertEquals("Hello", context.getGlobalContext().getGlobalValue("message"));
         assertFalse(context.getGlobalContext().isGlobalMutable("message"));
         
         // Test getGlobalValue for both types
@@ -805,9 +805,9 @@ public class CompilerVisitorTest {
         program.execute(context);
         
         assertTrue(context.getGlobalContext().hasGlobalVariable("publicVar"));
-        assertEquals(10, context.getGlobalContext().getGlobalVariable("publicVar"));
+        assertEquals(10, context.getGlobalContext().getGlobalValue("publicVar"));
         
-        assertTrue(context.getGlobalContext().hasGlobalConstant("publicConst"));
-        assertEquals(20, context.getGlobalContext().getGlobalConstant("publicConst"));
+        assertTrue(context.getGlobalContext().hasGlobalVariable("publicConst"));
+        assertEquals(20, context.getGlobalContext().getGlobalValue("publicConst"));
     }
 }
