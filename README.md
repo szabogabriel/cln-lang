@@ -1,12 +1,24 @@
-# Clean Language Parser - ANTLR4 Integration
+# Clean Language (cln-lang)
 
-This Maven project includes the ANTLR4 parser for the Clean programming language.
+A complete interpreter for the Clean programming language with ANTLR4-based parsing, AST construction, compilation, and execution capabilities.
+
+## Features
+
+- ✅ **Full Parser**: ANTLR4-based lexer and parser for Clean language
+- ✅ **AST Construction**: Converts parse trees into a structured Abstract Syntax Tree
+- ✅ **Type System**: Support for primitives (int, bool, string), structs, and unions
+- ✅ **Runtime Execution**: Complete interpreter with execution context and function invocation
+- ✅ **Standard Library**: Built-in console I/O functions (writeLine)
+- ✅ **Module System**: Package declarations and imports (including wildcard imports)
+- ✅ **Control Flow**: If/else statements, loops, and function calls
+- ✅ **Expressions**: Binary operations, member access, struct literals, and more
+- ✅ **Error Handling**: Comprehensive exception handling with detailed error messages
 
 ## Project Structure
 
 ```
 core/
-├── pom.xml                                    # Maven configuration with ANTLR4 plugin
+├── pom.xml                                    # Maven configuration with ANTLR4 and Shade plugins
 ├── src/
 │   ├── main/
 │   │   ├── antlr4/
@@ -14,106 +26,174 @@ core/
 │   │   │       └── cln.g4                     # Grammar file
 │   │   └── java/
 │   │       └── org/clnlang/
-│   │           └── Main.java                  # Example parser usage
-│   └── test/java/
+│   │           ├── Main.java                  # Main entry point & CLI
+│   │           ├── ast/                       # Abstract Syntax Tree nodes
+│   │           │   ├── declaration/           # Program, function, struct declarations
+│   │           │   ├── expression/            # All expression types
+│   │           │   ├── statement/             # Statements (if, return, var decl, etc.)
+│   │           │   └── visitor/               # AST visitors (printer, compiler)
+│   │           ├── compile/                   # Compiled representations
+│   │           │   ├── declaration/           # Compiled declarations
+│   │           │   ├── expression/            # Compiled expressions
+│   │           │   └── statement/             # Compiled statements
+│   │           ├── exception/                 # Custom exceptions
+│   │           ├── parser/                    # AST builder from parse trees
+│   │           └── runtime/                   # Execution engine
+│   │               ├── lib/                   # Standard library
+│   │               ├── ExecutionContext.java  # Variable and function contexts
+│   │               ├── FunctionInvoker.java   # Function execution
+│   │               ├── Linker.java            # Import resolution
+│   │               └── Registry.java          # Symbol registry
+│   └── test/
+│       ├── java/                              # Unit tests
+│       └── resources/                         # Test .cln files
 └── target/
+    ├── core-1.0-SNAPSHOT-fat.jar              # Standalone executable JAR
     └── generated-sources/
         └── antlr4/                            # Generated parser classes
-            └── org/clnlang/parser/
-                ├── clnLexer.java              # Lexer
-                ├── clnParser.java             # Parser
-                ├── clnListener.java           # Listener interface
-                ├── clnBaseListener.java       # Base listener implementation
-                ├── clnVisitor.java            # Visitor interface
-                └── clnBaseVisitor.java        # Base visitor implementation
 ```
 
-## Generated Classes
+## Quick Start
 
-The ANTLR4 Maven plugin generates the following Java classes from `cln.g4`:
+### Prerequisites
 
-1. **clnLexer.java** - Tokenizes the input source code
-2. **clnParser.java** - Parses tokens according to grammar rules
-3. **clnListener.java** - Interface for tree-walking listeners
-4. **clnBaseListener.java** - Default implementation of the listener
-5. **clnVisitor.java** - Interface for tree visitors  
-6. **clnBaseVisitor.java** - Default implementation of the visitor
+- Java 17 or higher
+- Maven 3.6 or higher
 
-## Building the Project
+### Building the Project
 
-To generate ANTLR4 classes and compile:
+Build the project and generate the standalone fat JAR:
 
 ```bash
 cd core
-mvn clean compile
+mvn clean package
 ```
 
-The ANTLR4 Maven plugin automatically:
-- Processes the grammar file during the `generate-sources` phase
-- Generates Java classes in `target/generated-sources/antlr4/`
-- Makes them available for compilation
+This creates:
+- `target/core-1.0-SNAPSHOT.jar` - Regular JAR (requires classpath)
+- `target/core-1.0-SNAPSHOT-fat.jar` - Standalone JAR with all dependencies (recommended)
 
-## Running the Parser
+### Running Programs
 
-To parse a Clean language source file:
+Execute a Clean language program:
 
 ```bash
-mvn exec:java -Dexec.mainClass="org.clnlang.Main" -Dexec.args="path/to/source.cln"
+java -jar target/core-1.0-SNAPSHOT-fat.jar <program.cln>
 ```
 
-## Using the Parser in Your Code
+With verbose output (shows parsing, compilation, and execution details):
 
-### Basic Parser Usage
-
-```java
-import org.antlr.v4.runtime.*;
-import org.antlr.v4.runtime.tree.*;
-import org.clnlang.parser.clnLexer;
-import org.clnlang.parser.clnParser;
-
-// Create a CharStream from input
-CharStream input = CharStreams.fromFileName("program.cln");
-
-// Create lexer and parser
-clnLexer lexer = new clnLexer(input);
-CommonTokenStream tokens = new CommonTokenStream(lexer);
-clnParser parser = new clnParser(tokens);
-
-// Parse starting from the 'program' rule
-ParseTree tree = parser.program();
+```bash
+java -jar target/core-1.0-SNAPSHOT-fat.jar -v <program.cln>
 ```
+Language Features
 
-### Using a Listener (for tree walking)
+### Basic Syntax
 
-```java
-import org.clnlang.parser.clnBaseListener;
-import org.clnlang.parser.clnParser;
+```clean
+package main;
 
-public class MyListener extends clnBaseListener {
-    @Override
-    public void enterFunctionDecl(clnParser.FunctionDeclContext ctx) {
-        String functionName = ctx.ID().getText();
-        System.out.println("Found function: " + functionName);
-    }
+import std.console.writeLine;
+
+// Struct definition
+struct Point {
+    var int x;
+    var int y;
+};
+
+// Function with return variables
+(var int result = 0) add(int a, int b) {
+    result = a + b;
+    return;
 }
 
-// Use the listener
-ParseTreeWalker walker = new ParseTreeWalker();
-walker.walk(new MyListener(), tree);
+// Main function entry point
+(var int ret = 0) main() {
+    writeLine("Hello, World!");
+    var int sum = add(10, 20);
+    return;
+}
 ```
 
-### Using a Visitor (for computing values)
+### Supported Language Constructs
 
-```java
-import org.clnlang.parser.clnBaseVisitor;
-import org.clnlang.parser.clnParser;
+- **Package declarations**: `package main;`
+- **Imports**: `import std.console.writeLine;` or `import utils.*;`
+- **Structs**: User-defined types with fields
+- **Unions**: Tagged union types
+- **Functions**: With named return variables
+- **Variables**: `var int x = 10;`
+- **Control flow**: `if/else` statements
+- **Expressions**: Binary ops (+, -, *, /, >, <, ==, etc.), member access, function calls
+- **Struct literals**: `Point(x: 10, y: 20)`
 
-public class MyVisitor extends clnBaseVisitor<String> {
-    @Override
-    public String visitFunctionDecl(clnParser.FunctionDeclContext ctx) {
-        String functionName = ctx.ID().getText();
-        return "Function: " + functionName;
-    }
+## Architecture
+
+The interpreter follows a multi-stage pipeline:
+
+1. **Lexing & Parsing** (ANTLR4): Source code → Parse Tree
+2. **AST Construction** (ClnASTBuilder): Parse Tree → Abstract Syntax Tree
+3. **Compilation** (CompilerVisitor): AST → Compiled Representations
+4. **Linking** (Linker): Resolve imports and populate execution context
+5. **Execution** (FunctionInvoker): Execute the main function
+
+### Key Components
+
+- **ClnASTBuilder**: Converts ANTLR parse trees to AST nodes
+- **CompilerVisitor**: Transforms AST into executable compiled forms
+- **ExecutionContext**: Manages variable scopes and function registry
+- **Linker**: Resolves imports and connects modules
+- **StandardLibrary**: Provides built-in functions (console I/O)
+- **FunctionInvoker**: Executes functions with proper context
+
+## Development
+
+### Building from Source
+
+```bash
+# Clone the repository
+git clone https://github.com/szabogabriel/cln-lang.git
+cd cln-lang/core
+
+# Build the project
+mvn clean install
+
+# Run tests
+mvn test
+```
+
+### Maven Configuration
+
+The `pom.xml` includes:
+
+- **ANTLR4 Runtime**: Parser runtime dependency
+- **ANTLR4 Maven Plugin**: Generates lexer/parser from grammar
+- **Maven Shade Plugin**: Creates fat JAR with all dependencies
+- **JUnit 5**: Testing framework
+
+### Grammar File
+
+The language grammar is defined in `src/main/antlr4/org/clnlang/parser/cln.g4`
+
+## Example Programs
+
+See the `src/test/resources/` directory for example programs:
+
+- `test_hello.cln` - Hello world with console output
+- `test_program.cln` - Structs, unions, and control flow
+- `test_union.cln` - Union types and expressions
+- `test_compiler.cln` - Struct and function declarations
+
+## License
+
+See [LICENSE](LICENSE) file for details.
+
+## Changelog
+
+See [changelog/](changelog/) directory for detailed change history:
+- [PACKAGE_ORGANIZATION.md](changelog/PACKAGE_ORGANIZATION.md)
+- [STATEMENTS_AND_EXPRESSIONS.md](changelog/STATEMENTS_AND_EXPRESSIONS.md)
+- [VISITOR_PATTERN.md](changelog/VISITOR_PATTERN.md)
 }
 
 // Use the visitor
