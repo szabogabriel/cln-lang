@@ -533,4 +533,281 @@ public class CompilerVisitorTest {
         
         assertSame(customContext, customCompiler.getContext());
     }
+
+    @Test
+    public void testExecutionContextWithPackageImportsStructsUnionsFunctions() throws Exception {
+        // Compile and execute a comprehensive program
+        String source = """
+            package testpkg;
+            
+            import std.io.*;
+            import utils.math;
+            
+            var int globalVar = 42;
+            int globalConst = 100;
+            
+            struct TestStruct {
+                var int field1;
+                var int field2;
+            };
+            
+            struct AnotherStruct {
+                var int x;
+            };
+            
+            union TestUnion {
+                TestStruct;
+                AnotherStruct;
+            };
+            
+            (var int result = 0) testFunction(int param) {
+                result = param * 2;
+                return;
+            }
+            
+            (var int value = 100) anotherFunction() {
+                value = 42;
+                return;
+            }
+            """;
+        
+        ProgramImpl program = compileProgram(source);
+        
+        // Execute the program to populate the context
+        program.execute(context);
+        
+        // 1. Test package
+        assertEquals("testpkg", context.getGlobalContext().getPackageName(), 
+                     "Package should be 'testpkg'");
+        
+        // 2. Test imports
+        assertNotNull(program.getImports(), "Imports list should not be null");
+        assertEquals(2, program.getImports().size(), "Should have 2 imports");
+        assertEquals("std.io", program.getImports().get(0).getImportPath(), 
+                     "First import path should be 'std.io'");
+        assertTrue(program.getImports().get(0).isWildcard(), "First import should be wildcard");
+        assertEquals("utils.math", program.getImports().get(1).getImportPath(), 
+                     "Second import path should be 'utils.math'");
+        assertFalse(program.getImports().get(1).isWildcard(), "Second import should not be wildcard");
+        
+        // 3. Test structs
+        assertTrue(context.getGlobalContext().hasStructType("TestStruct"), 
+                   "Should have TestStruct");
+        assertTrue(context.getGlobalContext().hasStructType("AnotherStruct"), 
+                   "Should have AnotherStruct");
+        
+        // 4. Test unions
+        assertTrue(context.getGlobalContext().hasUnionType("TestUnion"), 
+                   "Should have TestUnion");
+        
+        // 5. Test functions
+        assertTrue(context.getGlobalContext().hasFunction("testFunction"), 
+                   "Should have 'testFunction'");
+        assertTrue(context.getGlobalContext().hasFunction("anotherFunction"), 
+                   "Should have 'anotherFunction'");
+        
+        // 6. Test global variables
+        assertTrue(context.getGlobalContext().hasGlobalVariable("globalVar"),
+                   "Should have global variable 'globalVar'");
+        assertEquals(42, context.getGlobalContext().getGlobalVariable("globalVar"),
+                     "Global variable 'globalVar' should be 42");
+        
+        // 7. Test global constants
+        assertTrue(context.getGlobalContext().hasGlobalConstant("globalConst"),
+                   "Should have global constant 'globalConst'");
+        assertEquals(100, context.getGlobalContext().getGlobalConstant("globalConst"),
+                     "Global constant 'globalConst' should be 100");
+    }
+
+    @Test
+    public void testExecutionContextWithRealTestProgram() throws Exception {
+        // Load and compile test_program.cln (simplified - just declarations)
+        String source = """
+            package main;
+            
+            import utils.helpers.*;
+            
+            struct Point {
+                var int x;
+                var int y;
+            };
+            
+            struct Circle {
+                var int x;
+                var int y;
+                var int r;
+            };
+            
+            union Shapes {
+                Point;
+                Circle;
+            };
+            
+            (var int result = 0) add(int a, int b) {
+                result = a + b;
+                return;
+            }
+            
+            (var int answer = 42) main() {
+                answer = 10;
+                return;
+            }
+            """;
+        
+        ProgramImpl program = compileProgram(source);
+        
+        // Execute the program to populate the context
+        program.execute(context);
+        
+        // 1. Test package
+        assertEquals("main", context.getGlobalContext().getPackageName(), 
+                     "Package should be 'main'");
+        
+        // 2. Test imports (test_program.cln has "import utils.helpers.*;")
+        assertNotNull(program.getImports(), "Imports list should not be null");
+        assertEquals(1, program.getImports().size(), "Should have 1 import");
+        assertEquals("utils.helpers", program.getImports().get(0).getImportPath(), 
+                     "Import path should be 'utils.helpers'");
+        assertTrue(program.getImports().get(0).isWildcard(), "Import should be wildcard");
+        
+        // 3. Test structs (Point and Circle)
+        assertTrue(context.getGlobalContext().hasStructType("Point"), 
+                   "Should have Point struct");
+        assertTrue(context.getGlobalContext().hasStructType("Circle"), 
+                   "Should have Circle struct");
+        
+        // 4. Test unions (Shapes union)
+        assertTrue(context.getGlobalContext().hasUnionType("Shapes"), 
+                   "Should have Shapes union");
+        
+        // 5. Test functions (add and main)
+        assertTrue(context.getGlobalContext().hasFunction("add"), 
+                   "Should have 'add' function");
+        assertTrue(context.getGlobalContext().hasFunction("main"), 
+                   "Should have 'main' function");
+    }
+
+    @Test
+    public void testExecutionContextInitialization() {
+        ExecutionContext newContext = new ExecutionContext();
+        
+        // Verify context is properly initialized
+        assertNotNull(newContext.getGlobalContext(), "Global context should not be null");
+        assertNotNull(newContext.getCurrentFrame(), "Should have a current frame");
+        assertNotNull(newContext.getLocalContext(), "Should have a local context");
+    }
+
+    @Test
+    public void testProgramExecutionPopulatesContext() throws Exception {
+        String source = """
+            package myapp;
+            
+            var int mutableGlobal = 50;
+            int immutableGlobal = 200;
+            
+            struct User {
+                var int id;
+            };
+            
+            union Response {
+                User;
+            };
+            
+            (var int status = 0) process() {
+                return;
+            }
+            """;
+        
+        ProgramImpl program = compileProgram(source);
+        
+        // Before execution, context should be empty
+        assertNull(context.getGlobalContext().getPackageName());
+        assertFalse(context.getGlobalContext().hasStructType("User"));
+        assertFalse(context.getGlobalContext().hasUnionType("Response"));
+        assertFalse(context.getGlobalContext().hasFunction("process"));
+        assertFalse(context.getGlobalContext().hasGlobalVariable("mutableGlobal"));
+        assertFalse(context.getGlobalContext().hasGlobalConstant("immutableGlobal"));
+        
+        // Execute program
+        program.execute(context);
+        
+        // After execution, context should be populated
+        assertEquals("myapp", context.getGlobalContext().getPackageName());
+        assertTrue(context.getGlobalContext().hasStructType("User"));
+        assertTrue(context.getGlobalContext().hasUnionType("Response"));
+        assertTrue(context.getGlobalContext().hasFunction("process"));
+        assertTrue(context.getGlobalContext().hasGlobalVariable("mutableGlobal"));
+        assertEquals(50, context.getGlobalContext().getGlobalVariable("mutableGlobal"));
+        assertTrue(context.getGlobalContext().hasGlobalConstant("immutableGlobal"));
+        assertEquals(200, context.getGlobalContext().getGlobalConstant("immutableGlobal"));
+    }
+
+    @Test
+    public void testGlobalVariablesAndConstants() throws Exception {
+        String source = """
+            package test;
+            
+            var int counter = 0;
+            var bool flag = true;
+            int maxValue = 1000;
+            string message = "Hello";
+            
+            (var int result = 0) dummy() {
+                return;
+            }
+            """;
+        
+        ProgramImpl program = compileProgram(source);
+        program.execute(context);
+        
+        // Test mutable globals
+        assertTrue(context.getGlobalContext().hasGlobalVariable("counter"));
+        assertEquals(0, context.getGlobalContext().getGlobalVariable("counter"));
+        assertTrue(context.getGlobalContext().isGlobalMutable("counter"));
+        
+        assertTrue(context.getGlobalContext().hasGlobalVariable("flag"));
+        assertEquals(true, context.getGlobalContext().getGlobalVariable("flag"));
+        assertTrue(context.getGlobalContext().isGlobalMutable("flag"));
+        
+        // Test immutable globals (constants)
+        assertTrue(context.getGlobalContext().hasGlobalConstant("maxValue"));
+        assertEquals(1000, context.getGlobalContext().getGlobalConstant("maxValue"));
+        assertFalse(context.getGlobalContext().isGlobalMutable("maxValue"));
+        
+        assertTrue(context.getGlobalContext().hasGlobalConstant("message"));
+        assertEquals("Hello", context.getGlobalContext().getGlobalConstant("message"));
+        assertFalse(context.getGlobalContext().isGlobalMutable("message"));
+        
+        // Test getGlobalValue for both types
+        assertEquals(0, context.getGlobalContext().getGlobalValue("counter"));
+        assertEquals(1000, context.getGlobalContext().getGlobalValue("maxValue"));
+    }
+
+    @Test
+    public void testExposedGlobalDeclarations() throws Exception {
+        String source = """
+            package mylib;
+            
+            expose var int publicVar = 10;
+            expose int publicConst = 20;
+            
+            (var int result = 0) dummy() {
+                return;
+            }
+            """;
+        
+        ProgramImpl program = compileProgram(source);
+        
+        // Verify the declarations exist
+        assertEquals(3, program.getDeclarations().size());
+        
+        // Execute and verify values are set
+        program.execute(context);
+        
+        assertTrue(context.getGlobalContext().hasGlobalVariable("publicVar"));
+        assertEquals(10, context.getGlobalContext().getGlobalVariable("publicVar"));
+        
+        assertTrue(context.getGlobalContext().hasGlobalConstant("publicConst"));
+        assertEquals(20, context.getGlobalContext().getGlobalConstant("publicConst"));
+    }
 }

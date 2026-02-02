@@ -86,10 +86,28 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
         } else if (ctx.unionDecl() != null) {
             return compileUnionDecl(ctx.unionDecl(), isExposed);
         } else if (ctx.globalVarDecl() != null) {
-            // TODO: Handle global variables
-            return null;
+            return compileGlobalVarDecl(ctx.globalVarDecl(), isExposed);
         }
         return null;
+    }
+    
+    /**
+     * Compile global variable declaration
+     */
+    private GlobalVarDeclImpl compileGlobalVarDecl(clnParser.GlobalVarDeclContext ctx, boolean isExposed) {
+        clnParser.VarBindingContext binding = ctx.varBinding();
+        
+        // Handle parser errors gracefully
+        if (binding == null || binding.ID() == null || binding.type() == null || binding.expr() == null) {
+            return null;
+        }
+        
+        boolean isMutable = binding.VAR() != null;
+        String type = binding.type().getText();
+        String name = binding.ID().getText();
+        CompiledExpr initializer = compileExpression(binding.expr());
+        
+        return new GlobalVarDeclImpl(isMutable, type, name, initializer, isExposed);
     }
     
     /**

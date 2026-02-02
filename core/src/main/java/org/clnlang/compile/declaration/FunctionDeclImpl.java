@@ -57,10 +57,9 @@ public class FunctionDeclImpl implements CompiledAction {
 
     @Override
     public void execute(ExecutionContext context) throws Exception {
-        // Register function in context
-        if (block != null) {
-            block.execute(context);
-        }
+        // Register function in context (store the function declaration itself)
+        context.getGlobalContext().registerFunction(name, this);
+        // Note: We don't execute the block here - that happens when the function is called
     }
 
     /**

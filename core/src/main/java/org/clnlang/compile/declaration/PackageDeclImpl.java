@@ -20,5 +20,6 @@ public class PackageDeclImpl implements CompiledAction {
     @Override
     public void execute(ExecutionContext context) throws Exception {
         // Set package context
+        context.getGlobalContext().setPackageName(packageName);
     }
 }

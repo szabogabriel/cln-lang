@@ -1,0 +1,28 @@
+package testpkg;
+
+import std.io.*;
+import utils.math;
+
+struct TestStruct {
+    var int field1;
+    var int field2;
+};
+
+struct AnotherStruct {
+    var int x;
+};
+
+union TestUnion {
+    TestStruct;
+    AnotherStruct;
+};
+
+(var int result = 0) testFunction(int param) {
+    result = param * 2;
+    return;
+}
+
+(var int value = 100) anotherFunction() {
+    value = 42;
+    return;
+}

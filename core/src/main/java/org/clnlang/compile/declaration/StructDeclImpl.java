@@ -39,6 +39,11 @@ public class StructDeclImpl implements CompiledAction {
     @Override
     public void execute(ExecutionContext context) throws Exception {
         // Register struct type in context
+        org.clnlang.runtime.StructDefinition definition = new org.clnlang.runtime.StructDefinition(name, isExposed);
+        for (FieldDecl field : fields) {
+            definition.addField(field.getName(), field.getType());
+        }
+        context.getGlobalContext().registerStructType(name, definition);
     }
 
     /**
