@@ -1,10 +1,11 @@
 package org.clnlang.compile.declaration;
 
-import org.clnlang.compile.CompiledAction;
-import org.clnlang.runtime.ExecutionContext;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import org.clnlang.compile.CompiledAction;
+import org.clnlang.runtime.ExecutionContext;
+import org.clnlang.runtime.Linker;
 
 /**
  * Compiled representation of a complete program.
@@ -43,9 +44,14 @@ public class ProgramImpl implements CompiledAction {
         return declarations;
     }
 
-    @Override
     public void execute(ExecutionContext context) throws Exception {
-        //TODO
+        // TODO
+    }
+
+    public void registerImports(Linker linker) throws Exception {
+        for (ImportDeclImpl importDecl : imports) {
+            linker.registerImport(importDecl);
+        }
     }
 
     public void populateContext(ExecutionContext context) throws Exception {
@@ -53,25 +59,19 @@ public class ProgramImpl implements CompiledAction {
         if (packageDecl != null) {
             packageDecl.execute(context);
         }
-        
-        for (ImportDeclImpl importDecl : imports) {
-            importDecl.execute(context);
-        }
-        
+
         // Register all type definitions, functions, and global variables
         for (CompiledAction decl : declarations) {
             if (decl instanceof StructDeclImpl) {
                 StructDeclImpl structDecl = (StructDeclImpl) decl;
                 context.getGlobalContext().registerStructType(
-                    structDecl.getName(), 
-                    structDecl.toStructDefinition()
-                );
+                        structDecl.getName(),
+                        structDecl.toStructDefinition());
             } else if (decl instanceof UnionDeclImpl) {
                 UnionDeclImpl unionDecl = (UnionDeclImpl) decl;
                 context.getGlobalContext().registerUnionType(
-                    unionDecl.getName(), 
-                    unionDecl.toUnionDefinition()
-                );
+                        unionDecl.getName(),
+                        unionDecl.toUnionDefinition());
             } else if (decl instanceof FunctionDeclImpl) {
                 FunctionDeclImpl funcDecl = (FunctionDeclImpl) decl;
                 context.getGlobalContext().registerFunction(funcDecl.getName(), funcDecl);

@@ -92,7 +92,7 @@ class MainTest {
         assertTrue(output.contains("Loading file: " + clnFile.toString()));
         assertTrue(output.contains("Parsing completed successfully."));
         assertTrue(output.contains("Compilation completed successfully."));
-        assertTrue(output.contains("Program executed, context populated."));
+        assertTrue(output.contains("Program context populated."));
         assertTrue(output.contains("Found 'main' function."));
         assertTrue(output.contains("=== Abstract Syntax Tree"));
     }

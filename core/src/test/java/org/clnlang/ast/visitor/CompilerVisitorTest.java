@@ -1,18 +1,41 @@
 package org.clnlang.ast.visitor;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.clnlang.compile.BlockImpl;
-import org.clnlang.compile.declaration.*;
-import org.clnlang.compile.expression.*;
-import org.clnlang.compile.statement.*;
+import org.clnlang.compile.declaration.FunctionDeclImpl;
+import org.clnlang.compile.declaration.ImportDeclImpl;
+import org.clnlang.compile.declaration.ProgramImpl;
+import org.clnlang.compile.declaration.StructDeclImpl;
+import org.clnlang.compile.declaration.UnionDeclImpl;
+import org.clnlang.compile.expression.BinaryExprImpl;
+import org.clnlang.compile.expression.BoolLiteralExprImpl;
+import org.clnlang.compile.expression.CallExprImpl;
+import org.clnlang.compile.expression.IdentifierExprImpl;
+import org.clnlang.compile.expression.IndexAccessExprImpl;
+import org.clnlang.compile.expression.IntLiteralExprImpl;
+import org.clnlang.compile.expression.MemberAccessExprImpl;
+import org.clnlang.compile.expression.StringLiteralExprImpl;
+import org.clnlang.compile.expression.StructLiteralExprImpl;
+import org.clnlang.compile.expression.UnaryExprImpl;
+import org.clnlang.compile.statement.AssignStmtImpl;
+import org.clnlang.compile.statement.IfStmtImpl;
+import org.clnlang.compile.statement.ReturnStmtImpl;
+import org.clnlang.compile.statement.TupleAssignStmtImpl;
+import org.clnlang.compile.statement.VarDeclStmtImpl;
+import org.clnlang.compile.statement.WhileStmtImpl;
 import org.clnlang.parser.clnLexer;
 import org.clnlang.parser.clnParser;
 import org.clnlang.runtime.ExecutionContext;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for CompilerVisitor

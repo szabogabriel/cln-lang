@@ -1,18 +1,33 @@
 package org.clnlang.parser;
 
-import org.antlr.v4.runtime.CharStream;
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.clnlang.ast.BlockNode;
-import org.clnlang.ast.declaration.*;
-import org.clnlang.ast.expression.*;
-import org.clnlang.ast.statement.*;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.clnlang.ast.BlockNode;
+import org.clnlang.ast.declaration.FunctionDeclNode;
+import org.clnlang.ast.declaration.ImportDeclNode;
+import org.clnlang.ast.declaration.PackageDeclNode;
+import org.clnlang.ast.declaration.ProgramNode;
+import org.clnlang.ast.declaration.StructDeclNode;
+import org.clnlang.ast.declaration.UnionDeclNode;
+import org.clnlang.ast.expression.BinaryExpr;
+import org.clnlang.ast.expression.CallExpr;
+import org.clnlang.ast.expression.IdentifierExpr;
+import org.clnlang.ast.expression.IntLiteralExpr;
+import org.clnlang.ast.expression.MemberAccessExpr;
+import org.clnlang.ast.expression.StructLiteralExpr;
+import org.clnlang.ast.statement.AssignStmt;
+import org.clnlang.ast.statement.IfStmt;
+import org.clnlang.ast.statement.ReturnStmt;
+import org.clnlang.ast.statement.VarDeclStmt;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test suite for the Clean language parser and AST builder.

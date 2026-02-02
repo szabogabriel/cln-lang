@@ -21,7 +21,7 @@ public class GlobalContext {
     
     // Storage for global variables with their runtime values
     private final Map<String, GlobalVariable> globalVariables;
-    
+
     // Current package name
     private String packageName;
     
