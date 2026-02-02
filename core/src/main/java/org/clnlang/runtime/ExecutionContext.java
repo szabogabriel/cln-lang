@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 
+import org.clnlang.compile.declaration.ImportDeclImpl;
+
 /**
  * Execution context for the compiled program.
  * Contains global context, call stack, and manages function invocations.
@@ -16,6 +18,8 @@ public class ExecutionContext {
     
     // Call stack for tracking function invocations
     private final Deque<CallFrame> callStack;
+
+    private final List<ImportDeclImpl> imports = new ArrayList<>();
     
     public ExecutionContext() {
         this.globalContext = new GlobalContext();
@@ -166,5 +170,9 @@ public class ExecutionContext {
     public void setLocalContext(LocalContext localContext) {
         // This method is kept for backward compatibility
         // In the new design, contexts are managed through CallFrames
+    }
+
+    public void registerImport(ImportDeclImpl importDecl) {
+        imports.add(importDecl);
     }
 }

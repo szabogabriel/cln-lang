@@ -48,16 +48,14 @@ public class ProgramImpl implements CompiledAction {
         // TODO
     }
 
-    public void registerImports(Linker linker) throws Exception {
-        for (ImportDeclImpl importDecl : imports) {
-            linker.registerImport(importDecl);
-        }
-    }
-
     public void populateContext(ExecutionContext context) throws Exception {
         // First, register all declarations in the context
         if (packageDecl != null) {
             packageDecl.execute(context);
+        }
+
+        for (ImportDeclImpl importDecl : imports) {
+            context.registerImport(importDecl);
         }
 
         // Register all type definitions, functions, and global variables

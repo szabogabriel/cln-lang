@@ -72,7 +72,6 @@ public class Main {
 
         log("Resolving imports...");
         Linker linker = new Linker();
-        program.registerImports(linker);
         linker.resolveImports(context);
         log("Imports resolved.");
 

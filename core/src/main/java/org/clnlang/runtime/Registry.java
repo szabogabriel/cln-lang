@@ -11,16 +11,20 @@ import org.clnlang.compile.declaration.GlobalVarDeclImpl;
 public enum Registry {
     INSTANCE;
 
-    private final Set<String> registeredPackageNames = new HashSet<>();
-
-    private final Set<String> registeredNodes = new HashSet<>();
+    private final Set<String> registeredNames = new HashSet<>();
     
-    private final Map<String, FunctionDeclImpl> registeredFunctions = new HashMap<>();
+    private final Map<FullyQualifiedName, FunctionDeclImpl> registeredFunctions = new HashMap<>();
 
-    private final Map<String, GlobalVarDeclImpl> registeredGlobalVariables = new HashMap<>();
+    private final Map<FullyQualifiedName, GlobalVarDeclImpl> registeredGlobalVariables = new HashMap<>();
 
-    private final Map<String, StructDefinition> registeredStructTypes = new HashMap<>();
+    private final Map<FullyQualifiedName, StructDefinition> registeredStructTypes = new HashMap<>();
 
-    private final Map<String, UnionDefinition> registeredUnionTypes = new HashMap<>();
+    private final Map<FullyQualifiedName, UnionDefinition> registeredUnionTypes = new HashMap<>();
     
+    public void registerFunction(FullyQualifiedName name, FunctionDeclImpl function) {
+        for (String it : name.getParts()) {
+           registeredNames.add(it);
+        }
+        registeredFunctions.put(name, function);
+    }
 }
