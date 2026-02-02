@@ -1,7 +1,8 @@
-package org.clnlang.runtime.execution;
+package org.clnlang.linker;
 
 import org.clnlang.runtime.context.ExecutionContext;
 import org.clnlang.runtime.context.GlobalContext;
+import org.clnlang.runtime.execution.Registry;
 import org.clnlang.runtime.types.FullyQualifiedName;
 import org.clnlang.runtime.types.StructDefinition;
 import org.clnlang.runtime.types.UnionDefinition;

@@ -21,12 +21,12 @@ import org.clnlang.compile.declaration.FunctionDeclImpl;
 import org.clnlang.compile.declaration.ProgramImpl;
 import org.clnlang.exception.ClnException;
 import org.clnlang.lib.StandardLibrary;
+import org.clnlang.linker.Linker;
 import org.clnlang.parser.ClnASTBuilder;
 import org.clnlang.parser.clnLexer;
 import org.clnlang.parser.clnParser;
 import org.clnlang.runtime.context.ExecutionContext;
 import org.clnlang.runtime.execution.FunctionInvoker;
-import org.clnlang.runtime.execution.Linker;
 import org.clnlang.runtime.execution.Registry;
 
 public class Main {
