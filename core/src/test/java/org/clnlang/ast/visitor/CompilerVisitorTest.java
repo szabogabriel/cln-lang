@@ -494,13 +494,19 @@ public class CompilerVisitorTest {
     @Test
     public void testStructLiteral() {
         String source = """
+            struct Point {
+                var int x;
+                var int y;
+            };
+            
             (int result = 0) test() {
                 Point p = Point(x: 10, y: 20);
             }
             """;
         ProgramImpl program = compileProgram(source);
         
-        FunctionDeclImpl func = (FunctionDeclImpl) program.getDeclarations().get(0);
+        // Function is now the second declaration (after struct)
+        FunctionDeclImpl func = (FunctionDeclImpl) program.getDeclarations().get(1);
         BlockImpl block = (BlockImpl) func.getBlock();
         VarDeclStmtImpl varDecl = (VarDeclStmtImpl) block.getStatements().get(0);
         

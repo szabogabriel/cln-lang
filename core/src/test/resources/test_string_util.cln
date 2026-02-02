@@ -9,38 +9,38 @@ import std.str.toLower;
 import std.str.trim;
 
 (var int ret = 0) testIntToStr() {
-    var String result = intToStr(42);
+    var string result = intToStr(42);
     writeLine(result);
     return;
 }
 
 (var int ret = 0) testStrLen() {
     var int result = strLen("Hello");
-    var String lenStr = intToStr(result);
+    var string lenStr = intToStr(result);
     writeLine(lenStr);
     return;
 }
 
 (var int ret = 0) testStrCat() {
-    var String result = strCat("Hello, ", "World!");
+    var string result = strCat("Hello, ", "World!");
     writeLine(result);
     return;
 }
 
 (var int ret = 0) testToUpper() {
-    var String result = toUpper("hello");
+    var string result = toUpper("hello");
     writeLine(result);
     return;
 }
 
 (var int ret = 0) testToLower() {
-    var String result = toLower("WORLD");
+    var string result = toLower("WORLD");
     writeLine(result);
     return;
 }
 
 (var int ret = 0) testTrim() {
-    var String result = trim("  spaces  ");
+    var string result = trim("  spaces  ");
     writeLine(result);
     return;
 }

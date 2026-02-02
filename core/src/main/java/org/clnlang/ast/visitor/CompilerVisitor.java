@@ -9,7 +9,9 @@ import org.clnlang.parser.clnBaseVisitor;
 import org.clnlang.parser.clnParser;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Compiles ANTLR parse tree into executable CompiledAction objects.
@@ -20,12 +22,29 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
     // Track the current function being compiled to access return variables
     private FunctionDeclImpl currentFunction = null;
     
+    // Track defined types for validation
+    private Set<String> definedTypes = new HashSet<>();
+    
     /**
      * Compile a program from the parse tree
      */
     public ProgramImpl compileProgram(clnParser.ProgramContext ctx) {
         ProgramImpl program = new ProgramImpl();
         
+        // First pass: collect all type definitions
+        definedTypes.clear();
+        for (clnParser.TopLevelDeclContext topLevel : ctx.topLevelDecl()) {
+            if (topLevel.decl() != null) {
+                clnParser.DeclContext decl = topLevel.decl();
+                if (decl.structDecl() != null) {
+                    definedTypes.add(decl.structDecl().ID().getText());
+                } else if (decl.unionDecl() != null) {
+                    definedTypes.add(decl.unionDecl().ID().getText());
+                }
+            }
+        }
+        
+        // Second pass: compile declarations with type validation
         for (clnParser.TopLevelDeclContext topLevel : ctx.topLevelDecl()) {
             if (topLevel.packageDecl() != null) {
                 PackageDeclImpl pkg = compilePackageDecl(topLevel.packageDecl());
@@ -93,6 +112,10 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
         boolean isMutable = binding.VAR() != null;
         String type = binding.type().getText();
         String name = binding.ID().getText();
+        
+        // Validate type
+        validateType(type, binding.type().getStart().getLine());
+        
         CompiledExpr initializer = compileExpression(binding.expr());
         
         return new GlobalVarDeclImpl(isMutable, type, name, initializer, isExposed);
@@ -110,6 +133,10 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
             for (clnParser.ReturnVarContext retVar : ctx.namedReturnSig().returnVar()) {
                 String type = retVar.type().getText();
                 String varName = retVar.ID().getText();
+                
+                // Validate return type
+                validateType(type, retVar.type().getStart().getLine());
+                
                 func.addReturnVar(type, varName);
             }
         }
@@ -119,6 +146,10 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
             for (clnParser.ParamContext param : ctx.paramList().param()) {
                 String type = param.type().getText();
                 String paramName = param.ID().getText();
+                
+                // Validate parameter type
+                validateType(type, param.type().getStart().getLine());
+                
                 func.addParameter(type, paramName);
             }
         }
@@ -149,6 +180,10 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
         for (clnParser.StructFieldDeclContext field : ctx.structFieldDecl()) {
             String fieldType = field.type().getText();
             String fieldName = field.ID().getText();
+            
+            // Validate field type
+            validateType(fieldType, field.type().getStart().getLine());
+            
             struct.addField(fieldType, fieldName);
         }
         
@@ -228,6 +263,10 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
         boolean isVar = ctx.VAR() != null;
         String type = ctx.type().getText();
         String name = ctx.ID().getText();
+        
+        // Validate type
+        validateType(type, ctx.type().getStart().getLine());
+        
         CompiledExpr initializer = compileExpression(ctx.expr());
         
         return new VarDeclStmtImpl(isVar, type, name, initializer);
@@ -272,6 +311,10 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
             boolean isVar = bind.VAR() != null;
             String type = bind.type().getText();
             String name = bind.ID().getText();
+            
+            // Validate type
+            validateType(type, bind.type().getStart().getLine());
+            
             bindings.add(new TupleAssignStmtImpl.TupleBind(isVar, type, name));
         }
         
@@ -575,5 +618,28 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
         
         return new StructLiteralExprImpl(typeName, fields);
     }
+    
+    /**
+     * Check if a type name is a primitive type
+     */
+    private boolean isPrimitiveType(String typeName) {
+        // Strip array brackets for checking base type
+        String baseType = typeName.replaceAll("\\[\\]", "");
+        return baseType.equals("int") || baseType.equals("bool") || baseType.equals("string");
+    }
+    
+    /**
+     * Validate that a type exists (either primitive or user-defined)
+     */
+    private void validateType(String typeName, int lineNumber) {
+        // Strip array brackets for checking base type
+        String baseType = typeName.replaceAll("\\[\\]", "");
+        
+        if (!isPrimitiveType(baseType) && !definedTypes.contains(baseType)) {
+            throw new IllegalArgumentException(
+                "line " + lineNumber + ": Unknown type '" + baseType + "'. " +
+                "Type must be one of the primitive types (int, bool, string) or a declared struct/union."
+            );
+        }
+    }
 }
-
