@@ -50,18 +50,7 @@ public class Main {
      * Main program logic that can be tested. Throws exceptions instead of calling System.exit().
      */
     public static void run(String[] args) throws Exception {
-        // Create execution context and populate it
-        ExecutionContext context = new ExecutionContext();
-        Linker linker = new Linker();
-        Registry registry = new Registry();
-        
-        // Register standard library
-        log("Registering standard library...");
-        StandardLibrary stdlib = new StandardLibrary();
-        stdlib.registerAll(registry);
-        log("Standard library registered (" + stdlib.getComponentCount() + " components).");
-
-        // Parse command-line arguments
+        // Parse command-line arguments first
         verbose = false;  // Reset the static field
         String fileName = null;
         
@@ -72,6 +61,17 @@ public class Main {
                 fileName = arg;
             }
         }
+        
+        // Create execution context and populate it
+        ExecutionContext context = new ExecutionContext();
+        Linker linker = new Linker();
+        Registry registry = new Registry();
+        
+        // Register standard library (after parsing args so log() respects verbose flag)
+        log("Registering standard library...");
+        StandardLibrary stdlib = new StandardLibrary();
+        stdlib.registerAll(registry);
+        log("Standard library registered (" + stdlib.getComponentCount() + " components).");
         
         fileName = handleSourceFileName(fileName);
         

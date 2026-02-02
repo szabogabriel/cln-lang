@@ -2,7 +2,8 @@ package main;
 
 import std.console.writeLine;
 
-(var int status = 0) main() {
+(var int ret = 0) main() {
     writeLine("Hello, World!");
+    writeLine("Hello, Janka :)");
     return;
 }
