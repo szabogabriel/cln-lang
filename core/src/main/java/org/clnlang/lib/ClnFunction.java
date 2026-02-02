@@ -1,4 +1,4 @@
-package org.clnlang.runtime.lib;
+package org.clnlang.lib;
 
 import org.clnlang.runtime.Registry;
 

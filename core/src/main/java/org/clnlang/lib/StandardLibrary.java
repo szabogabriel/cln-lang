@@ -1,7 +1,7 @@
-package org.clnlang.runtime.lib;
+package org.clnlang.lib;
 
+import org.clnlang.lib.std.Console;
 import org.clnlang.runtime.Registry;
-import org.clnlang.runtime.lib.std.io.Console;
 
 import java.util.ArrayList;
 import java.util.List;

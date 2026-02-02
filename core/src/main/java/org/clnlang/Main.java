@@ -20,6 +20,7 @@ import org.clnlang.ast.visitor.DetailedASTPrinter;
 import org.clnlang.compile.declaration.FunctionDeclImpl;
 import org.clnlang.compile.declaration.ProgramImpl;
 import org.clnlang.exception.ClnException;
+import org.clnlang.lib.StandardLibrary;
 import org.clnlang.parser.ClnASTBuilder;
 import org.clnlang.parser.clnLexer;
 import org.clnlang.parser.clnParser;
@@ -27,7 +28,6 @@ import org.clnlang.runtime.ExecutionContext;
 import org.clnlang.runtime.FunctionInvoker;
 import org.clnlang.runtime.Linker;
 import org.clnlang.runtime.Registry;
-import org.clnlang.runtime.lib.StandardLibrary;
 
 public class Main {
     private static boolean verbose = false;
