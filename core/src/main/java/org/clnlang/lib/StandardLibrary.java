@@ -2,7 +2,7 @@ package org.clnlang.lib;
 
 import org.clnlang.lib.std.Console;
 import org.clnlang.lib.std.StringUtil;
-import org.clnlang.runtime.Registry;
+import org.clnlang.runtime.execution.Registry;
 
 import java.util.ArrayList;
 import java.util.List;

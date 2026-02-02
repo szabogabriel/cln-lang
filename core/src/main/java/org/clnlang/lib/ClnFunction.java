@@ -1,6 +1,6 @@
 package org.clnlang.lib;
 
-import org.clnlang.runtime.Registry;
+import org.clnlang.runtime.execution.Registry;
 
 public interface ClnFunction {
 

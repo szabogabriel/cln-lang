@@ -1,8 +1,8 @@
 package org.clnlang.compile.expression;
 
 import org.clnlang.compile.declaration.FunctionDeclImpl;
-import org.clnlang.runtime.ExecutionContext;
-import org.clnlang.runtime.FunctionInvoker;
+import org.clnlang.runtime.context.ExecutionContext;
+import org.clnlang.runtime.execution.FunctionInvoker;
 
 import java.util.ArrayList;
 import java.util.List;

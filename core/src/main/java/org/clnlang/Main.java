@@ -24,10 +24,10 @@ import org.clnlang.lib.StandardLibrary;
 import org.clnlang.parser.ClnASTBuilder;
 import org.clnlang.parser.clnLexer;
 import org.clnlang.parser.clnParser;
-import org.clnlang.runtime.ExecutionContext;
-import org.clnlang.runtime.FunctionInvoker;
-import org.clnlang.runtime.Linker;
-import org.clnlang.runtime.Registry;
+import org.clnlang.runtime.context.ExecutionContext;
+import org.clnlang.runtime.execution.FunctionInvoker;
+import org.clnlang.runtime.execution.Linker;
+import org.clnlang.runtime.execution.Registry;
 
 public class Main {
     private static boolean verbose = false;

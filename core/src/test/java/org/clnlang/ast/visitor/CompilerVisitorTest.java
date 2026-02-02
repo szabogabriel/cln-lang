@@ -33,7 +33,7 @@ import org.clnlang.compile.statement.VarDeclStmtImpl;
 import org.clnlang.compile.statement.WhileStmtImpl;
 import org.clnlang.parser.clnLexer;
 import org.clnlang.parser.clnParser;
-import org.clnlang.runtime.ExecutionContext;
+import org.clnlang.runtime.context.ExecutionContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

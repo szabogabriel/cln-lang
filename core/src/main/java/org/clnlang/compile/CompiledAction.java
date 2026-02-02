@@ -1,6 +1,6 @@
 package org.clnlang.compile;
 
-import org.clnlang.runtime.ExecutionContext;
+import org.clnlang.runtime.context.ExecutionContext;
 
 public interface CompiledAction {
 

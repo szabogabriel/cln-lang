@@ -1,4 +1,4 @@
-package org.clnlang.runtime;
+package org.clnlang.runtime.types;
 
 import java.util.Objects;
 

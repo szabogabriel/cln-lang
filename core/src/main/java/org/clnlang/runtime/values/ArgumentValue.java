@@ -1,4 +1,4 @@
-package org.clnlang.runtime;
+package org.clnlang.runtime.values;
 
 import org.clnlang.compile.declaration.FunctionDeclImpl;
 

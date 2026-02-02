@@ -2,9 +2,9 @@ package org.clnlang.lib.std;
 
 import org.clnlang.compile.declaration.FunctionDeclImpl;
 import org.clnlang.lib.ClnFunction;
-import org.clnlang.runtime.ExecutionContext;
-import org.clnlang.runtime.FullyQualifiedName;
-import org.clnlang.runtime.Registry;
+import org.clnlang.runtime.context.ExecutionContext;
+import org.clnlang.runtime.types.FullyQualifiedName;
+import org.clnlang.runtime.execution.Registry;
 
 public class Console implements ClnFunction{
 

@@ -1,10 +1,13 @@
-package org.clnlang.runtime;
-
-import org.clnlang.compile.declaration.FunctionDeclImpl;
-import org.clnlang.compile.declaration.GlobalVarDeclImpl;
+package org.clnlang.runtime.context;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import org.clnlang.compile.declaration.FunctionDeclImpl;
+import org.clnlang.compile.declaration.GlobalVarDeclImpl;
+import org.clnlang.runtime.types.StructDefinition;
+import org.clnlang.runtime.types.UnionDefinition;
+import org.clnlang.runtime.values.GlobalVariable;
 
 /**
  * Global context holding program-wide state

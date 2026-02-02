@@ -1,7 +1,8 @@
 package org.clnlang.compile.declaration;
 
 import org.clnlang.compile.CompiledAction;
-import org.clnlang.runtime.ExecutionContext;
+import org.clnlang.runtime.context.ExecutionContext;
+import org.clnlang.runtime.types.StructDefinition;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,8 +40,8 @@ public class StructDeclImpl implements CompiledAction {
     /**
      * Create a StructDefinition from this declaration
      */
-    public org.clnlang.runtime.StructDefinition toStructDefinition() {
-        org.clnlang.runtime.StructDefinition definition = new org.clnlang.runtime.StructDefinition(name, isExposed);
+    public StructDefinition toStructDefinition() {
+        StructDefinition definition = new StructDefinition(name, isExposed);
         for (FieldDecl field : fields) {
             definition.addField(field.getName(), field.getType());
         }

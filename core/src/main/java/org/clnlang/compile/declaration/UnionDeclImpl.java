@@ -1,7 +1,8 @@
 package org.clnlang.compile.declaration;
 
 import org.clnlang.compile.CompiledAction;
-import org.clnlang.runtime.ExecutionContext;
+import org.clnlang.runtime.context.ExecutionContext;
+import org.clnlang.runtime.types.UnionDefinition;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,8 +40,8 @@ public class UnionDeclImpl implements CompiledAction {
     /**
      * Create a UnionDefinition from this declaration
      */
-    public org.clnlang.runtime.UnionDefinition toUnionDefinition() {
-        org.clnlang.runtime.UnionDefinition definition = new org.clnlang.runtime.UnionDefinition(name, isExposed);
+    public UnionDefinition toUnionDefinition() {
+        UnionDefinition definition = new UnionDefinition(name, isExposed);
         for (String memberType : members) {
             definition.addMember(memberType);
         }

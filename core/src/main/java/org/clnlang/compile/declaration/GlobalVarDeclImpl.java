@@ -2,7 +2,7 @@ package org.clnlang.compile.declaration;
 
 import org.clnlang.compile.CompiledAction;
 import org.clnlang.compile.expression.CompiledExpr;
-import org.clnlang.runtime.ExecutionContext;
+import org.clnlang.runtime.context.ExecutionContext;
 
 /**
  * Compiled representation of a global variable or constant declaration.

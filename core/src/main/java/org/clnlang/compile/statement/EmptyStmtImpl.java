@@ -1,7 +1,7 @@
 package org.clnlang.compile.statement;
 
 import org.clnlang.compile.CompiledAction;
-import org.clnlang.runtime.ExecutionContext;
+import org.clnlang.runtime.context.ExecutionContext;
 
 /**
  * Compiled representation of an empty statement.

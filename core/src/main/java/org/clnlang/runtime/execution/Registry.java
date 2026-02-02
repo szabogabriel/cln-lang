@@ -1,4 +1,8 @@
-package org.clnlang.runtime;
+package org.clnlang.runtime.execution;
+
+import org.clnlang.runtime.types.FullyQualifiedName;
+import org.clnlang.runtime.types.StructDefinition;
+import org.clnlang.runtime.types.UnionDefinition;
 
 import java.util.HashMap;
 import java.util.HashSet;
