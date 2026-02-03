@@ -1,5 +1,7 @@
 package main;
 
+import std.console.*;
+
 struct User {
     int id;
     var string name;
@@ -7,6 +9,16 @@ struct User {
 };
 
 int main() {
-  
+  User user = User(id: 100, name: "My Name", address: "Who knows...");
+
+  writeLine("Name: " + user.name);
+  writeLine("Address: " + user.address);
+
+  user.name = "Changed name";
+  user.address = "Still who knows...";
+
+  writeLine("Name: " + user.name);
+  writeLine("Address: " + user.address);
+
   return;
 }

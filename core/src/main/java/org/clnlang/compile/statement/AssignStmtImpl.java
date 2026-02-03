@@ -4,6 +4,8 @@ import org.clnlang.compile.CompiledAction;
 import org.clnlang.compile.CompiledExpr;
 import org.clnlang.runtime.context.ExecutionContext;
 
+import java.util.Map;
+
 /**
  * Compiled representation of an assignment statement.
  */
@@ -28,9 +30,9 @@ public class AssignStmtImpl implements CompiledAction {
     public void execute(ExecutionContext context) throws Exception {
         Object val = value.evaluate(context);
         
-        // Assign to lvalue
-        // For now, we only support identifier lvalues
+        // Handle different types of lvalues
         if (lvalue instanceof org.clnlang.compile.expression.IdentifierExprImpl) {
+            // Simple variable assignment: x = value
             org.clnlang.compile.expression.IdentifierExprImpl id = 
                 (org.clnlang.compile.expression.IdentifierExprImpl) lvalue;
             String varName = id.getName();
@@ -42,8 +44,39 @@ public class AssignStmtImpl implements CompiledAction {
                 // If not found in local context, throw an error
                 throw new RuntimeException("Cannot assign to undefined or constant variable: " + varName);
             }
+        } else if (lvalue instanceof org.clnlang.compile.expression.MemberAccessExprImpl) {
+            // Member access assignment: obj.field = value
+            org.clnlang.compile.expression.MemberAccessExprImpl memberAccess = 
+                (org.clnlang.compile.expression.MemberAccessExprImpl) lvalue;
+            
+            // Evaluate the object expression to get the struct instance
+            Object objValue = memberAccess.getObject().evaluate(context);
+            
+            if (objValue == null) {
+                throw new RuntimeException("Cannot assign to field '" + memberAccess.getMember() + 
+                                         "' of null object");
+            }
+            
+            // Structs are represented as Maps
+            if (objValue instanceof Map) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> structMap = (Map<String, Object>) objValue;
+                
+                // Check if the field exists (optional - you might want to allow adding new fields)
+                if (!structMap.containsKey(memberAccess.getMember())) {
+                    String typeName = (String) structMap.get("__type__");
+                    throw new RuntimeException("Struct " + (typeName != null ? typeName : "unknown") + 
+                                             " has no field '" + memberAccess.getMember() + "'");
+                }
+                
+                // Assign the new value to the field
+                structMap.put(memberAccess.getMember(), val);
+            } else {
+                throw new RuntimeException("Cannot assign to member '" + memberAccess.getMember() + 
+                                         "' on non-struct type: " + objValue.getClass().getSimpleName());
+            }
         } else {
-            // TODO: Support member access and index access lvalues
+            // TODO: Support array index access lvalues
             throw new RuntimeException("Unsupported lvalue type for assignment: " + lvalue.getClass().getSimpleName());
         }
     }

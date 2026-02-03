@@ -1,0 +1,15 @@
+package test;
+
+struct User {
+    var int ID;
+    var string name;
+};
+
+(var int exitCode = 0) main() {
+    var User user = User(ID: 123, name: "Initial");
+    user.name = "Name assigned later";
+    user.ID = 99;
+    
+    exitCode = user.ID;
+    return;
+}
