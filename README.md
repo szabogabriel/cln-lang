@@ -5,8 +5,8 @@ An interpreter for **cln**, a small embeddable scripting language with ANTLR4-ba
 ## Why cln exists
 
 - **Embeddable DSL**: Designed to be embedded in larger applications as a domain-specific scripting language
-- **Deterministic numeric behavior**: 64-bit signed integers provide consistent, predictable arithmetic across platforms (planned BigDecimal operations for real numbers)
-- **Module system with import resolution**: Package-based organization with support (planned database-backed module loading)
+- **Deterministic numeric behavior**: 64-bit signed integers provide consistent, predictable arithmetic across platforms
+- **Module system with import resolution**: Package-based organization with wildcard import support
 - **Domain data modeling**: Structs and unions enable clear representation of business domain entities
 - **Pattern matching**: Switch/case on union types allows elegant handling of variant data
 - **Simple, readable syntax**: Familiar C-like syntax with modern features like tuple destructuring and named returns
@@ -23,6 +23,7 @@ An interpreter for **cln**, a small embeddable scripting language with ANTLR4-ba
 - **Expressions**:
   - Binary operators: `+`, `-`, `*`, `/`, `==`, `!=`, `<`, `<=`, `>`, `>=`, `&&`, `||`
   - Unary operators: `!`, `-`
+  - Increment/decrement operators: `++`, `--` (both prefix and postfix)
   - Literals: integers, booleans, strings
   - Identifiers and function calls
   - String concatenation with `+` operator
@@ -48,10 +49,11 @@ An interpreter for **cln**, a small embeddable scripting language with ANTLR4-ba
   - **Struct field access**: Read and write struct fields
   - **Union declarations**: Type definitions for tagged unions
 - **Integer Type**: 64-bit signed integers (using Java `long`, range: -2^63 to 2^63-1)
-- **Standard Library**: Console I/O (`std.console.writeLine`, `std.console.write`)
+- **Standard Library**: Console I/O (`std.console.writeLine`, `std.console.write`, `std.console.readLine`)
 - **String Utilities**: `intToStr` function for integer-to-string conversion
 - **Error Handling**: Comprehensive exception handling with detailed error messages
-- **Type Safety**: Runtime type checking for operators and conditionals
+- **Type Safety**: Runtime type checking for operators and conditionals with strict primitive type validation (case-sensitive: `int`, `bool`, `string`)
+- **Global Variables**: Full support for mutable global variables with `var` keyword
 
 ### 🚧 Partially Implemented
 
@@ -62,7 +64,6 @@ An interpreter for **cln**, a small embeddable scripting language with ANTLR4-ba
 
 - **Index Access**: Array indexing (`[]` operator) not functional
 - **Assignment to array elements**: Array element assignment not implemented
-- **Global Variables**: Parsing exists but not handled in compilation
 - **Array Operations**: No array creation, indexing, or manipulation
 - **Type Checking**: Static type checking not implemented (runtime only)
 - **Semantic Analysis**: No compile-time validation beyond basic type checks
@@ -111,8 +112,8 @@ core/
 
 ### Prerequisites
 
-- Java 17 or higher
-- Maven 3.6 or higher
+- Java 21 or higher (LTS version)
+- Maven 3.9 or higher
 
 ### Building the Project
 
@@ -219,14 +220,16 @@ int add(int a, int b) {
   - Arithmetic: `+`, `-`, `*`, `/`
   - Comparison: `<`, `<=`, `>`, `>=`, `==`, `!=`
   - Logical: `&&`, `||`, `!`
+  - Increment/Decrement: `++`, `--` (prefix: `++x`, postfix: `x++`)
 - **Tuple assignment**: `(var x, var y) = functionReturningTwo();`
 - **String operations**: String concatenation with `+`, `intToStr()` conversion
 
-### Known Limitations
+### Union Types and Pattern Matching
 
-- **Union type parameters**: Cannot pass struct instances directly to functions expecting union types (implicit upcasting not implemented)
-- **Exit codes**: Process exit codes are 8-bit (0-255), so values > 255 are truncated via modulo operation
-- **Structs**: Represented internally as `Map<String, Object>` with `__type__` metadata
+```cln
+struct Circle {
+    var int radius;
+};
 
 struct Rectangle {
     var int width;
@@ -250,48 +253,87 @@ union Shape {
     }
     return;
 }
+```
 
-(var int exitCode = 0) main() {
-    // Create and manipulate structs
-    var Circle myCircle = Circle(radius: 5);
-    var int area = myCircle.radius * myCircle.radius * 3;
+### Increment and Decrement Operators
+
+```cln
+(var int ret = 0) main() {
+    var int x = 5;
     
-    // Modify struct fields
-    myCircle.radius = 10;
+    // Prefix increment - returns new value
+    writeLine("++x = " + intToStr(++x));  // Outputs: ++x = 6
+    writeLine("x = " + intToStr(x));      // Outputs: x = 6
     
-    exitCode = 0;
+    // Postfix increment - returns old value
+    writeLine("x++ = " + intToStr(x++));  // Outputs: x++ = 6
+    writeLine("x = " + intToStr(x));      // Outputs: x = 7
+    
+    // Works in expressions
+    var int y = 10 + x++;  // y gets 17, x becomes 8
+    
     return;
 }
 ```
+
+### Global Variables
+
+```cln
+package main;
+
+import std.console.*;
+import std.str.*;
+
+// Global mutable variable
+var int globalCounter = 0;
+
+// Global constant
+string greeting = "Hello";
+
+increment() {
+    globalCounter = globalCounter + 1;  // Can modify with 'var' keyword
+    return;
+}
+
+int main() {
+    writeLine("Counter: " + intToStr(globalCounter));
+    increment();
+    writeLine("Counter: " + intToStr(globalCounter));
+    return 0;
+}
+### Known Limitations
+
+- **Union type parameters**: Cannot pass struct instances directly to functions expecting union types (implicit upcasting not implemented)
+- **Exit codes**: Process exit codes are 8-bit (0-255), so values > 255 are truncated via modulo operation
+- **Structs**: Represented internally as `Map<String, Object>` with `__type__` metadata
+- **Type names**: Primitive type names are case-sensitive and must be lowercase (`int`, `bool`, `string`)
+- **Variable mutability**: Variables must be declared with `var` keyword to be modifiable
 
 ### Currently Supported Language Constructs
 
 - **Package declarations**: `package main;`
 - **Imports**: `import std.console.writeLine;` or `import std.console.*;`
 - **Functions**: With named return variables and multiple return values
-- **Variables**: `var int x = 10;` or type-inferred `var x = 10;`
-- **Control flow**: `if/else` statements and `while` loops
+- **Variables**: 
+  - Mutable: `var int x = 10;` or type-inferred `var x = 10;`
+  - Constant: `int x = 10;` or `string name = "value";`
+- **Structs**: Full declaration, instantiation, field access, and modification support
+- **Unions**: Declaration and switch/case pattern matching
+- **Control flow**: `if/else` statements, `while` loops, and `switch/case` on union types
 - **Operators**:
   - Arithmetic: `+`, `-`, `*`, `/`
   - Comparison: `<`, `<=`, `>`, `>=`, `==`, `!=`
   - Logical: `&&`, `||`, `!`
+  - Increment/Decrement: `++`, `--`
 - **Tuple assignment**: `(var x, var y) = functionReturningTwo();`
 - **String operations**: String concatenation with `+`, `intToStr()` conversion
+- **Global variables**: Both mutable (`var`) and constant declarations
 
 ### Language Constructs Not Yet Functional
 
-- **Structs**: Defined in grammar but construction/access not implemented
-  ```cln
-  struct Point {
-      var int x;
-      var int y;
-  };
-  ```
-- **Unions**: Defined but pattern matching not implemented
-- **Switch statements**: Parsed but case matching not implemented
-- **Arrays**: Grammar exists but no runtime support
-- **Member access**: `.` operator for struct fields
-- **Index access**: `[]` operator for arrays
+- **Arrays**: Grammar exists but no runtime support for creation, indexing, or manipulation
+- **Union type coercion**: Cannot implicitly upcast struct instances to union types
+- **Static type checking**: Only runtime type validation is performed
 
 ## Architecture
 
@@ -343,91 +385,140 @@ The language grammar is defined in `src/main/antlr4/org/clnlang/parser/cln.g4`
 
 ## Example Programs
 
-Test programs in `core/src/test/resources/`:
+Example programs in `examples/` directory:
 
-- **test_hello.cln** - Hello world with console output
-- **test_condition.cln** - If/else conditionals with boolean expressions
-- **test_string_util.cln** - String manipulation with `intToStr()`
-- **test_unary_expr.cln** - Unary operators (`!`, `-`)
-- **test_compiler.cln** - Basic compilation tests
-- **test_program.cln** - Multiple language features
-- **test_union.cln** - Union type declarations
+**Demonstrations:**
+- `hello_world.cln` - Simple hello world program
+- `demo_console.cln` - Console I/O with `readLine()` and `write()`
+- `demo_functions.cln` - Function declarations with multiple return values
+- `demo_simple_return.cln` - Simple return value functions
+- `demo_string_util.cln` - String operations and `intToStr()`
+- `demo_struct.cln` - Struct declaration, instantiation, and field access
+- `demo_switch.cln` - Switch/case pattern matching on union types
+- `demo_while.cln` - While loop examples
+- `demo_exit_code.cln` - Main function exit codes
+- `demo_both_syntaxes.cln` - Different syntax variations
 
-Working example programs in `core/`:
+**Tests:**
+- `test_global_var.cln` - Mutable global variables
+- `test_increment.cln` - Increment/decrement operators (++/--)
+- `test_struct.cln` - Struct operations
+- `test_member_assign.cln` - Struct field assignment
+- `test_switch_simple.cln` - Simple switch/case
+- `test_math.cln` - Mathematical operations
+- `test_long_range.cln` - 64-bit integer range testing
+- `test_simple_add.cln` - Basic arithmetic
+- `test_no_return.cln` - Functions without return values
+- `test_exit_code.cln` - Exit code behavior
+- `test_triangle.cln` - Triangle calculations
+- `test_one_shape.cln` - Single shape example
 
-- **test_hello.cln** - Simple hello world
-- **test_return_simple.cln** - Single return value functions
-- **test_return_multi.cln** - Multiple return values with tupl - Package structure and organization
-- [STATEMENTS_AND_EXPRESSIONS.md](changelog/STATEMENTS_AND_EXPRESSIONS.md) - Statement and expression implementations
-- [VISITOR_PATTERN.md](changelog/VISITOR_PATTERN.md) - Visitor pattern usage
+Additional test files in `core/src/test/resources/`:
+- `test_hello.cln` - Basic hello test
+- `test_condition.cln` - Conditional statements
+- `test_string_util.cln` - String utility tests
+- `test_unary_expr.cln` - Unary operator tests
+- `test_compiler.cln` - Compilation tests
+- `test_program.cln` - Comprehensive feature tests
+- `test_union.cln` - Union type tests## Development Roadmap
 
-## Recent Updates
+### ✅ Completed
 
-- ✅ **Operator Enum**: Refactored binary operators from strings to type-safe enum
-- ✅ **Multiple Return Values**: Functions can now return multiple values with tuple destructuring
-- ✅ **Boolean Validation**: Proper type checking for conditional expressions
-- ✅ **Binary Expression Evaluation**: All operators fully implemented with type checking
-- ✅ **Improved Error Messages**: Better runtime error reporting for type mismatches
+1. **Core Language Features**
+   - ✅ ANTLR4 parser and lexer
+   - ✅ AST construction and compilation
+   - ✅ Runtime execution engine
+   - ✅ Function calls and multiple return values
+   - ✅ Binary operators (arithmetic, comparison, logical)
+   - ✅ Unary operators (!, -)
+   - ✅ Increment/decrement operators (++, --)
+   - ✅ Control flow (if/else, while, switch/case)
+   - ✅ Struct declaration, instantiation, and field operations
+   - ✅ Union declarations and pattern matching
+   - ✅ Global variables (mutable with `var`, constant without)
+   - ✅ Type validation with runtime checking
+   - ✅ String concatenation and utilities
+   - ✅ Standard library (console I/O, string conversion)
+
+2. **Type System**
+   - ✅ Primitive types (int, bool, string)
+   - ✅ Struct types with field access
+   - ✅ Union types for tagged variants
+   - ✅ Type-safe operators with runtime validation
+   - ✅ Case-sensitive type names
+
+3. **Java 21 Upgrade**
+   - ✅ Migrated from Java 17 to Java 21 LTS
+   - ✅ All tests passing (62 unit tests)
+
+### 🚧 In Progress / Planned
+
+4. **Arrays**
+   - Grammar support exists
+   - Runtime implementation needed:
+     - Array creation and initialization
+     - Index access operator (`[]`)
+     - Array element assignment
+     - Array methods (length, iteration)
+
+5. **Union Type Enhancements**
+   - Implicit upcasting from struct to union types
+   - Type coercion for function parameters
+
+6. **Static Type Checking**
+   - Compile-time type validation
    - Type inference improvements
    - Better error messages for type mismatches
 
-6. **Global Variables**
-   - Global variable compilation
-   - Proper scope management
-
-### Low Priority
+### 📋 Future Enhancements
 
 7. **Standard Library Expansion**
    - String manipulation functions
-   - Math operations
-   - File I/O
+   - Math operations (sqrt, pow, abs, etc.)
+   - File I/O operations
+   - Collection utilities
 
-8. **Optimization**
+8. **Language Features**
+   - For loops with iterators
+   - Break and continue statements
+   - Enhanced pattern matching
+   - String interpolation
+
+9. **Optimization**
    - Performance improvements
-   - Memory management
+   - Memory management optimizations
+   - Bytecode compilation (optional)
 
-9. **Advanced Features**
-   - Generics
-   - Closures
-   - Advanced pattern matching
+10. **Developer Experience**
+    - Better error messages with line/column numbers
+    - Debug support
+    - Language server protocol implementation
+    - Syntax highlighting for editors
 
-## License
+## Recent Updates
 
-See [LICENSE](LICENSE) file for details.
+### February 2026
+- ✅ **Increment/Decrement Operators**: Added `++` and `--` operators with both prefix and postfix support
+- ✅ **Global Variable Support**: Full implementation of mutable global variables with `var` keyword
+- ✅ **Unary Operator Fixes**: Fixed negation (`!`) and unary minus (`-`) operators
+- ✅ **Type Validation**: Strict case-sensitive type checking for primitive types
+- ✅ **Java 21 Upgrade**: Migrated from Java 17 to Java 21 LTS
+
+### Earlier Updates
+- ✅ **Operator Enum**: Refactored binary operators from strings to type-safe enum
+- ✅ **Multiple Return Values**: Functions can return multiple values with tuple destructuring
+- ✅ **Boolean Validation**: Proper type checking for conditional expressions
+- ✅ **Binary Expression Evaluation**: All operators fully implemented with type checking
+- ✅ **Struct Operations**: Complete struct field access and modification
+- ✅ **Switch/Case Pattern Matching**: Union type pattern matching with variable binding
 
 ## Changelog
 
 See [changelog/](changelog/) directory for detailed change history:
-- [PACKAGE_ORGANIZATION.md](changelog/PACKAGE_ORGANIZATION.md)
-- [STATEMENTS_AND_EXPRESSIONS.md](changelog/STATEMENTS_AND_EXPRESSIONS.md)
-- [VISITOR_PATTERN.md](changelog/VISITOR_PATTERN.md)
-}
+- [PACKAGE_ORGANIZATION.md](changelog/PACKAGE_ORGANIZATION.md) - Package structure and organization
+- [STATEMENTS_AND_EXPRESSIONS.md](changelog/STATEMENTS_AND_EXPRESSIONS.md) - Statement and expression implementations
+- [VISITOR_PATTERN.md](changelog/VISITOR_PATTERN.md) - Visitor pattern usage
 
-// Use the visitor
-MyVisitor visitor = new MyVisitor();
-String result = visitor.visit(tree);
-```
+## License
 
-## Maven Configuration Details
-
-The `pom.xml` includes:
-
-- **ANTLR4 Runtime Dependency**: Required at runtime to execute generated parser code
-- **ANTLR4 Maven Plugin**: Generates Java classes from `.g4` grammar files
-- **Plugin Configuration**:
-  - `listener=true`: Generates listener interfaces and base classes
-  - `visitor=true`: Generates visitor interfaces and base classes
-  - `outputDirectory`: Where generated sources are placed
-
-## Next Steps
-
-You can now:
-
-1. Create custom listeners by extending `clnBaseListener`
-2. Create custom visitors by extending `clnBaseVisitor`
-3. Build an Abstract Syntax Tree (AST) from the parse tree
-4. Implement semantic analysis, type checking, and code generation
-
-## Example Program
-
-See [test_program.cln](../test_program.cln) for a sample cln language program.
+See [LICENSE](LICENSE) file for details.
