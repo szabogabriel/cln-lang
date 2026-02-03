@@ -1,0 +1,18 @@
+package main;
+
+import std.console.*;
+import std.str.*;
+
+var int globalVar = 123;
+string globalString = "This is global string";
+
+int main() {
+    writeLine("Global variable: " + intToStr(globalVar));
+    writeLine("Global string: " + globalString);
+
+    globalVar = 234;    
+
+    writeLine("Global variable: " + intToStr(globalVar));
+
+    return 0;
+}

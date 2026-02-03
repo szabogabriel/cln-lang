@@ -37,12 +37,17 @@ public class AssignStmtImpl implements CompiledAction {
                 (org.clnlang.compile.expression.IdentifierExprImpl) lvalue;
             String varName = id.getName();
             
-            // Try to update the variable in the local context
+            // Try to update the variable in the local context first
             boolean updated = context.getLocalContext().updateVariable(varName, val);
             
             if (!updated) {
-                // If not found in local context, throw an error
-                throw new RuntimeException("Cannot assign to undefined or constant variable: " + varName);
+                // Try to update in global context
+                updated = context.getGlobalContext().updateGlobalVariable(varName, val);
+                
+                if (!updated) {
+                    // If not found in either context, throw an error
+                    throw new RuntimeException("Cannot assign to undefined or constant variable: " + varName);
+                }
             }
         } else if (lvalue instanceof org.clnlang.compile.expression.MemberAccessExprImpl) {
             // Member access assignment: obj.field = value
