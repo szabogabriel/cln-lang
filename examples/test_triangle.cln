@@ -1,0 +1,17 @@
+package test;
+
+struct Triangle {
+    var int base;
+    var int height;
+};
+
+(var int result = 0) calcTriArea(Triangle t) {
+    result = (t.base * t.height) / 2;
+    return;
+}
+
+(var int exitCode = 0) main() {
+    var Triangle t = Triangle(base: 8, height: 6);
+    exitCode = calcTriArea(t);
+    return;
+}

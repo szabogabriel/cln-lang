@@ -1,0 +1,9 @@
+package main;
+
+import std.console.writeLine;
+
+// No return type specified
+main() {
+    writeLine("This program has no return value");
+    return;
+}

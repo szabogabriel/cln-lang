@@ -1,0 +1,11 @@
+package main;
+
+import std.console.readLine;
+import std.console.write;
+import std.console.writeLine;
+
+(var int ret = 0) main() {
+    write("Enter some text: ");
+    string line = readLine();
+    writeLine("You entered: " + line);
+}

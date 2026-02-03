@@ -1,0 +1,32 @@
+package test;
+
+struct Circle {
+    var int radius;
+};
+
+struct Rectangle {
+    var int width;
+};
+
+union Shape {
+    Circle;
+    Rectangle;
+};
+
+(var int result = 0) test(Shape s) {
+    switch (s) {
+        case Circle c:
+            result = c.radius;
+        case Rectangle r:
+            result = r.width;
+        default:
+            result = 999;
+    }
+    return;
+}
+
+(var int exitCode = 0) main() {
+    var Circle c = Circle(radius: 42);
+    exitCode = test(c);
+    return;
+}

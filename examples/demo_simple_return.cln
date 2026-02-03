@@ -1,0 +1,42 @@
+package main;
+
+import std.console.writeLine;
+
+// Simple return type syntax - just like C/Java
+int add(int a, int b) {
+    return a + b;
+}
+
+int multiply(int x, int y) {
+    return x * y;
+}
+
+string greet(string name) {
+    return "Hello, " + name + "!";
+}
+
+bool isPositive(int num) {
+    return num > 0;
+}
+
+// Void function (no return type)
+printNumber(int n) {
+    writeLine("Number: " + n);
+    return;
+}
+
+int main() {
+    var int sum = add(5, 3);
+    var int product = multiply(4, 7);
+    var string greeting = greet("World");
+    var bool positive = isPositive(sum);
+    
+    writeLine("Sum: " + sum);
+    writeLine("Product: " + product);
+    writeLine(greeting);
+    writeLine("Is positive: " + positive);
+    
+    printNumber(42);
+    
+    return 0;
+}

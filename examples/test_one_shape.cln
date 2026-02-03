@@ -1,0 +1,35 @@
+package test;
+
+struct Circle { var int radius; };
+struct Rectangle { var int width; var int height; };
+struct Triangle { var int base; var int height; };
+
+union Shape { Circle; Rectangle; Triangle; };
+
+(var int result = 0) calculateArea(Shape s) {
+    switch (s) {
+        case Circle c:
+            result = c.radius * c.radius * 3;
+        case Rectangle r:
+            result = r.width * r.height;
+        case Triangle t:
+            result = (t.base * t.height) / 2;
+        default:
+            result = -1;
+    }
+    return;
+}
+
+(var int exitCode = 0) main() {
+    var Circle c = Circle(radius: 5);
+    var int a1 = calculateArea(c);
+    
+    var Rectangle r = Rectangle(width: 10, height: 20);
+    var int a2 = calculateArea(r);
+    
+    var Triangle t = Triangle(base: 8, height: 6);
+    var int a3 = calculateArea(t);
+    
+    exitCode = a1;
+    return;
+}

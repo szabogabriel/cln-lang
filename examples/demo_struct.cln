@@ -1,0 +1,12 @@
+package main;
+
+struct User {
+    int id;
+    var string name;
+    var string address;
+};
+
+int main() {
+  
+  return;
+}

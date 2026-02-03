@@ -1,0 +1,8 @@
+package main;
+
+import std.console.*;
+
+int main() {
+  writeLine("Hello, World!");
+  return 1;
+}

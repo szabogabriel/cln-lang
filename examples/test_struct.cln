@@ -1,0 +1,12 @@
+package test;
+
+struct Circle {
+    var int radius;
+};
+
+(var int exitCode = 0) main() {
+    var Circle c = Circle(radius: 5);
+    var int r = c.radius;
+    exitCode = r;
+    return;
+}

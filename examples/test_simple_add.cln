@@ -1,0 +1,9 @@
+package test;
+
+(var int exitCode = 0) main() {
+    var int a = 75;
+    var int b = 200;
+    var int c = 24;
+    exitCode = a + b + c;
+    return;
+}

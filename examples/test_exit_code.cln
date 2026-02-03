@@ -1,0 +1,8 @@
+package main;
+
+import std.console.writeLine;
+
+int main() {
+    writeLine("This program returns exit code 5");
+    return 5;
+}

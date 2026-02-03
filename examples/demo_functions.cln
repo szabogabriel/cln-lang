@@ -1,0 +1,40 @@
+package main;
+
+import std.console.*;
+import std.str.*;
+
+no_return_value_function(string a) {
+  writeLine(a);
+  return;
+}
+
+(var int sum = 0) add(int a, int b) {
+  sum = a + b;
+  return;
+}
+
+int sub(int a, int b) {
+  return a - b;
+}
+
+(var int sum = 0, var int sub = 0) addSubtract(int a, int b) {
+  sum = a + b;
+  sub = a - b;
+  return;
+}
+
+int main() {
+  no_return_value_function("no return");
+
+  int sum = add(5, 6);
+  writeLine("Calculated sum: " + intToStr(sum));
+
+  int sub = sub(7, 8);
+  writeLine("Calculated sub: " + intToStr(sub));
+
+  (int first, int second) = addSubtract(10, 20);
+  writeLine("Calculated first value: " + intToStr(first));
+  writeLine("Calculated second value: " + intToStr(second));
+
+  return 0;
+}

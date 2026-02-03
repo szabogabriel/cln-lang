@@ -1,0 +1,66 @@
+package demo;
+
+import std.console.writeLine;
+import std.str.*;
+
+// Demo of union types and switch/case pattern matching
+// Note: This demonstrates the syntax even though union value construction
+// from member types is not yet fully implemented at runtime
+
+struct Circle {
+    var int radius;
+};
+
+struct Rectangle {
+    var int width;
+    var int height;
+};
+
+struct Triangle {
+    var int base;
+    var int height;
+};
+
+union Shape {
+    Circle;
+    Rectangle;
+    Triangle;
+};
+
+// This is not supported yet.
+(var int result = 0) calculateArea(Shape s) {
+    switch (s) {
+        case Circle c:
+            result = c.radius * c.radius * 3;
+        case Rectangle r:
+            result = r.width * r.height;
+        case Triangle t:
+            result = (t.base * t.height) / 2;
+        default:
+            result = -1;
+    }
+    return;
+}
+
+int main() {
+    Circle myCircle = Circle(radius: 3);
+    int circleArea = myCircle.radius * myCircle.radius * 3;
+    writeLine("Circle area for radius 3 is about " + intToStr(circleArea));
+    
+    Rectangle myRect = Rectangle(width: 5, height: 4);
+    int rectArea = myRect.width * myRect.height;
+    writeLine("Rectangle area for sizes 5 and 4 is: " + intToStr(rectArea));
+    
+    Triangle myTri = Triangle(base: 8, height: 6);
+    int triArea = (myTri.base * myTri.height) / 2;
+    writeLine("Triangle area for base 8 and height 6 is about " + intToStr(triArea));
+    
+    int a = 5;
+    switch(a) {
+        case 5: writeLine("Five");
+        case 4: writeLine("Four");
+        default: writeLine("Who knows");
+    }
+    
+    return 0;
+}

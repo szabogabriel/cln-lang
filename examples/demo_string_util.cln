@@ -1,0 +1,70 @@
+package main;
+
+import std.console.writeLine;
+import std.str.intToStr;
+import std.str.strLen;
+import std.str.strCat;
+import std.str.toUpper;
+import std.str.toLower;
+import std.str.trim;
+
+testIntToStr() {
+    var string result = intToStr(42);
+    writeLine(result);
+    return;
+}
+
+testStrLen() {
+    var int result = strLen("Hello");
+    var string lenStr = intToStr(result);
+    writeLine(lenStr);
+    return;
+}
+
+testStrCat() {
+    var string result = strCat("Hello, ", "World!");
+    writeLine(result);
+    return;
+}
+
+testToUpper() {
+    var string result = toUpper("hello");
+    writeLine(result);
+    return;
+}
+
+testToLower() {
+    var string result = toLower("WORLD");
+    writeLine(result);
+    return;
+}
+
+testTrim() {
+    var string result = trim("  spaces  ");
+    writeLine(result);
+    return;
+}
+
+(var string ret = "") testStringReturn() {
+    ret = "This is my return message";
+    return;
+}
+
+string testStringReturn2() {
+    return "this is a string return";
+}
+
+(var int ret = 0) main() {
+    testIntToStr();
+    testStrLen();
+    testStrCat();
+    testToUpper();
+    testToLower();
+    testTrim();
+    writeLine(testStringReturn());
+    string result2 = testStringReturn();
+    writeLine(result2);
+    writeLine("concat " + "via " + "plus-sign");
+    writeLine(testStringReturn2());
+    return;
+}

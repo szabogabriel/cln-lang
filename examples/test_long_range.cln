@@ -1,0 +1,25 @@
+package main;
+
+import std.console.writeLine;
+import std.str.intToStr;
+
+int testLargeNumbers() {
+    // Test with numbers larger than 32-bit int max (2147483647)
+    var int large1 = 5000000000;  // 5 billion
+    var int large2 = 3000000000;  // 3 billion
+    var int sum = large1 + large2;
+    
+    writeLine("Large number 1: " + intToStr(large1));
+    writeLine("Large number 2: " + intToStr(large2));
+    writeLine("Sum: " + intToStr(sum));
+    
+    // This would overflow with 32-bit int
+    writeLine("8 billion = " + intToStr(sum));
+    
+    return 0;
+}
+
+int main() {
+    testLargeNumbers();
+    return 0;
+}

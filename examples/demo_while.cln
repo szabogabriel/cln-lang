@@ -1,0 +1,13 @@
+package main;
+
+import std.console.writeLine;
+import std.str.*;
+
+int main() {
+    var int i = 10;
+    while (i > 0) {
+        writeLine("In while loop. Current value: " + intToStr(i));
+        i = i - 1;
+    }
+    return 0;
+}
