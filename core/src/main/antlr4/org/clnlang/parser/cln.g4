@@ -68,7 +68,7 @@ unionMember
 // ---- Functions ----
 
 functionDecl
-  : namedReturnSig ID LPAREN paramList? RPAREN block
+  : namedReturnSig? ID LPAREN paramList? RPAREN block
   ;
 
 namedReturnSig
