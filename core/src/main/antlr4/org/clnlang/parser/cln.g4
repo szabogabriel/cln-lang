@@ -68,7 +68,12 @@ unionMember
 // ---- Functions ----
 
 functionDecl
-  : namedReturnSig? ID LPAREN paramList? RPAREN block
+  : returnType? ID LPAREN paramList? RPAREN block
+  ;
+
+returnType
+  : type                                           // simple return type: int main()
+  | namedReturnSig                                 // named return: (var int x = 0) main()
   ;
 
 namedReturnSig

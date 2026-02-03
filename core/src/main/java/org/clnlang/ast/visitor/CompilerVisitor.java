@@ -129,16 +129,26 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
         String name = ctx.ID().getText();
         FunctionDeclImpl func = new FunctionDeclImpl(name, isExposed);
         
-        // Compile return variables from named return signature
-        if (ctx.namedReturnSig() != null) {
-            for (clnParser.ReturnVarContext retVar : ctx.namedReturnSig().returnVar()) {
-                String type = retVar.type().getText();
-                String varName = retVar.ID().getText();
-                
-                // Validate return type
-                validateType(type, retVar.type().getStart().getLine());
-                
-                func.addReturnVar(type, varName);
+        // Compile return type
+        if (ctx.returnType() != null) {
+            clnParser.ReturnTypeContext retType = ctx.returnType();
+            
+            if (retType.type() != null) {
+                // Simple return type: int main()
+                String simpleType = retType.type().getText();
+                validateType(simpleType, retType.type().getStart().getLine());
+                func.setSimpleReturnType(simpleType);
+            } else if (retType.namedReturnSig() != null) {
+                // Named return signature: (var int x = 0) main()
+                for (clnParser.ReturnVarContext retVar : retType.namedReturnSig().returnVar()) {
+                    String type = retVar.type().getText();
+                    String varName = retVar.ID().getText();
+                    
+                    // Validate return type
+                    validateType(type, retVar.type().getStart().getLine());
+                    
+                    func.addReturnVar(type, varName);
+                }
             }
         }
         

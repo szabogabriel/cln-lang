@@ -13,6 +13,7 @@ public class FunctionDeclImpl implements CompiledAction {
     private String name;
     private List<Parameter> parameters;
     private List<ReturnVar> returnVars;
+    private String simpleReturnType;  // Simple return type like "int" or null if using named returns
     private CompiledAction block;
     private boolean isExposed;
 
@@ -29,6 +30,14 @@ public class FunctionDeclImpl implements CompiledAction {
 
     public void addReturnVar(String type, String varName) {
         returnVars.add(new ReturnVar(type, varName));
+    }
+
+    public void setSimpleReturnType(String type) {
+        this.simpleReturnType = type;
+    }
+
+    public String getSimpleReturnType() {
+        return simpleReturnType;
     }
 
     public void setBlock(CompiledAction block) {

@@ -14,6 +14,7 @@ public class FunctionDeclNode extends ASTNode {
     private String name;
     private List<Parameter> parameters;
     private List<ReturnVar> returnVars;
+    private String simpleReturnType;  // Simple return type like "int" or null if using named returns
     private BlockNode block;
     private boolean isExposed;
 
@@ -30,6 +31,14 @@ public class FunctionDeclNode extends ASTNode {
 
     public void addReturnVar(String type, String varName) {
         returnVars.add(new ReturnVar(type, varName));
+    }
+
+    public void setSimpleReturnType(String type) {
+        this.simpleReturnType = type;
+    }
+
+    public String getSimpleReturnType() {
+        return simpleReturnType;
     }
 
     public void setBlock(BlockNode block) {

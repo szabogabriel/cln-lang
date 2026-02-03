@@ -106,13 +106,22 @@ public class ClnASTBuilder extends clnBaseVisitor<ASTNode> {
         String functionName = ctx.ID().getText();
         FunctionDeclNode function = new FunctionDeclNode(functionName, isExposed);
         
-        // Process return variables
-        clnParser.NamedReturnSigContext returnSig = ctx.namedReturnSig();
-        if (returnSig != null) {
-            for (clnParser.ReturnVarContext retVar : returnSig.returnVar()) {
-                String type = getTypeString(retVar.type());
-                String name = retVar.ID().getText();
-                function.addReturnVar(type, name);
+        // Process return type
+        if (ctx.returnType() != null) {
+            clnParser.ReturnTypeContext retType = ctx.returnType();
+            
+            if (retType.type() != null) {
+                // Simple return type: int main()
+                String simpleType = getTypeString(retType.type());
+                function.setSimpleReturnType(simpleType);
+            } else if (retType.namedReturnSig() != null) {
+                // Named return signature: (var int x = 0) main()
+                clnParser.NamedReturnSigContext returnSig = retType.namedReturnSig();
+                for (clnParser.ReturnVarContext retVar : returnSig.returnVar()) {
+                    String type = getTypeString(retVar.type());
+                    String name = retVar.ID().getText();
+                    function.addReturnVar(type, name);
+                }
             }
         }
         
