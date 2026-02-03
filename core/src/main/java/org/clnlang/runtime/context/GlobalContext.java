@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.clnlang.compile.declaration.FunctionDeclImpl;
 import org.clnlang.compile.declaration.GlobalVarDeclImpl;
+import org.clnlang.exception.OverloadingNotSupportedException;
 import org.clnlang.runtime.types.StructDefinition;
 import org.clnlang.runtime.types.UnionDefinition;
 import org.clnlang.runtime.values.GlobalVariable;
@@ -37,6 +38,9 @@ public class GlobalContext {
     
     // Struct type methods
     public void registerStructType(String name, StructDefinition definition) {
+        if (hasStructType(name)) {
+            throw new OverloadingNotSupportedException("Struct " + name + " is already defined.");
+        }
         structTypes.put(name, definition);
     }
     
@@ -50,6 +54,9 @@ public class GlobalContext {
     
     // Union type methods
     public void registerUnionType(String name, UnionDefinition definition) {
+        if (hasUnionType(name)) {
+            throw new OverloadingNotSupportedException("Union " + name + " is already defined.");
+        }
         unionTypes.put(name, definition);
     }
     
@@ -63,6 +70,10 @@ public class GlobalContext {
     
     // Function methods
     public void registerFunction(String name, FunctionDeclImpl function) {
+        if (hasFunction(name)) {
+            //TODO: currently only the name is checked. Make sure signature is also checked for overloading support
+            throw new OverloadingNotSupportedException("Function " + name + " is already defined.");
+        }
         functions.put(name, function);
     }
     
