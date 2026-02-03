@@ -35,7 +35,8 @@ public class Main {
 
     public static void main(String[] args) {
         try {
-            run(args);
+            int exitCode = run(args);
+            System.exit(exitCode);
         } catch (ClnException e) {
             System.err.println(e.getMessage());
             System.exit(1);
@@ -48,8 +49,9 @@ public class Main {
     
     /**
      * Main program logic that can be tested. Throws exceptions instead of calling System.exit().
+     * Returns the exit code from the main function.
      */
-    public static void run(String[] args) throws Exception {
+    public static int run(String[] args) throws Exception {
         // Parse command-line arguments first
         verbose = false;  // Reset the static field
         String fileName = null;
@@ -96,7 +98,7 @@ public class Main {
         log("Found 'main' function.");
 
         printProgramDetails();
-        
+        return 
         executeMainFunction(context);
     }
 
@@ -105,9 +107,10 @@ public class Main {
      * Retrieves the main function from the global context and invokes it with no arguments.
      * 
      * @param context The execution context containing the main function
+     * @return The exit code from the main function (0 if none returned)
      * @throws Exception If execution fails
      */
-    private static void executeMainFunction(ExecutionContext context) throws Exception {
+    private static int executeMainFunction(ExecutionContext context) throws Exception {
         log("Executing main function...");
         
         // Get the main function from the global context
@@ -127,9 +130,17 @@ public class Main {
         
         log("Main function execution completed.");
         
-        // If main function returns a value, it could be used as exit code
-        if (result != null && verbose) {
-            System.out.println("Main function returned: " + result);
+        // If main function returns a value, use it as exit code
+        if (result != null && result instanceof Long) {
+            long exitCode = (Long) result;
+            if (verbose) {
+                System.out.println("Main function returned: " + result);
+            }
+            log("Exit code: " + exitCode);
+            return (int) exitCode;
+        } else {
+            log("Exit code: 0");
+            return 0;
         }
     }
     
