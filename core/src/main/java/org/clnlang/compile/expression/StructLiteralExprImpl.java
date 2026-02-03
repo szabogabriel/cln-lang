@@ -4,7 +4,9 @@ import org.clnlang.compile.CompiledExpr;
 import org.clnlang.runtime.context.ExecutionContext;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Compiled representation of a struct literal expression.
@@ -28,8 +30,19 @@ public class StructLiteralExprImpl implements CompiledExpr {
 
     @Override
     public Object evaluate(ExecutionContext context) throws Exception {
-        // Create struct instance with field values
-        return null; // TODO: implement struct construction
+        // Create struct instance as a Map with field values
+        Map<String, Object> structInstance = new HashMap<>();
+        
+        // Store type metadata
+        structInstance.put("__type__", typeName);
+        
+        // Evaluate and store each field value
+        for (FieldInit field : fields) {
+            Object fieldValue = field.getValue().evaluate(context);
+            structInstance.put(field.getFieldName(), fieldValue);
+        }
+        
+        return structInstance;
     }
 
     /**
