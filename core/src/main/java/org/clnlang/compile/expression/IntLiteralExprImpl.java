@@ -7,17 +7,17 @@ import org.clnlang.runtime.context.ExecutionContext;
  * Compiled representation of an integer literal.
  */
 public class IntLiteralExprImpl implements CompiledExpr {
-    private int value;
+    private long value;
 
     public IntLiteralExprImpl(String value) {
-        this.value = Integer.parseInt(value);
+        this.value = Long.parseLong(value);
     }
 
-    public IntLiteralExprImpl(int value) {
+    public IntLiteralExprImpl(long value) {
         this.value = value;
     }
 
-    public int getValue() {
+    public long getValue() {
         return value;
     }
 

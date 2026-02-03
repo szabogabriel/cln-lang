@@ -16,8 +16,8 @@ public class IntLiteralExpr extends Expr {
         return value;
     }
 
-    public int getIntValue() {
-        return Integer.parseInt(value);
+    public long getLongValue() {
+        return Long.parseLong(value);
     }
 
     @Override

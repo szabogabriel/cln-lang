@@ -37,8 +37,8 @@ public class UnaryExprImpl implements CompiledExpr {
                 
             case "-":
                 // Numeric negation
-                if (value instanceof Integer) {
-                    return -(Integer) value;
+                if (value instanceof Long) {
+                    return -(Long) value;
                 }
                 throw new RuntimeException("Cannot apply '-' operator to non-numeric value: " + value);
                 

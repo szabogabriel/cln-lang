@@ -19,7 +19,7 @@ public class StringUtil implements ClnFunction {
      * Convert integer to string
      */
     private void executeIntToStr(ExecutionContext context) {
-        int value = (int) context.getLocalContext().getValue("value");
+        long value = (long) context.getLocalContext().getValue("value");
         String result = intToStr(value);
         // Set the return value in the local context AND mark as returned
         context.getCurrentFrame().getLocalContext().setVariable("result", result);
@@ -31,7 +31,7 @@ public class StringUtil implements ClnFunction {
      */
     private void executeStrToInt(ExecutionContext context) {
         String str = (String) context.getLocalContext().getValue("str");
-        int result = strToInt(str);
+        long result = strToInt(str);
         context.getCurrentFrame().getLocalContext().setVariable("result", result);
         context.setReturnValues(java.util.Collections.singletonList(result));
     }
@@ -53,7 +53,7 @@ public class StringUtil implements ClnFunction {
      */
     private void executeStrLen(ExecutionContext context) {
         String str = (String) context.getLocalContext().getValue("str");
-        int result = strLen(str);
+        long result = strLen(str);
         context.getCurrentFrame().getLocalContext().setVariable("result", result);
         context.setReturnValues(java.util.Collections.singletonList(result));
     }
@@ -74,8 +74,8 @@ public class StringUtil implements ClnFunction {
      */
     private void executeSubStr(ExecutionContext context) {
         String str = (String) context.getLocalContext().getValue("str");
-        int start = (int) context.getLocalContext().getValue("start");
-        int length = (int) context.getLocalContext().getValue("length");
+        long start = (long) context.getLocalContext().getValue("start");
+        long length = (long) context.getLocalContext().getValue("length");
         String result = subStr(str, start, length);
         context.getCurrentFrame().getLocalContext().setVariable("result", result);
         context.setReturnValues(java.util.Collections.singletonList(result));
@@ -86,7 +86,7 @@ public class StringUtil implements ClnFunction {
      */
     private void executeCharAt(ExecutionContext context) {
         String str = (String) context.getLocalContext().getValue("str");
-        int index = (int) context.getLocalContext().getValue("index");
+        long index = (long) context.getLocalContext().getValue("index");
         String result = charAt(str, index);
         context.getCurrentFrame().getLocalContext().setVariable("result", result);
         context.setReturnValues(java.util.Collections.singletonList(result));
@@ -98,7 +98,7 @@ public class StringUtil implements ClnFunction {
     private void executeIndexOf(ExecutionContext context) {
         String str = (String) context.getLocalContext().getValue("str");
         String search = (String) context.getLocalContext().getValue("search");
-        int result = indexOf(str, search);
+        long result = indexOf(str, search);
         context.getCurrentFrame().getLocalContext().setVariable("result", result);
         context.setReturnValues(java.util.Collections.singletonList(result));
     }
@@ -109,7 +109,7 @@ public class StringUtil implements ClnFunction {
     private void executeLastIndexOf(ExecutionContext context) {
         String str = (String) context.getLocalContext().getValue("str");
         String search = (String) context.getLocalContext().getValue("search");
-        int result = lastIndexOf(str, search);
+        long result = lastIndexOf(str, search);
         context.getCurrentFrame().getLocalContext().setVariable("result", result);
         context.setReturnValues(java.util.Collections.singletonList(result));
     }
@@ -122,7 +122,7 @@ public class StringUtil implements ClnFunction {
     private void executeStrCmp(ExecutionContext context) {
         String str1 = (String) context.getLocalContext().getValue("str1");
         String str2 = (String) context.getLocalContext().getValue("str2");
-        int result = strCmp(str1, str2);
+        long result = strCmp(str1, str2);
         context.getCurrentFrame().getLocalContext().setVariable("result", result);
         context.setReturnValues(java.util.Collections.singletonList(result));
     }
@@ -216,13 +216,13 @@ public class StringUtil implements ClnFunction {
 
     // ========== Static Implementation Methods ==========
 
-    public static String intToStr(int value) {
+    public static String intToStr(long value) {
         return String.valueOf(value);
     }
 
-    public static int strToInt(String str) {
+    public static long strToInt(String str) {
         try {
-            return Integer.parseInt(str);
+            return Long.parseLong(str);
         } catch (NumberFormatException e) {
             return 0; // C-like behavior: return 0 on error
         }
@@ -232,7 +232,7 @@ public class StringUtil implements ClnFunction {
         return value ? "true" : "false";
     }
 
-    public static int strLen(String str) {
+    public static long strLen(String str) {
         return str == null ? 0 : str.length();
     }
 
@@ -242,36 +242,36 @@ public class StringUtil implements ClnFunction {
         return str1 + str2;
     }
 
-    public static String subStr(String str, int start, int length) {
+    public static String subStr(String str, long start, long length) {
         if (str == null || start < 0 || start >= str.length()) {
             return "";
         }
-        int end = Math.min(start + length, str.length());
-        return str.substring(start, end);
+        int end = (int) Math.min(start + length, str.length());
+        return str.substring((int) start, end);
     }
 
-    public static String charAt(String str, int index) {
+    public static String charAt(String str, long index) {
         if (str == null || index < 0 || index >= str.length()) {
             return "";
         }
-        return String.valueOf(str.charAt(index));
+        return String.valueOf(str.charAt((int) index));
     }
 
-    public static int indexOf(String str, String search) {
+    public static long indexOf(String str, String search) {
         if (str == null || search == null) {
             return -1;
         }
         return str.indexOf(search);
     }
 
-    public static int lastIndexOf(String str, String search) {
+    public static long lastIndexOf(String str, String search) {
         if (str == null || search == null) {
             return -1;
         }
         return str.lastIndexOf(search);
     }
 
-    public static int strCmp(String str1, String str2) {
+    public static long strCmp(String str1, String str2) {
         if (str1 == null && str2 == null) return 0;
         if (str1 == null) return -1;
         if (str2 == null) return 1;

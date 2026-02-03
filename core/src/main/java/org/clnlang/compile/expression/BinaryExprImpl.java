@@ -36,8 +36,8 @@ public class BinaryExprImpl implements CompiledExpr {
 
         switch (operator) {
             case PLUS:
-                if (leftVal instanceof Integer && rightVal instanceof Integer) {
-                    return (Integer) leftVal + (Integer) rightVal;
+                if (leftVal instanceof Long && rightVal instanceof Long) {
+                    return (Long) leftVal + (Long) rightVal;
                 }
                 if (leftVal instanceof String || rightVal instanceof String) {
                     return String.valueOf(leftVal) + String.valueOf(rightVal);
@@ -45,23 +45,23 @@ public class BinaryExprImpl implements CompiledExpr {
                 throw new IllegalArgumentException("Invalid operands for + operator");
             
             case MINUS:
-                if (leftVal instanceof Integer && rightVal instanceof Integer) {
-                    return (Integer) leftVal - (Integer) rightVal;
+                if (leftVal instanceof Long && rightVal instanceof Long) {
+                    return (Long) leftVal - (Long) rightVal;
                 }
                 throw new IllegalArgumentException("Invalid operands for - operator");
             
             case STAR:
-                if (leftVal instanceof Integer && rightVal instanceof Integer) {
-                    return (Integer) leftVal * (Integer) rightVal;
+                if (leftVal instanceof Long && rightVal instanceof Long) {
+                    return (Long) leftVal * (Long) rightVal;
                 }
                 throw new IllegalArgumentException("Invalid operands for * operator");
             
             case SLASH:
-                if (leftVal instanceof Integer && rightVal instanceof Integer) {
-                    if ((Integer) rightVal == 0) {
+                if (leftVal instanceof Long && rightVal instanceof Long) {
+                    if ((Long) rightVal == 0) {
                         throw new ArithmeticException("Division by zero");
                     }
-                    return (Integer) leftVal / (Integer) rightVal;
+                    return (Long) leftVal / (Long) rightVal;
                 }
                 throw new IllegalArgumentException("Invalid operands for / operator");
             
@@ -84,8 +84,8 @@ public class BinaryExprImpl implements CompiledExpr {
                 return !leftVal.equals(rightVal);
             
             case LT:
-                if (leftVal instanceof Integer && rightVal instanceof Integer) {
-                    return (Integer) leftVal < (Integer) rightVal;
+                if (leftVal instanceof Long && rightVal instanceof Long) {
+                    return (Long) leftVal < (Long) rightVal;
                 }
                 if (leftVal instanceof String && rightVal instanceof String) {
                     return ((String) leftVal).compareTo((String) rightVal) < 0;
@@ -93,8 +93,8 @@ public class BinaryExprImpl implements CompiledExpr {
                 throw new IllegalArgumentException("Invalid operands for < operator");
             
             case LTE:
-                if (leftVal instanceof Integer && rightVal instanceof Integer) {
-                    return (Integer) leftVal <= (Integer) rightVal;
+                if (leftVal instanceof Long && rightVal instanceof Long) {
+                    return (Long) leftVal <= (Long) rightVal;
                 }
                 if (leftVal instanceof String && rightVal instanceof String) {
                     return ((String) leftVal).compareTo((String) rightVal) <= 0;
@@ -102,8 +102,8 @@ public class BinaryExprImpl implements CompiledExpr {
                 throw new IllegalArgumentException("Invalid operands for <= operator");
             
             case GT:
-                if (leftVal instanceof Integer && rightVal instanceof Integer) {
-                    return (Integer) leftVal > (Integer) rightVal;
+                if (leftVal instanceof Long && rightVal instanceof Long) {
+                    return (Long) leftVal > (Long) rightVal;
                 }
                 if (leftVal instanceof String && rightVal instanceof String) {
                     return ((String) leftVal).compareTo((String) rightVal) > 0;
@@ -111,8 +111,8 @@ public class BinaryExprImpl implements CompiledExpr {
                 throw new IllegalArgumentException("Invalid operands for > operator");
             
             case GTE:
-                if (leftVal instanceof Integer && rightVal instanceof Integer) {
-                    return (Integer) leftVal >= (Integer) rightVal;
+                if (leftVal instanceof Long && rightVal instanceof Long) {
+                    return (Long) leftVal >= (Long) rightVal;
                 }
                 if (leftVal instanceof String && rightVal instanceof String) {
                     return ((String) leftVal).compareTo((String) rightVal) >= 0;

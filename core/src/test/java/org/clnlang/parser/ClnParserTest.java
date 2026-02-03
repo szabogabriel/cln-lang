@@ -256,12 +256,12 @@ class ClnParserTest {
         StructLiteralExpr.FieldInit field1 = structLiteral.getFields().get(0);
         assertEquals("x", field1.getFieldName());
         assertTrue(field1.getValue() instanceof IntLiteralExpr);
-        assertEquals(10, ((IntLiteralExpr) field1.getValue()).getIntValue());
+        assertEquals(10, ((IntLiteralExpr) field1.getValue()).getLongValue());
         
         StructLiteralExpr.FieldInit field2 = structLiteral.getFields().get(1);
         assertEquals("y", field2.getFieldName());
         assertTrue(field2.getValue() instanceof IntLiteralExpr);
-        assertEquals(20, ((IntLiteralExpr) field2.getValue()).getIntValue());
+        assertEquals(20, ((IntLiteralExpr) field2.getValue()).getLongValue());
     }
 
     @Test
