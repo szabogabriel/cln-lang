@@ -198,7 +198,7 @@ mulExpr
   ;
 
 unaryExpr
-  : (NOT | MINUS) unaryExpr
+  : (NOT | MINUS | INC | DEC) unaryExpr
   | postfixExpr
   ;
 
@@ -210,6 +210,8 @@ postfixOp
   : LPAREN argList? RPAREN
   | DOT ID
   | LBRACK expr RBRACK
+  | INC
+  | DEC
   ;
 
 argList
@@ -296,6 +298,9 @@ PLUS   : '+';
 MINUS  : '-';
 STAR   : '*';
 SLASH  : '/';
+
+INC    : '++';
+DEC    : '--';
 
 NOT    : '!';
 AND    : '&&';

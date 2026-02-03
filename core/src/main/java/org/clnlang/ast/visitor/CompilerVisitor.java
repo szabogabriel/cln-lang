@@ -537,6 +537,12 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
         } else if (ctx.MINUS() != null) {
             CompiledExpr operand = compileUnaryExpr(ctx.unaryExpr());
             return new UnaryExprImpl("-", operand);
+        } else if (ctx.INC() != null) {
+            CompiledExpr operand = compileUnaryExpr(ctx.unaryExpr());
+            return new IncrementExprImpl(operand, "++", true);
+        } else if (ctx.DEC() != null) {
+            CompiledExpr operand = compileUnaryExpr(ctx.unaryExpr());
+            return new IncrementExprImpl(operand, "--", true);
         } else {
             return compilePostfixExpr(ctx.postfixExpr());
         }
@@ -566,6 +572,12 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
                 // Index access
                 CompiledExpr index = compileExpression(op.expr());
                 base = new IndexAccessExprImpl(base, index);
+            } else if (op.INC() != null) {
+                // Postfix increment
+                base = new IncrementExprImpl(base, "++", false);
+            } else if (op.DEC() != null) {
+                // Postfix decrement
+                base = new IncrementExprImpl(base, "--", false);
             }
         }
         

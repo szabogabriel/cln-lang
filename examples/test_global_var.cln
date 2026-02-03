@@ -6,11 +6,15 @@ import std.str.*;
 var int globalVar = 123;
 string globalString = "This is global string";
 
+updateGlobalVar() {
+    globalVar = 234;
+}
+
 int main() {
     writeLine("Global variable: " + intToStr(globalVar));
     writeLine("Global string: " + globalString);
 
-    globalVar = 234;    
+    updateGlobalVar();
 
     writeLine("Global variable: " + intToStr(globalVar));
 

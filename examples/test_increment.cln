@@ -1,0 +1,37 @@
+package main;
+
+import std.console.*;
+import std.str.*;
+
+int main() {
+    var int x = 5;
+    
+    // Test prefix increment
+    writeLine("x = " + intToStr(x));
+    writeLine("++x = " + intToStr(++x));
+    writeLine("x = " + intToStr(x));
+    
+    // Test postfix increment
+    writeLine("x++ = " + intToStr(x++));
+    writeLine("x = " + intToStr(x));
+    
+    // Test prefix decrement
+    writeLine("--x = " + intToStr(--x));
+    writeLine("x = " + intToStr(x));
+    
+    // Test postfix decrement
+    writeLine("x-- = " + intToStr(x--));
+    writeLine("x = " + intToStr(x));
+    
+    // Test in expression
+    var int y = 10 + x++;
+    writeLine("y = " + intToStr(y));
+    writeLine("x = " + intToStr(x));
+    
+    // Test multiple increments
+    var int z = ++x + ++x;
+    writeLine("z = " + intToStr(z));
+    writeLine("x = " + intToStr(x));
+    
+    return 0;
+}
