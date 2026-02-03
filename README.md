@@ -191,6 +191,12 @@ int add(int a, int b) {
     if (s > 25) {
         writeLine("Sum is greater than 25");
     } else {
+        writeLine("Sum is lesser or equal than 25");
+    }
+    return;
+}
+```
+- **Basic elements**
   - Named return variables: `(var int result = 0) myFunc()`
   - Simple return types: `int add(int a, int b)`
   - Multiple return values with tuple destructuring
