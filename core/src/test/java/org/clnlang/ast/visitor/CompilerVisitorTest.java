@@ -22,6 +22,7 @@ import org.clnlang.compile.expression.IdentifierExprImpl;
 import org.clnlang.compile.expression.IndexAccessExprImpl;
 import org.clnlang.compile.expression.IntLiteralExprImpl;
 import org.clnlang.compile.expression.MemberAccessExprImpl;
+import org.clnlang.compile.expression.Operator;
 import org.clnlang.compile.expression.StringLiteralExprImpl;
 import org.clnlang.compile.expression.StructLiteralExprImpl;
 import org.clnlang.compile.expression.UnaryExprImpl;
@@ -406,7 +407,7 @@ public class CompilerVisitorTest {
         assertTrue(varDecl.getInitializer() instanceof BinaryExprImpl);
         
         BinaryExprImpl binExpr = (BinaryExprImpl) varDecl.getInitializer();
-        assertEquals("+", binExpr.getOperator());
+        assertEquals(Operator.PLUS, binExpr.getOperator());
         assertTrue(binExpr.getLeft() instanceof IntLiteralExprImpl);
         assertTrue(binExpr.getRight() instanceof IntLiteralExprImpl);
     }
@@ -533,7 +534,7 @@ public class CompilerVisitorTest {
         // Should be AND at the top level
         assertTrue(varDecl.getInitializer() instanceof BinaryExprImpl);
         BinaryExprImpl andExpr = (BinaryExprImpl) varDecl.getInitializer();
-        assertEquals("&&", andExpr.getOperator());
+        assertEquals(Operator.AND, andExpr.getOperator());
     }
     
     @Test

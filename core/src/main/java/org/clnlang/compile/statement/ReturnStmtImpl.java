@@ -60,7 +60,8 @@ public class ReturnStmtImpl implements CompiledAction {
         // Otherwise, look up the named return variables
         else if (!returnVarNames.isEmpty()) {
             for (String varName : returnVarNames) {
-                Object value = context.getLocalContext().getVariable(varName);
+                //Object value = context.getLocalContext().getVariable(varName);
+                Object value = context.getLocalContext().getValue(varName);
                 values.add(value);
             }
         }

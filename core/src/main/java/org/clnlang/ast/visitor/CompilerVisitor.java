@@ -431,7 +431,7 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
         
         for (int i = 1; i < ctx.andExpr().size(); i++) {
             CompiledExpr right = compileAndExpr(ctx.andExpr(i));
-            left = new BinaryExprImpl(left, "||", right);
+            left = new BinaryExprImpl(left, Operator.OR, right);
         }
         
         return left;
@@ -445,7 +445,7 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
         
         for (int i = 1; i < ctx.equalityExpr().size(); i++) {
             CompiledExpr right = compileEqualityExpr(ctx.equalityExpr(i));
-            left = new BinaryExprImpl(left, "&&", right);
+            left = new BinaryExprImpl(left, Operator.AND, right);
         }
         
         return left;
@@ -458,7 +458,7 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
         CompiledExpr left = compileRelExpr(ctx.relExpr(0));
         
         for (int i = 1; i < ctx.relExpr().size(); i++) {
-            String op = ctx.EQ(i - 1) != null ? "==" : "!=";
+            Operator op = ctx.EQ(i - 1) != null ? Operator.EQ : Operator.NEQ;
             CompiledExpr right = compileRelExpr(ctx.relExpr(i));
             left = new BinaryExprImpl(left, op, right);
         }
@@ -473,11 +473,11 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
         CompiledExpr left = compileAddExpr(ctx.addExpr(0));
         
         for (int i = 1; i < ctx.addExpr().size(); i++) {
-            String op;
-            if (ctx.LT(i - 1) != null) op = "<";
-            else if (ctx.LTE(i - 1) != null) op = "<=";
-            else if (ctx.GT(i - 1) != null) op = ">";
-            else op = ">=";
+            Operator op;
+            if (ctx.LT(i - 1) != null) op = Operator.LT;
+            else if (ctx.LTE(i - 1) != null) op = Operator.LTE;
+            else if (ctx.GT(i - 1) != null) op = Operator.GT;
+            else op = Operator.GTE;
             
             CompiledExpr right = compileAddExpr(ctx.addExpr(i));
             left = new BinaryExprImpl(left, op, right);
@@ -493,7 +493,7 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
         CompiledExpr left = compileMulExpr(ctx.mulExpr(0));
         
         for (int i = 1; i < ctx.mulExpr().size(); i++) {
-            String op = ctx.PLUS(i - 1) != null ? "+" : "-";
+            Operator op = ctx.PLUS(i - 1) != null ? Operator.PLUS : Operator.MINUS;
             CompiledExpr right = compileMulExpr(ctx.mulExpr(i));
             left = new BinaryExprImpl(left, op, right);
         }
@@ -508,7 +508,7 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
         CompiledExpr left = compileUnaryExpr(ctx.unaryExpr(0));
         
         for (int i = 1; i < ctx.unaryExpr().size(); i++) {
-            String op = ctx.STAR(i - 1) != null ? "*" : "/";
+            Operator op = ctx.STAR(i - 1) != null ? Operator.STAR : Operator.SLASH;
             CompiledExpr right = compileUnaryExpr(ctx.unaryExpr(i));
             left = new BinaryExprImpl(left, op, right);
         }

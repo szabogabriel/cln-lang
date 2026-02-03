@@ -1,0 +1,33 @@
+package main;
+
+import std.console.*;
+
+(var int ret = 0) main() {
+    bool x = true;
+
+    if (x) {
+        writeLine("it is true");
+    }
+
+    bool y = !x;
+    if (!y) {
+        writeLine("negated successfully");
+    }
+
+    int a = 5;
+    int b = 6;
+
+    if (a != b) {
+        writeLine("numeral comparison work");
+    }
+
+    if (a + b > 10) {
+        writeLine("combined logic works");
+    }
+
+    if ((a + b > 10) && x) {
+        writeLine("more combined logic test");
+    }
+
+    return;
+}
