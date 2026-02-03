@@ -9,16 +9,19 @@ import java.util.Map;
 public class StructDefinition {
     private final String name;
     private final Map<String, String> fields; // fieldName -> fieldType
+    private final Map<String, Boolean> fieldMutability; // fieldName -> isVar
     private final boolean isExposed;
     
     public StructDefinition(String name, boolean isExposed) {
         this.name = name;
         this.isExposed = isExposed;
         this.fields = new HashMap<>();
+        this.fieldMutability = new HashMap<>();
     }
     
-    public void addField(String fieldName, String fieldType) {
+    public void addField(String fieldName, String fieldType, boolean isVar) {
         fields.put(fieldName, fieldType);
+        fieldMutability.put(fieldName, isVar);
     }
     
     public String getName() {
@@ -39,5 +42,9 @@ public class StructDefinition {
     
     public boolean hasField(String fieldName) {
         return fields.containsKey(fieldName);
+    }
+    
+    public boolean isFieldMutable(String fieldName) {
+        return fieldMutability.getOrDefault(fieldName, false);
     }
 }

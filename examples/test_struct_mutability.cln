@@ -1,0 +1,30 @@
+package main;
+
+import std.console.*;
+import std.str.*;
+
+struct User {
+    int id;           // Constant field (immutable)
+    var string name;  // Mutable field
+};
+
+int main() {
+  var User user = User(id: 100, name: "John Doe");
+
+  writeLine("=== Initial values ===");
+  writeLine("ID: " + intToStr(user.id));
+  writeLine("Name: " + user.name);
+
+  writeLine("");
+  writeLine("=== Modifying mutable field (name) ===");
+  user.name = "Jane Smith";
+  writeLine("Name changed to: " + user.name);
+
+  writeLine("");
+  writeLine("=== Testing immutable field (id) - should fail ===");
+  // This line should cause a runtime error
+  user.id = 200;
+  writeLine("This line should never execute!");
+
+  return 0;
+}

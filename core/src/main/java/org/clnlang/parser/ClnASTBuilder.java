@@ -96,7 +96,8 @@ public class ClnASTBuilder extends clnBaseVisitor<ASTNode> {
         for (clnParser.StructFieldDeclContext field : ctx.structFieldDecl()) {
             String fieldType = getTypeString(field.type());
             String fieldName = field.ID().getText();
-            struct.addField(fieldType, fieldName);
+            boolean isVar = field.VAR() != null;
+            struct.addField(fieldType, fieldName, isVar);
         }
         
         return struct;

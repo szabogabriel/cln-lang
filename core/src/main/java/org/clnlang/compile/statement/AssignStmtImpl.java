@@ -67,11 +67,20 @@ public class AssignStmtImpl implements CompiledAction {
                 @SuppressWarnings("unchecked")
                 Map<String, Object> structMap = (Map<String, Object>) objValue;
                 
-                // Check if the field exists (optional - you might want to allow adding new fields)
+                String typeName = (String) structMap.get("__type__");
+                
+                // Check if the field exists
                 if (!structMap.containsKey(memberAccess.getMember())) {
-                    String typeName = (String) structMap.get("__type__");
                     throw new RuntimeException("Struct " + (typeName != null ? typeName : "unknown") + 
                                              " has no field '" + memberAccess.getMember() + "'");
+                }
+                
+                // Check if the field is mutable
+                org.clnlang.runtime.types.StructDefinition structDef = 
+                    context.getGlobalContext().getStructType(typeName);
+                if (structDef != null && !structDef.isFieldMutable(memberAccess.getMember())) {
+                    throw new RuntimeException("Cannot assign to constant field '" + memberAccess.getMember() + 
+                                             "' of struct " + typeName + " (field not declared with 'var')");
                 }
                 
                 // Assign the new value to the field

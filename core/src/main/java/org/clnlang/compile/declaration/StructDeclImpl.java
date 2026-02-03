@@ -21,8 +21,8 @@ public class StructDeclImpl implements CompiledAction {
         this.fields = new ArrayList<>();
     }
 
-    public void addField(String type, String fieldName) {
-        fields.add(new FieldDecl(type, fieldName));
+    public void addField(String type, String fieldName, boolean isVar) {
+        fields.add(new FieldDecl(type, fieldName, isVar));
     }
 
     public String getName() {
@@ -43,7 +43,7 @@ public class StructDeclImpl implements CompiledAction {
     public StructDefinition toStructDefinition() {
         StructDefinition definition = new StructDefinition(name, isExposed);
         for (FieldDecl field : fields) {
-            definition.addField(field.getName(), field.getType());
+            definition.addField(field.getName(), field.getType(), field.isVar());
         }
         return definition;
     }
@@ -60,10 +60,12 @@ public class StructDeclImpl implements CompiledAction {
     public static class FieldDecl {
         private String type;
         private String name;
+        private boolean isVar;
 
-        public FieldDecl(String type, String name) {
+        public FieldDecl(String type, String name, boolean isVar) {
             this.type = type;
             this.name = name;
+            this.isVar = isVar;
         }
 
         public String getType() {
@@ -72,6 +74,10 @@ public class StructDeclImpl implements CompiledAction {
 
         public String getName() {
             return name;
+        }
+
+        public boolean isVar() {
+            return isVar;
         }
     }
 }

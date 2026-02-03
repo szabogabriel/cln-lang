@@ -1,12 +1,22 @@
 package test;
 
+import std.console.writeLine;
+import std.str.*;
+
 struct Circle {
-    var int radius;
+    int radius;
 };
 
-(var int exitCode = 0) main() {
-    var Circle c = Circle(radius: 5);
-    var int r = c.radius;
-    exitCode = r;
+updateCircle(Circle c) {
+    c.radius = 10;
     return;
+}
+
+int main() {
+    var Circle c = Circle(radius: 5);
+    writeLine("The radius is: " + intToStr(c.radius));    
+
+    updateCircle(c);
+    writeLine("The changed radius: " + intToStr(c.radius));
+    return 0;
 }

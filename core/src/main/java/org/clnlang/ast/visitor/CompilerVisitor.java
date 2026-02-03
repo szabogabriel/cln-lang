@@ -191,11 +191,12 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
         for (clnParser.StructFieldDeclContext field : ctx.structFieldDecl()) {
             String fieldType = field.type().getText();
             String fieldName = field.ID().getText();
+            boolean isVar = field.VAR() != null;
             
             // Validate field type
             validateType(fieldType, field.type().getStart().getLine());
             
-            struct.addField(fieldType, fieldName);
+            struct.addField(fieldType, fieldName, isVar);
         }
         
         return struct;

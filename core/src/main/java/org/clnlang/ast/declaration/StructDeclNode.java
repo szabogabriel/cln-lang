@@ -20,8 +20,8 @@ public class StructDeclNode extends ASTNode {
         this.fields = new ArrayList<>();
     }
 
-    public void addField(String type, String fieldName) {
-        fields.add(new FieldDecl(type, fieldName));
+    public void addField(String type, String fieldName, boolean isVar) {
+        fields.add(new FieldDecl(type, fieldName, isVar));
     }
 
     public String getName() {
@@ -57,10 +57,12 @@ public class StructDeclNode extends ASTNode {
     public static class FieldDecl {
         private String type;
         private String name;
+        private boolean isVar;
 
-        public FieldDecl(String type, String name) {
+        public FieldDecl(String type, String name, boolean isVar) {
             this.type = type;
             this.name = name;
+            this.isVar = isVar;
         }
 
         public String getType() {
@@ -71,9 +73,13 @@ public class StructDeclNode extends ASTNode {
             return name;
         }
 
+        public boolean isVar() {
+            return isVar;
+        }
+
         @Override
         public String toString() {
-            return type + " " + name;
+            return (isVar ? "var " : "") + type + " " + name;
         }
     }
 }

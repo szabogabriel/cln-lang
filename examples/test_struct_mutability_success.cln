@@ -1,0 +1,45 @@
+package main;
+
+import std.console.*;
+import std.str.*;
+
+struct Point {
+    var int x;    // Mutable
+    var int y;    // Mutable
+};
+
+struct Circle {
+    int radius;   // Immutable
+    var Point center;  // Mutable (but the Point itself has mutable fields)
+};
+
+int main() {
+  var Point p = Point(x: 10, y: 20);
+  
+  writeLine("Point: (" + intToStr(p.x) + ", " + intToStr(p.y) + ")");
+  
+  // Should work - both x and y are declared with var
+  p.x = 30;
+  p.y = 40;
+  writeLine("Modified Point: (" + intToStr(p.x) + ", " + intToStr(p.y) + ")");
+  
+  var Circle c = Circle(radius: 5, center: Point(x: 0, y: 0));
+  
+  writeLine("");
+  writeLine("Circle radius: " + intToStr(c.radius));
+  writeLine("Circle center: (" + intToStr(c.center.x) + ", " + intToStr(c.center.y) + ")");
+  
+  // Should work - center is declared with var
+  c.center = Point(x: 100, y: 200);
+  writeLine("Modified center: (" + intToStr(c.center.x) + ", " + intToStr(c.center.y) + ")");
+  
+  // Should work - modifying the mutable fields of the nested struct
+  c.center.x = 50;
+  c.center.y = 60;
+  writeLine("Modified center fields: (" + intToStr(c.center.x) + ", " + intToStr(c.center.y) + ")");
+  
+  writeLine("");
+  writeLine("SUCCESS: All mutable operations completed!");
+  
+  return 0;
+}
