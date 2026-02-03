@@ -2,6 +2,7 @@ package org.clnlang.ast.visitor;
 
 import org.clnlang.compile.BlockImpl;
 import org.clnlang.compile.CompiledAction;
+import org.clnlang.compile.CompiledExpr;
 import org.clnlang.compile.declaration.*;
 import org.clnlang.compile.expression.*;
 import org.clnlang.compile.statement.*;

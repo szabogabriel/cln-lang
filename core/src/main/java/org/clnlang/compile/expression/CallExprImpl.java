@@ -1,5 +1,6 @@
 package org.clnlang.compile.expression;
 
+import org.clnlang.compile.CompiledExpr;
 import org.clnlang.compile.declaration.FunctionDeclImpl;
 import org.clnlang.runtime.context.ExecutionContext;
 import org.clnlang.runtime.execution.FunctionInvoker;

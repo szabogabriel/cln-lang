@@ -1,7 +1,7 @@
 package org.clnlang.compile.declaration;
 
 import org.clnlang.compile.CompiledAction;
-import org.clnlang.compile.expression.CompiledExpr;
+import org.clnlang.compile.CompiledExpr;
 import org.clnlang.runtime.context.ExecutionContext;
 
 /**

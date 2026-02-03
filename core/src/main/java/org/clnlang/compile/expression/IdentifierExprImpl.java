@@ -1,5 +1,6 @@
 package org.clnlang.compile.expression;
 
+import org.clnlang.compile.CompiledExpr;
 import org.clnlang.runtime.context.ExecutionContext;
 
 /**
