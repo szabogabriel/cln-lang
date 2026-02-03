@@ -1,12 +1,21 @@
-# Clean Language (cln-lang)
+# cln-lang
 
-A complete interpreter for the Clean programming language with ANTLR4-based parsing, AST construction, compilation, and execution capabilities.
+An interpreter for **cln**, a small embeddable scripting language with ANTLR4-based parsing, AST construction, compilation, and execution capabilities.
+
+## Why cln exists
+
+- **Embeddable DSL**: Designed to be embedded in larger applications as a domain-specific scripting language
+- **Deterministic numeric behavior**: 64-bit signed integers provide consistent, predictable arithmetic across platforms (planned BigDecimal operations for real numbers)
+- **Module system with import resolution**: Package-based organization with support (planned database-backed module loading)
+- **Domain data modeling**: Structs and unions enable clear representation of business domain entities
+- **Pattern matching**: Switch/case on union types allows elegant handling of variant data
+- **Simple, readable syntax**: Familiar C-like syntax with modern features like tuple destructuring and named returns
 
 ## Features
 
 ### ✅ Fully Implemented
 
-- **Parser & Lexer**: Complete ANTLR4-based grammar for Clean language
+- **Parser & Lexer**: Complete ANTLR4-based grammar for cln-lang
 - **AST Construction**: Parse tree to structured Abstract Syntax Tree conversion
 - **Type System**: Primitives (int, bool, string), structs, and unions
 - **Runtime Execution**: Full interpreter with execution context and function invocation
@@ -120,40 +129,7 @@ This creates:
 
 ### Running Programs
 
-Execute a Clean language program:
-
-```bash
-java -jar target/core-1.0-SNAPSHOT-fat.jar <program.cln>
-```
-
-With verbose output (shows parsing, compilation, and execution details):
-
-```bash
-java -jar target/core-1.0-SNAPSHOT-fat.jar -v <program.cln>
-```
-## Quick Start
-
-### Prerequisites
-
-- Java 17 or higher
-- Maven 3.6 or higher
-
-### Building the Project
-
-Build the project and generate the standalone fat JAR:
-
-```bash
-cd core
-mvn clean package
-```
-
-This creates:
-- `target/core-1.0-SNAPSHOT.jar` - Regular JAR (requires classpath)
-- `target/core-1.0-SNAPSHOT-fat.jar` - Standalone JAR with all dependencies (recommended)
-
-### Running Programs
-
-Execute a Clean language program:
+Execute a cln language program:
 
 ```bash
 java -jar target/core-1.0-SNAPSHOT-fat.jar <program.cln>
@@ -169,7 +145,7 @@ java -jar target/core-1.0-SNAPSHOT-fat.jar -v <program.cln>
 
 ### Basic Syntax
 
-```clean
+```cln
 package main;
 
 import std.console.*;
@@ -299,7 +275,7 @@ union Shape {
 ### Language Constructs Not Yet Functional
 
 - **Structs**: Defined in grammar but construction/access not implemented
-  ```clean
+  ```cln
   struct Point {
       var int x;
       var int y;
@@ -448,4 +424,4 @@ You can now:
 
 ## Example Program
 
-See [test_program.cln](../test_program.cln) for a sample Clean language program.
+See [test_program.cln](../test_program.cln) for a sample cln language program.
