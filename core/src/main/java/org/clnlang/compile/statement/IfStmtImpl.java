@@ -33,11 +33,29 @@ public class IfStmtImpl implements CompiledAction {
     @Override
     public void execute(ExecutionContext context) throws Exception {
         Object condValue = condition.evaluate(context);
-        boolean condBool = (Boolean) condValue; // TODO: add proper type conversion
+        boolean condBool = evaluateAsBoolean(condValue);
         if (condBool) {
             thenBlock.execute(context);
         } else if (elseBlock != null) {
             elseBlock.execute(context);
         }
+    }
+
+    /**
+     * Converts the condition value to a boolean.
+     * Only Boolean type is accepted as a valid condition.
+     * 
+     * @param value the value to evaluate
+     * @return the boolean value
+     * @throws IllegalArgumentException if the value is not a Boolean
+     */
+    private boolean evaluateAsBoolean(Object value) {
+        if (value instanceof Boolean) {
+            return (Boolean) value;
+        }
+        throw new IllegalArgumentException(
+            "If condition must be a boolean expression, got: " + 
+            (value == null ? "null" : value.getClass().getSimpleName())
+        );
     }
 }

@@ -64,9 +64,15 @@ public class FunctionInvoker {
             // Pop the call frame
             context.popCallFrame();
             
-            // Return the first return value (or null if no return)
+            // Return based on number of return values
             if (returnValues != null && !returnValues.isEmpty()) {
-                return returnValues.get(0);
+                // If multiple return values, return the list
+                // If single return value, return just the value
+                if (returnValues.size() > 1) {
+                    return returnValues;
+                } else {
+                    return returnValues.get(0);
+                }
             }
             return null;
             
