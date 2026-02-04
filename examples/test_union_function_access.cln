@@ -1,0 +1,43 @@
+package test;
+
+import std.console.writeLine;
+import std.str.intToStr;
+
+struct Circle {
+    int id;
+    int radius;
+    string color;
+};
+
+struct Rectangle {
+    int id;
+    int width;
+    int height;
+    string color;
+};
+
+union Shape {
+    Circle;
+    Rectangle;
+};
+
+// This function should work because both Circle and Rectangle have 'id' and 'color'
+printShapeInfo(Shape s) {
+    writeLine("Shape ID: " + intToStr(s.id));
+    writeLine("Shape Color: " + s.color);
+    return;
+}
+
+int main() {
+    Circle c = Circle(id: 1, radius: 10, color: "red");
+    Rectangle r = Rectangle(id: 2, width: 5, height: 10, color: "blue");
+    
+    writeLine("Circle info:");
+    printShapeInfo(c);
+    
+    writeLine("");
+    writeLine("Rectangle info:");
+    printShapeInfo(r);
+    
+    return 0;
+}

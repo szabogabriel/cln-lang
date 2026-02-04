@@ -58,6 +58,10 @@ public class GlobalContext {
             throw new OverloadingNotSupportedException("Union " + name + " is already defined.");
         }
         unionTypes.put(name, definition);
+        
+        // Compute common fields now that we have the struct registry
+        // This allows access to fields that are common across all union members
+        definition.computeCommonFields(structTypes);
     }
     
     public UnionDefinition getUnionType(String name) {

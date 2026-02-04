@@ -1,0 +1,42 @@
+package test;
+
+import std.console.writeLine;
+import std.str.intToStr;
+
+struct User {
+    int id;
+    string name;
+    string address;
+};
+
+struct Company {
+    int id;
+    string name;
+    string address;
+};
+
+union Addressable {
+    User;
+    Company;
+};
+
+printAddress(Addressable myAddressable) {
+    writeLine("Name: " + myAddressable.name);
+    writeLine("Address: " + myAddressable.address);
+    writeLine("ID: " + intToStr(myAddressable.id));
+    return;
+}
+
+int main() {
+    User user = User(id: 123, name: "John Doe", address: "123 Main St");
+    Company company = Company(id: 456, name: "Acme Corp", address: "456 Business Ave");
+    
+    writeLine("User details:");
+    printAddress(user);
+    
+    writeLine("");
+    writeLine("Company details:");
+    printAddress(company);
+    
+    return 0;
+}

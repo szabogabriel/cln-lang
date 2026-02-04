@@ -1,0 +1,60 @@
+package test;
+
+import std.console.writeLine;
+import std.str.intToStr;
+
+struct User {
+    int id;
+    string name;
+    string email;
+    int age;
+};
+
+struct Company {
+    int id;
+    string name;
+    string email;
+    int employeeCount;
+};
+
+union Entity {
+    User;
+    Company;
+};
+
+// Using common field access - simpler for shared fields
+printBasicInfo(Entity e) {
+    writeLine("ID: " + intToStr(e.id));
+    writeLine("Name: " + e.name);
+    writeLine("Email: " + e.email);
+    return;
+}
+
+// Using switch/case - needed for type-specific fields
+printSpecificInfo(Entity e) {
+    switch (e) {
+        case User u:
+            writeLine("User Age: " + intToStr(u.age));
+        case Company c:
+            writeLine("Company Employees: " + intToStr(c.employeeCount));
+        default:
+            writeLine("Unknown entity type");
+    }
+    return;
+}
+
+int main() {
+    User john = User(id: 1, name: "John Doe", email: "john@example.com", age: 30);
+    Company acme = Company(id: 2, name: "Acme Corp", email: "info@acme.com", employeeCount: 150);
+    
+    writeLine("=== User Information ===");
+    printBasicInfo(john);
+    printSpecificInfo(john);
+    
+    writeLine("");
+    writeLine("=== Company Information ===");
+    printBasicInfo(acme);
+    printSpecificInfo(acme);
+    
+    return 0;
+}

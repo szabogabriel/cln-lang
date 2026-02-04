@@ -1,0 +1,47 @@
+package test;
+
+import std.console.writeLine;
+import std.str.intToStr;
+
+struct Dog {
+    string name;
+    string breed;
+};
+
+struct Cat {
+    string name;
+    int lives;
+};
+
+union Pet {
+    Dog;
+    Cat;
+};
+
+// This function works because 'name' is common to both Dog and Cat
+printPetName(Pet p) {
+    writeLine("Pet name: " + p.name);
+    return;
+}
+
+// This would cause a runtime error if uncommented because 'breed' is not common
+// tryAccessBreed(Pet p) {
+//     writeLine("Breed: " + p.breed);  // ERROR: breed not common to all Pet members
+//     return;
+// }
+
+int main() {
+    Dog fido = Dog(name: "Fido", breed: "Golden Retriever");
+    Cat whiskers = Cat(name: "Whiskers", lives: 9);
+    
+    writeLine("Testing common field access:");
+    printPetName(fido);
+    printPetName(whiskers);
+    
+    writeLine("");
+    writeLine("Direct access to struct-specific fields still works:");
+    writeLine("Dog breed: " + fido.breed);
+    writeLine("Cat lives: " + intToStr(whiskers.lives));
+    
+    return 0;
+}

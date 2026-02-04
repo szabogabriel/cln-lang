@@ -1,0 +1,53 @@
+package test;
+
+import std.console.writeLine;
+import std.str.intToStr;
+
+struct Circle {
+    int radius;
+    string color;
+};
+
+struct Rectangle {
+    int width;
+    int height;
+    string color;
+};
+
+struct Triangle {
+    int base;
+    int height;
+    // Note: Triangle doesn't have 'color' field
+};
+
+union PartialShape {
+    Circle;
+    Rectangle;
+    Triangle;
+};
+
+union CommonShape {
+    Circle;
+    Rectangle;
+};
+
+int main() {
+    Circle c = Circle(radius: 10, color: "red");
+    Rectangle r = Rectangle(width: 5, height: 10, color: "blue");
+    Triangle t = Triangle(base: 8, height: 6);
+    
+    writeLine("Testing CommonShape (Circle and Rectangle share 'color' field):");
+    writeLine("Circle color: " + c.color);
+    writeLine("Rectangle color: " + r.color);
+    
+    writeLine("");
+    writeLine("Testing PartialShape (only height is common between Rectangle and Triangle):");
+    // This should work because both Rectangle and Triangle have 'height'
+    writeLine("Rectangle height: " + intToStr(r.height));
+    writeLine("Triangle height: " + intToStr(t.height));
+    
+    // Note: Accessing 'color' on a Triangle would fail at runtime since Triangle doesn't have it
+    // The union PartialShape doesn't include 'color' as a common field
+    
+    return 0;
+}

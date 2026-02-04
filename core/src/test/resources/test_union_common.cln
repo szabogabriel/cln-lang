@@ -1,0 +1,40 @@
+package test;
+
+struct A {
+    int x;
+    string y;
+};
+
+struct B {
+    int x;
+    string y;
+    bool z;
+};
+
+union AB {
+    A;
+    B;
+};
+
+(var int result = 0) getX(AB ab) {
+    result = ab.x;
+    return;
+}
+
+(var string result = "") getY(AB ab) {
+    result = ab.y;
+    return;
+}
+
+int main() {
+    A a = A(x: 42, y: "hello");
+    B b = B(x: 99, y: "world", z: true);
+    
+    int ax = getX(a);
+    int bx = getX(b);
+    
+    string ay = getY(a);
+    string by = getY(b);
+    
+    return 0;
+}

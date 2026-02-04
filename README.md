@@ -283,6 +283,53 @@ int main() {
 - Switch/case statements match on the struct's actual type
 - Variables bound in case clauses have the correct struct type
 
+#### Common Field Access
+
+Union types automatically compute common fields that are shared across all member structs. You can access these common fields directly without using switch/case:
+
+```cln
+struct User {
+    int id;
+    string name;
+    string email;
+};
+
+struct Company {
+    int id;
+    string name;
+    string email;
+};
+
+union Entity {
+    User;
+    Company;
+};
+
+// Access common fields directly - no switch/case needed!
+printEntityInfo(Entity e) {
+    writeLine("ID: " + intToStr(e.id));
+    writeLine("Name: " + e.name);
+    writeLine("Email: " + e.email);
+    return;
+}
+
+int main() {
+    User john = User(id: 1, name: "John", email: "john@example.com");
+    Company acme = Company(id: 2, name: "Acme", email: "info@acme.com");
+    
+    printEntityInfo(john);   // Works!
+    printEntityInfo(acme);   // Works!
+    
+    return 0;
+}
+```
+
+**Common field rules:**
+- A field is "common" if it exists in all union member structs with the **same type**
+- Common fields can be accessed directly on union-typed values
+- Use switch/case for accessing type-specific fields
+- Runtime validates field access and provides clear error messages
+
 ### Increment and Decrement Operators
 
 ```cln

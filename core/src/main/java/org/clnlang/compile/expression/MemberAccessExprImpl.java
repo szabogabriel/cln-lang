@@ -33,15 +33,31 @@ public class MemberAccessExprImpl implements CompiledExpr {
             throw new RuntimeException("Cannot access member '" + member + "' of null object");
         }
         
-        // Structs are represented as Maps
+        // Structs (and union members) are represented as Maps
         if (objValue instanceof Map) {
             @SuppressWarnings("unchecked")
             Map<String, Object> structMap = (Map<String, Object>) objValue;
             
             if (!structMap.containsKey(member)) {
                 String typeName = (String) structMap.get("__type__");
-                throw new RuntimeException("Struct " + (typeName != null ? typeName : "unknown") + 
-                                         " has no field '" + member + "'");
+                
+                // Check if this might be a union type and if the field is a common field
+                // This provides better error messages for union types
+                String errorMsg = "Struct " + (typeName != null ? typeName : "unknown") + 
+                                " has no field '" + member + "'";
+                
+                // Try to provide more helpful error for union types
+                if (typeName != null) {
+                    org.clnlang.runtime.types.UnionDefinition unionDef = 
+                        context.getGlobalContext().getUnionType(typeName);
+                    if (unionDef != null && unionDef.hasCommonField(member)) {
+                        // This shouldn't happen - the struct is marked as a union but doesn't have the field
+                        errorMsg = "Union " + typeName + " has common field '" + member + 
+                                 "' but the actual instance doesn't contain it";
+                    }
+                }
+                
+                throw new RuntimeException(errorMsg);
             }
             
             return structMap.get(member);
