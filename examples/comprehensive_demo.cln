@@ -166,9 +166,32 @@ int main() {
     writeLine("(a + b) * (a - b) / 2 = " + intToStr(complex));
     
     // ========================================================================
-    // 3. INCREMENT/DECREMENT OPERATORS
+    // 3. DECIMAL TYPE (BigDecimal)
     // ========================================================================
-    writeLine("\n3. Increment/Decrement Operators:");
+    writeLine("\n3. Decimal Type:");
+    
+    dec price = 19.99;
+    dec quantity = 2.5;
+    dec total = price * quantity;
+    
+    writeLine("Price: " + price);
+    writeLine("Quantity: " + quantity);
+    writeLine("Total: " + total);
+    
+    // Decimal division (precise)
+    dec precise = 10.0 / 3.0;
+    writeLine("Precise division: 10.0 / 3.0 = " + precise);
+    
+    // Mixed int and decimal
+    var int units = 5;
+    dec unit_price = 7.25;
+    dec mixed = units * unit_price;
+    writeLine("Mixed: " + intToStr(units) + " * " + unit_price + " = " + mixed);
+    
+    // ========================================================================
+    // 4. INCREMENT/DECREMENT OPERATORS
+    // ========================================================================
+    writeLine("\n4. Increment/Decrement Operators:");
     
     var int counter = 5;
     writeLine("counter = " + intToStr(counter));
@@ -186,9 +209,9 @@ int main() {
     writeLine("--counter -> " + intToStr(counter));
     
     // ========================================================================
-    // 4. COMPARISON OPERATORS
+    // 5. COMPARISON OPERATORS
     // ========================================================================
-    writeLine("\n4. Comparison Operators:");
+    writeLine("\n5. Comparison Operators:");
     
     var int x = 10;
     var int y = 20;
@@ -218,9 +241,9 @@ int main() {
     }
     
     // ========================================================================
-    // 5. LOGICAL OPERATORS
+    // 6. LOGICAL OPERATORS
     // ========================================================================
-    writeLine("\n5. Logical Operators:");
+    writeLine("\n6. Logical Operators:");
     
     var bool t = true;
     var bool f = false;
@@ -238,9 +261,9 @@ int main() {
     }
     
     // ========================================================================
-    // 6. FUNCTION CALLS
+    // 7. FUNCTION CALLS
     // ========================================================================
-    writeLine("\n6. Function Calls:");
+    writeLine("\n7. Function Calls:");
     
     var int sum1 = add(15, 25);
     writeLine("add(15, 25) = " + intToStr(sum1));
@@ -256,9 +279,9 @@ int main() {
     writeLine("max(42, 17) = " + intToStr(maxVal));
     
     // ========================================================================
-    // 7. IF-ELSE STATEMENTS
+    // 8. IF-ELSE STATEMENTS
     // ========================================================================
-    writeLine("\n7. If-Else Statements:");
+    writeLine("\n8. If-Else Statements:");
     
     var int testValue = 15;
     
@@ -275,9 +298,9 @@ int main() {
     }
     
     // ========================================================================
-    // 8. WHILE LOOPS
+    // 9. WHILE LOOPS
     // ========================================================================
-    writeLine("\n8. While Loops:");
+    writeLine("\n9. While Loops:");
     
     var int loopCounter = 1;
     writeLine("Counting from 1 to 5:");
@@ -290,9 +313,9 @@ int main() {
     writeLine("factorial(5) = " + intToStr(fact));
     
     // ========================================================================
-    // 9. STRUCTS
+    // 10. STRUCTS
     // ========================================================================
-    writeLine("\n9. Structs:");
+    writeLine("\n10. Structs:");
     
     // Struct literal initialization
     Point pt = Point(x: 10, y: 20);
@@ -309,18 +332,18 @@ int main() {
     writeLine("After update: " + person.name + ", age: " + intToStr(person.age));
     
     // ========================================================================
-    // 10. ARRAYS
+    // 11. ARRAYS
     // ========================================================================
-    writeLine("\n10. Arrays:");
+    writeLine("\n11. Arrays:");
     
     // Note: Array syntax is available in the grammar (type with [])
     // but may have limited runtime support
     writeLine("Array syntax is defined in the grammar: int[], string[]");
     
     // ========================================================================
-    // 11. GLOBAL VARIABLES
+    // 12. GLOBAL VARIABLES
     // ========================================================================
-    writeLine("\n11. Global Variables:");
+    writeLine("\n12. Global Variables:");
     
     writeLine("Global message: " + globalMessage);
     writeLine("Global counter: " + intToStr(globalCounter));
@@ -329,9 +352,9 @@ int main() {
     writeLine("Updated global counter: " + intToStr(globalCounter));
     
     // ========================================================================
-    // 12. SWITCH STATEMENTS (with unions)
+    // 13. SWITCH STATEMENTS (with unions)
     // ========================================================================
-    writeLine("\n12. Switch Statements:");
+    writeLine("\n13. Switch Statements:");
     
     Rectangle rect = Rectangle(width: 5, height: 10);
     writeLine("Rectangle area: width=" + intToStr(rect.width) + ", height=" + intToStr(rect.height));
@@ -345,9 +368,9 @@ int main() {
     writeLine("Switch/case with unions is defined in the grammar");
     
     // ========================================================================
-    // 13. UNARY OPERATORS
+    // 14. UNARY OPERATORS
     // ========================================================================
-    writeLine("\n13. Unary Operators:");
+    writeLine("\n14. Unary Operators:");
     
     var int positive = 42;
     var int negative = -positive;
@@ -359,9 +382,9 @@ int main() {
     }
     
     // ========================================================================
-    // 14. NESTED BLOCKS
+    // 15. NESTED BLOCKS
     // ========================================================================
-    writeLine("\n14. Nested Blocks:");
+    writeLine("\n15. Nested Blocks:");
     
     {
         var int outerVar = 10;

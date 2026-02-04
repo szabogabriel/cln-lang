@@ -3,6 +3,8 @@ package org.clnlang.compile.expression;
 import org.clnlang.compile.CompiledExpr;
 import org.clnlang.runtime.context.ExecutionContext;
 
+import java.math.BigDecimal;
+
 /**
  * Compiled representation of a binary expression.
  */
@@ -39,6 +41,15 @@ public class BinaryExprImpl implements CompiledExpr {
                 if (leftVal instanceof Long && rightVal instanceof Long) {
                     return (Long) leftVal + (Long) rightVal;
                 }
+                if (leftVal instanceof BigDecimal && rightVal instanceof BigDecimal) {
+                    return ((BigDecimal) leftVal).add((BigDecimal) rightVal);
+                }
+                if (leftVal instanceof BigDecimal && rightVal instanceof Long) {
+                    return ((BigDecimal) leftVal).add(BigDecimal.valueOf((Long) rightVal));
+                }
+                if (leftVal instanceof Long && rightVal instanceof BigDecimal) {
+                    return BigDecimal.valueOf((Long) leftVal).add((BigDecimal) rightVal);
+                }
                 if (leftVal instanceof String || rightVal instanceof String) {
                     return String.valueOf(leftVal) + String.valueOf(rightVal);
                 }
@@ -48,11 +59,29 @@ public class BinaryExprImpl implements CompiledExpr {
                 if (leftVal instanceof Long && rightVal instanceof Long) {
                     return (Long) leftVal - (Long) rightVal;
                 }
+                if (leftVal instanceof BigDecimal && rightVal instanceof BigDecimal) {
+                    return ((BigDecimal) leftVal).subtract((BigDecimal) rightVal);
+                }
+                if (leftVal instanceof BigDecimal && rightVal instanceof Long) {
+                    return ((BigDecimal) leftVal).subtract(BigDecimal.valueOf((Long) rightVal));
+                }
+                if (leftVal instanceof Long && rightVal instanceof BigDecimal) {
+                    return BigDecimal.valueOf((Long) leftVal).subtract((BigDecimal) rightVal);
+                }
                 throw new IllegalArgumentException("Invalid operands for - operator");
             
             case STAR:
                 if (leftVal instanceof Long && rightVal instanceof Long) {
                     return (Long) leftVal * (Long) rightVal;
+                }
+                if (leftVal instanceof BigDecimal && rightVal instanceof BigDecimal) {
+                    return ((BigDecimal) leftVal).multiply((BigDecimal) rightVal);
+                }
+                if (leftVal instanceof BigDecimal && rightVal instanceof Long) {
+                    return ((BigDecimal) leftVal).multiply(BigDecimal.valueOf((Long) rightVal));
+                }
+                if (leftVal instanceof Long && rightVal instanceof BigDecimal) {
+                    return BigDecimal.valueOf((Long) leftVal).multiply((BigDecimal) rightVal);
                 }
                 throw new IllegalArgumentException("Invalid operands for * operator");
             
@@ -62,6 +91,24 @@ public class BinaryExprImpl implements CompiledExpr {
                         throw new ArithmeticException("Division by zero");
                     }
                     return (Long) leftVal / (Long) rightVal;
+                }
+                if (leftVal instanceof BigDecimal && rightVal instanceof BigDecimal) {
+                    if (((BigDecimal) rightVal).compareTo(BigDecimal.ZERO) == 0) {
+                        throw new ArithmeticException("Division by zero");
+                    }
+                    return ((BigDecimal) leftVal).divide((BigDecimal) rightVal, java.math.MathContext.DECIMAL128);
+                }
+                if (leftVal instanceof BigDecimal && rightVal instanceof Long) {
+                    if ((Long) rightVal == 0) {
+                        throw new ArithmeticException("Division by zero");
+                    }
+                    return ((BigDecimal) leftVal).divide(BigDecimal.valueOf((Long) rightVal), java.math.MathContext.DECIMAL128);
+                }
+                if (leftVal instanceof Long && rightVal instanceof BigDecimal) {
+                    if (((BigDecimal) rightVal).compareTo(BigDecimal.ZERO) == 0) {
+                        throw new ArithmeticException("Division by zero");
+                    }
+                    return BigDecimal.valueOf((Long) leftVal).divide((BigDecimal) rightVal, java.math.MathContext.DECIMAL128);
                 }
                 throw new IllegalArgumentException("Invalid operands for / operator");
             
@@ -87,6 +134,15 @@ public class BinaryExprImpl implements CompiledExpr {
                 if (leftVal instanceof Long && rightVal instanceof Long) {
                     return (Long) leftVal < (Long) rightVal;
                 }
+                if (leftVal instanceof BigDecimal && rightVal instanceof BigDecimal) {
+                    return ((BigDecimal) leftVal).compareTo((BigDecimal) rightVal) < 0;
+                }
+                if (leftVal instanceof BigDecimal && rightVal instanceof Long) {
+                    return ((BigDecimal) leftVal).compareTo(BigDecimal.valueOf((Long) rightVal)) < 0;
+                }
+                if (leftVal instanceof Long && rightVal instanceof BigDecimal) {
+                    return BigDecimal.valueOf((Long) leftVal).compareTo((BigDecimal) rightVal) < 0;
+                }
                 if (leftVal instanceof String && rightVal instanceof String) {
                     return ((String) leftVal).compareTo((String) rightVal) < 0;
                 }
@@ -95,6 +151,15 @@ public class BinaryExprImpl implements CompiledExpr {
             case LTE:
                 if (leftVal instanceof Long && rightVal instanceof Long) {
                     return (Long) leftVal <= (Long) rightVal;
+                }
+                if (leftVal instanceof BigDecimal && rightVal instanceof BigDecimal) {
+                    return ((BigDecimal) leftVal).compareTo((BigDecimal) rightVal) <= 0;
+                }
+                if (leftVal instanceof BigDecimal && rightVal instanceof Long) {
+                    return ((BigDecimal) leftVal).compareTo(BigDecimal.valueOf((Long) rightVal)) <= 0;
+                }
+                if (leftVal instanceof Long && rightVal instanceof BigDecimal) {
+                    return BigDecimal.valueOf((Long) leftVal).compareTo((BigDecimal) rightVal) <= 0;
                 }
                 if (leftVal instanceof String && rightVal instanceof String) {
                     return ((String) leftVal).compareTo((String) rightVal) <= 0;
@@ -105,6 +170,15 @@ public class BinaryExprImpl implements CompiledExpr {
                 if (leftVal instanceof Long && rightVal instanceof Long) {
                     return (Long) leftVal > (Long) rightVal;
                 }
+                if (leftVal instanceof BigDecimal && rightVal instanceof BigDecimal) {
+                    return ((BigDecimal) leftVal).compareTo((BigDecimal) rightVal) > 0;
+                }
+                if (leftVal instanceof BigDecimal && rightVal instanceof Long) {
+                    return ((BigDecimal) leftVal).compareTo(BigDecimal.valueOf((Long) rightVal)) > 0;
+                }
+                if (leftVal instanceof Long && rightVal instanceof BigDecimal) {
+                    return BigDecimal.valueOf((Long) leftVal).compareTo((BigDecimal) rightVal) > 0;
+                }
                 if (leftVal instanceof String && rightVal instanceof String) {
                     return ((String) leftVal).compareTo((String) rightVal) > 0;
                 }
@@ -113,6 +187,15 @@ public class BinaryExprImpl implements CompiledExpr {
             case GTE:
                 if (leftVal instanceof Long && rightVal instanceof Long) {
                     return (Long) leftVal >= (Long) rightVal;
+                }
+                if (leftVal instanceof BigDecimal && rightVal instanceof BigDecimal) {
+                    return ((BigDecimal) leftVal).compareTo((BigDecimal) rightVal) >= 0;
+                }
+                if (leftVal instanceof BigDecimal && rightVal instanceof Long) {
+                    return ((BigDecimal) leftVal).compareTo(BigDecimal.valueOf((Long) rightVal)) >= 0;
+                }
+                if (leftVal instanceof Long && rightVal instanceof BigDecimal) {
+                    return BigDecimal.valueOf((Long) leftVal).compareTo((BigDecimal) rightVal) >= 0;
                 }
                 if (leftVal instanceof String && rightVal instanceof String) {
                     return ((String) leftVal).compareTo((String) rightVal) >= 0;

@@ -45,6 +45,7 @@ primitiveType
   : INT_T
   | BOOL_T
   | STRING_T
+  | DEC_T
   ;
 
 // ---- Structs and Unions ----
@@ -220,6 +221,7 @@ argList
 
 primaryExpr
   : INT_LIT
+  | DEC_LIT
   | BOOL_LIT
   | STRING_LIT
   | structLiteral
@@ -273,10 +275,12 @@ RETURN  : 'return';
 INT_T    : 'int';
 BOOL_T   : 'bool';
 STRING_T : 'string';
+DEC_T    : 'dec';
 
 // Literals
 BOOL_LIT   : 'true' | 'false';
 INT_LIT    : [0-9]+;
+DEC_LIT    : [0-9]+ '.' [0-9]+;
 STRING_LIT : '"' ( '\\' . | ~["\\\r\n] )* '"';
 
 // Operators / punctuation

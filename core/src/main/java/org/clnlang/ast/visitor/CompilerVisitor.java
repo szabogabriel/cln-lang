@@ -592,6 +592,9 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
         if (ctx.INT_LIT() != null) {
             String text = ctx.INT_LIT().getText();
             return new IntLiteralExprImpl(text);
+        } else if (ctx.DEC_LIT() != null) {
+            String text = ctx.DEC_LIT().getText();
+            return new DecLiteralExprImpl(text);
         } else if (ctx.BOOL_LIT() != null) {
             boolean value = Boolean.parseBoolean(ctx.BOOL_LIT().getText());
             return new BoolLiteralExprImpl(value);
@@ -649,7 +652,7 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
     private boolean isPrimitiveType(String typeName) {
         // Strip array brackets for checking base type
         String baseType = typeName.replaceAll("\\[\\]", "");
-        return baseType.equals("int") || baseType.equals("bool") || baseType.equals("string");
+        return baseType.equals("int") || baseType.equals("bool") || baseType.equals("string") || baseType.equals("dec");
     }
     
     /**
@@ -662,7 +665,7 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
         if (!isPrimitiveType(baseType) && !definedTypes.contains(baseType)) {
             throw new IllegalArgumentException(
                 "line " + lineNumber + ": Unknown type '" + baseType + "'. " +
-                "Type must be one of the primitive types (int, bool, string) or a declared struct/union."
+                "Type must be one of the primitive types (int, bool, string, dec) or a declared struct/union."
             );
         }
     }

@@ -1,0 +1,68 @@
+package main;
+
+import std.console.*;
+
+// Demonstration of the new 'dec' (decimal) type
+// Uses BigDecimal for precise decimal arithmetic
+
+int main() {
+    writeLine("=== Decimal (dec) Type Demo ===");
+    writeLine("");
+    
+    // Basic decimal literals
+    dec price = 19.99;
+    dec tax_rate = 0.08;
+    dec quantity = 3.5;
+    
+    writeLine("Price per unit: " + price);
+    writeLine("Tax rate: " + tax_rate);
+    writeLine("Quantity: " + quantity);
+    writeLine("");
+    
+    // Arithmetic with decimals
+    dec subtotal = price * quantity;
+    writeLine("Subtotal: " + subtotal);
+    
+    dec tax = subtotal * tax_rate;
+    writeLine("Tax: " + tax);
+    
+    dec total = subtotal + tax;
+    writeLine("Total: " + total);
+    writeLine("");
+    
+    // Mixed operations (int and dec)
+    var int whole_units = 10;
+    dec unit_price = 5.75;
+    dec mixed_total = whole_units * unit_price;
+    writeLine("Mixed calculation (int * dec): " + mixed_total);
+    writeLine("");
+    
+    // Division with decimals (precise)
+    dec dividend = 10.0;
+    dec divisor = 3.0;
+    dec result = dividend / divisor;
+    writeLine("Precise division: 10.0 / 3.0 = " + result);
+    writeLine("");
+    
+    // Comparison operations
+    dec value1 = 5.5;
+    dec value2 = 5.50;
+    dec value3 = 6.0;
+    
+    if (value1 == value2) {
+        writeLine("5.5 == 5.50 (true)");
+    }
+    
+    if (value1 < value3) {
+        writeLine("5.5 < 6.0 (true)");
+    }
+    
+    if (value3 > value1) {
+        writeLine("6.0 > 5.5 (true)");
+    }
+    
+    writeLine("");
+    writeLine("=== Demo Complete ===");
+    
+    return 0;
+}
