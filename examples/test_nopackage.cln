@@ -1,0 +1,6 @@
+import std.console.*;
+
+int main() {
+  writeLine("Hello, world!");
+  return 0;
+}

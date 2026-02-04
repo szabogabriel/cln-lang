@@ -1,0 +1,79 @@
+package test;
+
+import std.console.writeLine;
+import std.str.intToStr;
+
+struct Circle {
+    var int radius;
+};
+
+struct Rectangle {
+    var int width;
+    var int height;
+};
+
+struct Triangle {
+    var int base;
+    var int height;
+};
+
+union Shape {
+    Circle;
+    Rectangle;
+    Triangle;
+};
+
+(var int result = 0) calculateArea(Shape s) {
+    switch (s) {
+        case Circle c:
+            result = c.radius * c.radius * 3;
+        case Rectangle r:
+            result = r.width * r.height;
+        case Triangle t:
+            result = (t.base * t.height) / 2;
+        default:
+            result = -1;
+    }
+    return;
+}
+
+(var string result = "") describeShape(Shape s) {
+    switch (s) {
+        case Circle c:
+            result = "Circle with radius " + intToStr(c.radius);
+        case Rectangle r:
+            result = "Rectangle " + intToStr(r.width) + "x" + intToStr(r.height);
+        case Triangle t:
+            result = "Triangle base=" + intToStr(t.base) + " height=" + intToStr(t.height);
+        default:
+            result = "Unknown shape";
+    }
+    return;
+}
+
+int main() {
+    // Test with Circle
+    Circle circle = Circle(radius: 7);
+    int circleArea = calculateArea(circle);
+    string circleDesc = describeShape(circle);
+    writeLine(circleDesc);
+    writeLine("Area: " + intToStr(circleArea));
+    writeLine("");
+    
+    // Test with Rectangle
+    Rectangle rect = Rectangle(width: 5, height: 10);
+    int rectArea = calculateArea(rect);
+    string rectDesc = describeShape(rect);
+    writeLine(rectDesc);
+    writeLine("Area: " + intToStr(rectArea));
+    writeLine("");
+    
+    // Test with Triangle
+    Triangle tri = Triangle(base: 8, height: 6);
+    int triArea = calculateArea(tri);
+    string triDesc = describeShape(tri);
+    writeLine(triDesc);
+    writeLine("Area: " + intToStr(triArea));
+    
+    return 0;
+}

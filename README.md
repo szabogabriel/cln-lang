@@ -5,7 +5,7 @@ An interpreter for **cln**, a small embeddable scripting language with ANTLR4-ba
 ## Why cln exists
 
 - **Embeddable DSL**: Designed to be embedded in larger applications as a domain-specific scripting language
-- **Deterministic numeric behavior**: 64-bit signed integers provide consistent, predictable arithmetic across platforms
+- **Deterministic numeric behavior**: 64-bit signed integers and Java's BigDecimal provide consistent, predictable arithmetic across platforms
 - **Module system with import resolution**: Package-based organization with wildcard import support
 - **Domain data modeling**: Structs and unions enable clear representation of business domain entities
 - **Pattern matching**: Switch/case on union types allows elegant handling of variant data
@@ -56,10 +56,14 @@ An interpreter for **cln**, a small embeddable scripting language with ANTLR4-ba
 - **Error Handling**: Comprehensive exception handling with detailed error messages
 - **Type Safety**: Runtime type checking for operators and conditionals with strict primitive type validation (case-sensitive: `int`, `bool`, `string`, `dec`)
 - **Global Variables**: Full support for mutable global variables with `var` keyword
+- **Union Types**: 
+  - **Declaration**: Define union types with multiple struct members
+  - **Pattern Matching**: Switch/case statements on union types with variable binding
+  - **Implicit Upcasting**: Struct instances can be passed to functions expecting union types
+  - **Type Matching**: Runtime type identification using `__type__` metadata
 
 ### 🚧 Partially Implemented
 
-- **Unions**: Declaration and switch/case matching work, but implicit upcasting from member types to union type not implemented
 - **Arrays**: Grammar support exists, runtime implementation pending
 
 ### ❌ Not Yet Implemented
@@ -69,7 +73,6 @@ An interpreter for **cln**, a small embeddable scripting language with ANTLR4-ba
 - **Array Operations**: No array creation, indexing, or manipulation
 - **Type Checking**: Static type checking not implemented (runtime only)
 - **Semantic Analysis**: No compile-time validation beyond basic type checks
-- **Union type coercion**: Cannot pass struct instances to functions expecting union types
 
 ## Project Structure
 
@@ -228,6 +231,8 @@ int add(int a, int b) {
 
 ### Union Types and Pattern Matching
 
+Union types allow you to define tagged unions where a value can be one of several struct types. The runtime automatically supports implicit upcasting from struct instances to union types:
+
 ```cln
 struct Circle {
     var int radius;
@@ -243,7 +248,7 @@ union Shape {
     Rectangle;
 };
 
-// Switch/case pattern matching (note: union parameter passing not yet supported)
+// Functions can accept union types and use pattern matching
 (var int result = 0) calculateArea(Shape s) {
     switch (s) {
         case Circle c:
@@ -255,7 +260,28 @@ union Shape {
     }
     return;
 }
+
+int main() {
+    // Create struct instances
+    Circle myCircle = Circle(radius: 5);
+    Rectangle myRect = Rectangle(width: 10, height: 20);
+    
+    // Implicit upcasting: pass structs to function expecting union type
+    int circleArea = calculateArea(myCircle);  // Works!
+    int rectArea = calculateArea(myRect);      // Works!
+    
+    writeLine("Circle area: " + intToStr(circleArea));
+    writeLine("Rectangle area: " + intToStr(rectArea));
+    
+    return 0;
+}
 ```
+
+**How it works:**
+- Each struct instance stores `__type__` metadata with its type name
+- Functions accepting union types can receive any member struct
+- Switch/case statements match on the struct's actual type
+- Variables bound in case clauses have the correct struct type
 
 ### Increment and Decrement Operators
 
@@ -362,7 +388,7 @@ int main() {
 
 ### Known Limitations
 
-- **Union type parameters**: Cannot pass struct instances directly to functions expecting union types (implicit upcasting not implemented)
+
 - **Exit codes**: Process exit codes are 8-bit (0-255), so values > 255 are truncated via modulo operation
 - **Structs**: Represented internally as `Map<String, Object>` with `__type__` metadata
 - **Type names**: Primitive type names are case-sensitive and must be lowercase (`int`, `bool`, `string`)
@@ -377,7 +403,7 @@ int main() {
   - Mutable: `var int x = 10;` or type-inferred `var x = 10;`
   - Constant: `int x = 10;` or `string name = "value";`
 - **Structs**: Full declaration, instantiation, field access, and modification support
-- **Unions**: Declaration and switch/case pattern matching
+- **Unions**: Full declaration, switch/case pattern matching, and implicit upcasting from struct members
 - **Control flow**: `if/else` statements, `while` loops, and `switch/case` on union types
 - **Operators**:
   - Arithmetic: `+`, `-`, `*`, `/` (supports both integer and decimal types)
@@ -392,7 +418,6 @@ int main() {
 ### Language Constructs Not Yet Functional
 
 - **Arrays**: Grammar exists but no runtime support for creation, indexing, or manipulation
-- **Union type coercion**: Cannot implicitly upcast struct instances to union types
 - **Static type checking**: Only runtime type validation is performed
 
 ## Architecture
@@ -467,6 +492,8 @@ Example programs in `examples/` directory:
 - `test_struct.cln` - Struct operations
 - `test_member_assign.cln` - Struct field assignment
 - `test_switch_simple.cln` - Simple switch/case
+- `test_union_upcast.cln` - Union type upcasting from structs
+- `test_union_complete.cln` - Complete union type functionality test
 - `test_math.cln` - Mathematical operations
 - `test_long_range.cln` - 64-bit integer range testing
 - `test_simple_add.cln` - Basic arithmetic

@@ -1,0 +1,42 @@
+package test;
+
+import std.console.writeLine;
+
+struct Circle {
+    var int radius;
+};
+
+struct Rectangle {
+    var int width;
+    var int height;
+};
+
+union Shape {
+    Circle;
+    Rectangle;
+};
+
+(var int result = 0) calculateArea(Shape s) {
+    switch (s) {
+        case Circle c:
+            result = c.radius * c.radius * 3;
+        case Rectangle r:
+            result = r.width * r.height;
+        default:
+            result = -1;
+    }
+    return;
+}
+
+int main() {
+    // Create a Circle
+    Circle myCircle = Circle(radius: 5);
+    
+    // Try to pass it to a function expecting Shape
+    // This should work with upcasting
+    int area = calculateArea(myCircle);
+    
+    writeLine("Circle area: " + area);
+    
+    return 0;
+}
