@@ -57,23 +57,31 @@ public class ProgramImpl implements CompiledAction {
             context.registerImport(importDecl);
         }
 
+        // Get the current package name
+        String currentPackage = context.getGlobalContext().getPackageName();
+        if (currentPackage == null) {
+            currentPackage = ""; // Default to empty package if not set
+        }
+
         // Register all type definitions, functions, and global variables
         for (CompiledAction decl : declarations) {
             if (decl instanceof StructDeclImpl) {
                 StructDeclImpl structDecl = (StructDeclImpl) decl;
                 context.getGlobalContext().registerStructType(
                         structDecl.getName(),
-                        structDecl.toStructDefinition());
+                        structDecl.toStructDefinition(currentPackage));
             } else if (decl instanceof UnionDeclImpl) {
                 UnionDeclImpl unionDecl = (UnionDeclImpl) decl;
                 context.getGlobalContext().registerUnionType(
                         unionDecl.getName(),
-                        unionDecl.toUnionDefinition());
+                        unionDecl.toUnionDefinition(currentPackage));
             } else if (decl instanceof FunctionDeclImpl) {
                 FunctionDeclImpl funcDecl = (FunctionDeclImpl) decl;
+                funcDecl.setPackageName(currentPackage);
                 context.getGlobalContext().registerFunction(funcDecl.getName(), funcDecl);
             } else if (decl instanceof GlobalVarDeclImpl) {
                 GlobalVarDeclImpl varDecl = (GlobalVarDeclImpl) decl;
+                varDecl.setPackageName(currentPackage);
                 // Evaluate the initializer and register
                 Object value = varDecl.getInitializer().evaluate(context);
                 context.getGlobalContext().registerGlobalVariable(varDecl, value);

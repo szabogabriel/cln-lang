@@ -11,6 +11,7 @@ import java.util.List;
  */
 public class FunctionDeclImpl implements CompiledAction {
     private String name;
+    private String packageName;
     private List<Parameter> parameters;
     private List<ReturnVar> returnVars;
     private String simpleReturnType;  // Simple return type like "int" or null if using named returns
@@ -19,6 +20,7 @@ public class FunctionDeclImpl implements CompiledAction {
 
     public FunctionDeclImpl(String name, boolean isExposed) {
         this.name = name;
+        this.packageName = null; // Will be set later
         this.isExposed = isExposed;
         this.parameters = new ArrayList<>();
         this.returnVars = new ArrayList<>();
@@ -50,6 +52,14 @@ public class FunctionDeclImpl implements CompiledAction {
 
     public String getName() {
         return name;
+    }
+    
+    public void setPackageName(String packageName) {
+        this.packageName = packageName;
+    }
+    
+    public String getPackageName() {
+        return packageName;
     }
 
     public List<Parameter> getParameters() {

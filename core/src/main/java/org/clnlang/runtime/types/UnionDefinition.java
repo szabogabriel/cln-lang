@@ -8,11 +8,13 @@ import java.util.Map;
  */
 public class UnionDefinition {
     private final String name;
+    private final String packageName;
     private final Map<String, String> members; // memberName -> memberType
     private final boolean isExposed;
     
-    public UnionDefinition(String name, boolean isExposed) {
+    public UnionDefinition(String name, String packageName, boolean isExposed) {
         this.name = name;
+        this.packageName = packageName;
         this.isExposed = isExposed;
         this.members = new HashMap<>();
     }
@@ -24,6 +26,10 @@ public class UnionDefinition {
     
     public String getName() {
         return name;
+    }
+    
+    public String getPackageName() {
+        return packageName;
     }
     
     public Map<String, String> getMembers() {

@@ -13,6 +13,7 @@ public class GlobalVarDeclImpl implements CompiledAction {
     private final String name;
     private final CompiledExpr initializer;
     private final boolean isExposed;
+    private String packageName;
 
     public GlobalVarDeclImpl(boolean isMutable, String type, String name, CompiledExpr initializer, boolean isExposed) {
         this.isMutable = isMutable;
@@ -20,6 +21,7 @@ public class GlobalVarDeclImpl implements CompiledAction {
         this.name = name;
         this.initializer = initializer;
         this.isExposed = isExposed;
+        this.packageName = null; // Will be set later
     }
 
     public boolean isMutable() {
@@ -40,6 +42,14 @@ public class GlobalVarDeclImpl implements CompiledAction {
 
     public boolean isExposed() {
         return isExposed;
+    }
+    
+    public void setPackageName(String packageName) {
+        this.packageName = packageName;
+    }
+    
+    public String getPackageName() {
+        return packageName;
     }
 
     @Override

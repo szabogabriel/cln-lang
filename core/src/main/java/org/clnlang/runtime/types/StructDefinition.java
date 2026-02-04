@@ -8,12 +8,14 @@ import java.util.Map;
  */
 public class StructDefinition {
     private final String name;
+    private final String packageName;
     private final Map<String, String> fields; // fieldName -> fieldType
     private final Map<String, Boolean> fieldMutability; // fieldName -> isVar
     private final boolean isExposed;
     
-    public StructDefinition(String name, boolean isExposed) {
+    public StructDefinition(String name, String packageName, boolean isExposed) {
         this.name = name;
+        this.packageName = packageName;
         this.isExposed = isExposed;
         this.fields = new HashMap<>();
         this.fieldMutability = new HashMap<>();
@@ -26,6 +28,10 @@ public class StructDefinition {
     
     public String getName() {
         return name;
+    }
+    
+    public String getPackageName() {
+        return packageName;
     }
     
     public Map<String, String> getFields() {

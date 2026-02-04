@@ -40,8 +40,8 @@ public class StructDeclImpl implements CompiledAction {
     /**
      * Create a StructDefinition from this declaration
      */
-    public StructDefinition toStructDefinition() {
-        StructDefinition definition = new StructDefinition(name, isExposed);
+    public StructDefinition toStructDefinition(String packageName) {
+        StructDefinition definition = new StructDefinition(name, packageName, isExposed);
         for (FieldDecl field : fields) {
             definition.addField(field.getName(), field.getType(), field.isVar());
         }

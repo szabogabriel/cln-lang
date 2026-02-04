@@ -56,15 +56,21 @@ public class Linker {
     private void resolveWildcardImport(String packagePath, GlobalContext globalContext, 
                                       Registry registry, Set<String> resolvedSymbols) throws Exception {
         boolean foundAny = false;
+        String importingPackage = globalContext.getPackageName();
         
         // Import all functions from the package
         for (Map.Entry<FullyQualifiedName, FunctionDeclImpl> entry : registry.getAllFunctions().entrySet()) {
             if (entry.getKey().getPackageName().equals(packagePath)) {
+                FunctionDeclImpl funcDecl = entry.getValue();
                 String simpleName = entry.getKey().getEntityName();
-                if (!resolvedSymbols.contains(simpleName)) {
-                    globalContext.registerFunction(simpleName, entry.getValue());
-                    resolvedSymbols.add(simpleName);
-                    foundAny = true;
+                
+                // Check visibility
+                if (isAccessible(importingPackage, funcDecl.getPackageName(), funcDecl.isExposed())) {
+                    if (!resolvedSymbols.contains(simpleName)) {
+                        globalContext.registerFunction(simpleName, funcDecl);
+                        resolvedSymbols.add(simpleName);
+                        foundAny = true;
+                    }
                 }
             }
         }
@@ -72,11 +78,16 @@ public class Linker {
         // Import all global variables from the package
         for (Map.Entry<FullyQualifiedName, GlobalVarDeclImpl> entry : registry.getAllGlobalVariables().entrySet()) {
             if (entry.getKey().getPackageName().equals(packagePath)) {
+                GlobalVarDeclImpl varDecl = entry.getValue();
                 String simpleName = entry.getKey().getEntityName();
-                if (!resolvedSymbols.contains(simpleName)) {
-                    globalContext.registerGlobalVariable(entry.getValue(), null); // Value will be set during execution
-                    resolvedSymbols.add(simpleName);
-                    foundAny = true;
+                
+                // Check visibility
+                if (isAccessible(importingPackage, varDecl.getPackageName(), varDecl.isExposed())) {
+                    if (!resolvedSymbols.contains(simpleName)) {
+                        globalContext.registerGlobalVariable(varDecl, null); // Value will be set during execution
+                        resolvedSymbols.add(simpleName);
+                        foundAny = true;
+                    }
                 }
             }
         }
@@ -84,11 +95,16 @@ public class Linker {
         // Import all global constants from the package
         for (Map.Entry<FullyQualifiedName, GlobalVarDeclImpl> entry : registry.getAllGlobalConstants().entrySet()) {
             if (entry.getKey().getPackageName().equals(packagePath)) {
+                GlobalVarDeclImpl constDecl = entry.getValue();
                 String simpleName = entry.getKey().getEntityName();
-                if (!resolvedSymbols.contains(simpleName)) {
-                    globalContext.registerGlobalVariable(entry.getValue(), null); // Value will be set during execution
-                    resolvedSymbols.add(simpleName);
-                    foundAny = true;
+                
+                // Check visibility
+                if (isAccessible(importingPackage, constDecl.getPackageName(), constDecl.isExposed())) {
+                    if (!resolvedSymbols.contains(simpleName)) {
+                        globalContext.registerGlobalVariable(constDecl, null); // Value will be set during execution
+                        resolvedSymbols.add(simpleName);
+                        foundAny = true;
+                    }
                 }
             }
         }
@@ -96,11 +112,16 @@ public class Linker {
         // Import all struct types from the package
         for (Map.Entry<FullyQualifiedName, StructDefinition> entry : registry.getAllStructTypes().entrySet()) {
             if (entry.getKey().getPackageName().equals(packagePath)) {
+                StructDefinition structDef = entry.getValue();
                 String simpleName = entry.getKey().getEntityName();
-                if (!resolvedSymbols.contains(simpleName)) {
-                    globalContext.registerStructType(simpleName, entry.getValue());
-                    resolvedSymbols.add(simpleName);
-                    foundAny = true;
+                
+                // Check visibility
+                if (isAccessible(importingPackage, structDef.getPackageName(), structDef.isExposed())) {
+                    if (!resolvedSymbols.contains(simpleName)) {
+                        globalContext.registerStructType(simpleName, structDef);
+                        resolvedSymbols.add(simpleName);
+                        foundAny = true;
+                    }
                 }
             }
         }
@@ -108,17 +129,22 @@ public class Linker {
         // Import all union types from the package
         for (Map.Entry<FullyQualifiedName, UnionDefinition> entry : registry.getAllUnionTypes().entrySet()) {
             if (entry.getKey().getPackageName().equals(packagePath)) {
+                UnionDefinition unionDef = entry.getValue();
                 String simpleName = entry.getKey().getEntityName();
-                if (!resolvedSymbols.contains(simpleName)) {
-                    globalContext.registerUnionType(simpleName, entry.getValue());
-                    resolvedSymbols.add(simpleName);
-                    foundAny = true;
+                
+                // Check visibility
+                if (isAccessible(importingPackage, unionDef.getPackageName(), unionDef.isExposed())) {
+                    if (!resolvedSymbols.contains(simpleName)) {
+                        globalContext.registerUnionType(simpleName, unionDef);
+                        resolvedSymbols.add(simpleName);
+                        foundAny = true;
+                    }
                 }
             }
         }
         
         if (!foundAny) {
-            throw new Exception("Wildcard import failed: No symbols found in package '" + packagePath + "'");
+            throw new Exception("Wildcard import failed: No accessible symbols found in package '" + packagePath + "'");
         }
     }
     
@@ -136,6 +162,7 @@ public class Linker {
         String packageName = fullPath.substring(0, lastDot);
         String entityName = fullPath.substring(lastDot + 1);
         FullyQualifiedName fqn = new FullyQualifiedName(packageName, entityName);
+        String importingPackage = globalContext.getPackageName();
         
         // Try to find the symbol in each category
         boolean found = false;
@@ -143,6 +170,9 @@ public class Linker {
         // Try function
         FunctionDeclImpl function = registry.getFunction(fqn);
         if (function != null) {
+            if (!isAccessible(importingPackage, function.getPackageName(), function.isExposed())) {
+                throw new Exception("Import failed: Function '" + fullPath + "' is not exposed for cross-package import");
+            }
             if (!resolvedSymbols.contains(entityName)) {
                 globalContext.registerFunction(entityName, function);
                 resolvedSymbols.add(entityName);
@@ -153,6 +183,9 @@ public class Linker {
         // Try global variable
         GlobalVarDeclImpl variable = registry.getGlobalVariable(fqn);
         if (variable != null) {
+            if (!isAccessible(importingPackage, variable.getPackageName(), variable.isExposed())) {
+                throw new Exception("Import failed: Variable '" + fullPath + "' is not exposed for cross-package import");
+            }
             if (!resolvedSymbols.contains(entityName)) {
                 globalContext.registerGlobalVariable(variable, null); // Value will be set during execution
                 resolvedSymbols.add(entityName);
@@ -163,6 +196,9 @@ public class Linker {
         // Try global constant
         GlobalVarDeclImpl constant = registry.getGlobalConstant(fqn);
         if (constant != null) {
+            if (!isAccessible(importingPackage, constant.getPackageName(), constant.isExposed())) {
+                throw new Exception("Import failed: Constant '" + fullPath + "' is not exposed for cross-package import");
+            }
             if (!resolvedSymbols.contains(entityName)) {
                 globalContext.registerGlobalVariable(constant, null); // Value will be set during execution
                 resolvedSymbols.add(entityName);
@@ -173,6 +209,9 @@ public class Linker {
         // Try struct type
         StructDefinition struct = registry.getStructType(fqn);
         if (struct != null) {
+            if (!isAccessible(importingPackage, struct.getPackageName(), struct.isExposed())) {
+                throw new Exception("Import failed: Struct '" + fullPath + "' is not exposed for cross-package import");
+            }
             if (!resolvedSymbols.contains(entityName)) {
                 globalContext.registerStructType(entityName, struct);
                 resolvedSymbols.add(entityName);
@@ -183,6 +222,9 @@ public class Linker {
         // Try union type
         UnionDefinition union = registry.getUnionType(fqn);
         if (union != null) {
+            if (!isAccessible(importingPackage, union.getPackageName(), union.isExposed())) {
+                throw new Exception("Import failed: Union '" + fullPath + "' is not exposed for cross-package import");
+            }
             if (!resolvedSymbols.contains(entityName)) {
                 globalContext.registerUnionType(entityName, union);
                 resolvedSymbols.add(entityName);
@@ -193,5 +235,26 @@ public class Linker {
         if (!found) {
             throw new Exception("Import failed: Symbol '" + fullPath + "' not found in registry");
         }
+    }
+    
+    /**
+     * Check if a symbol from targetPackage is accessible from importingPackage.
+     * A symbol is accessible if:
+     * 1. It's in the same package (full access to all symbols), OR
+     * 2. It's in a different package AND marked as exposed
+     * 
+     * @param importingPackage The package trying to import the symbol
+     * @param targetPackage The package where the symbol is defined
+     * @param isExposed Whether the symbol is marked with 'expose' keyword
+     * @return true if the symbol is accessible, false otherwise
+     */
+    private boolean isAccessible(String importingPackage, String targetPackage, boolean isExposed) {
+        // Same package: full access
+        if (importingPackage != null && importingPackage.equals(targetPackage)) {
+            return true;
+        }
+        
+        // Different package: only if exposed
+        return isExposed;
     }
 }

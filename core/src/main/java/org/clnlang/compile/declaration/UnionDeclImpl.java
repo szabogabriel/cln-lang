@@ -40,8 +40,8 @@ public class UnionDeclImpl implements CompiledAction {
     /**
      * Create a UnionDefinition from this declaration
      */
-    public UnionDefinition toUnionDefinition() {
-        UnionDefinition definition = new UnionDefinition(name, isExposed);
+    public UnionDefinition toUnionDefinition(String packageName) {
+        UnionDefinition definition = new UnionDefinition(name, packageName, isExposed);
         for (String memberType : members) {
             definition.addMember(memberType);
         }
