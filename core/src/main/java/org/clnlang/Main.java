@@ -52,17 +52,19 @@ public class Main {
      * Returns the exit code from the main function.
      */
     public static int run(String[] args) throws Exception {
-        // Parse command-line arguments first
-        verbose = false;  // Reset the static field
-        String fileName = null;
-        
-        for (String arg : args) {
-            if (arg.equals("-v") || arg.equals("--verbose")) {
-                verbose = true;
-            } else if (!arg.startsWith("-")) {
-                fileName = arg;
-            }
+        // Parse command-line arguments using RuntimeConfiguration
+        RuntimeConfiguration config = new RuntimeConfiguration();
+        try {
+            config.parse(args);
+        } catch (IllegalArgumentException e) {
+            System.err.println("Error: " + e.getMessage());
+            RuntimeConfiguration.printUsage();
+            throw new ClnException("Invalid command line arguments: " + e.getMessage());
         }
+        
+        // Set verbose flag from configuration
+        verbose = config.isVerbose();
+        String fileName = config.getFirstSourceFile();
         
         // Create execution context and populate it
         ExecutionContext context = new ExecutionContext();
@@ -206,9 +208,7 @@ public class Main {
             fileName = findFirstClnFile();
             if (fileName == null) {
                 System.err.println("Error: No .cln file found in current directory.");
-                System.err.println("Usage: java -jar cln.jar [options] [file.cln]");
-                System.err.println("Options:");
-                System.err.println("  -v, --verbose    Enable verbose output");
+                RuntimeConfiguration.printUsage();
                 throw new ClnException("No .cln file found in current directory.");
             }
             if (verbose) {
@@ -225,7 +225,7 @@ public class Main {
 
         return fileName;
     }
-
+    
     /**
      * Find the first .cln file in the current working directory
      */
