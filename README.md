@@ -301,6 +301,8 @@ int main() {
     writeLine("Counter: " + intToStr(globalCounter));
     return 0;
 }
+```
+
 ### Known Limitations
 
 - **Union type parameters**: Cannot pass struct instances directly to functions expecting union types (implicit upcasting not implemented)

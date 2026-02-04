@@ -1,0 +1,386 @@
+// ============================================================================
+// Comprehensive CLN Language Feature Demo
+// This file demonstrates all available language features in the CLN language
+// ============================================================================
+
+package main;
+
+// Import statements - both wildcard and specific
+import std.console.*;
+import std.str.intToStr;
+import std.str.strLen;
+
+// ============================================================================
+// GLOBAL VARIABLES
+// ============================================================================
+
+var int globalCounter = 0;
+string globalMessage = "Global variables work!";
+
+// ============================================================================
+// STRUCT DECLARATIONS
+// ============================================================================
+
+// Struct with immutable and mutable fields
+struct Point {
+    int x;          // immutable field
+    var int y;      // mutable field
+};
+
+struct Person {
+    int id;
+    var string name;
+    var int age;
+};
+
+struct Rectangle {
+    var int width;
+    var int height;
+};
+
+struct Circle {
+    var int radius;
+};
+
+// ============================================================================
+// UNION DECLARATIONS
+// ============================================================================
+
+union Shape {
+    Rectangle;
+    Circle;
+};
+
+// ============================================================================
+// FUNCTION DECLARATIONS
+// ============================================================================
+
+// Function with no return type (void)
+printHeader() {
+    writeLine("=================================");
+    return;
+}
+
+// Function with simple return type
+int add(int a, int b) {
+    return a + b;
+}
+
+// Function with named return variable
+(var int result = 0) multiply(int a, int b) {
+    result = a * b;
+    return;
+}
+
+// Function with multiple named return values
+(var int sum = 0, var int diff = 0) addAndSubtract(int a, int b) {
+    sum = a + b;
+    diff = a - b;
+    return;
+}
+
+// Function demonstrating if-else statements
+int max(int a, int b) {
+    if (a > b) {
+        return a;
+    } else {
+        return b;
+    }
+}
+
+// Function demonstrating while loop
+int factorial(int n) {
+    var int result = 1;
+    var int i = n;
+    while (i > 1) {
+        result = result * i;
+        i = i - 1;
+    }
+    return result;
+}
+
+// Function demonstrating switch statement
+(var int area = 0) calculateArea(Shape s) {
+    switch (s) {
+        case Rectangle r:
+            area = r.width * r.height;
+        case Circle c:
+            area = c.radius * c.radius * 3;
+        default:
+            area = 0;
+    }
+    return;
+}
+
+// Function with struct manipulation
+updatePerson(Person p) {
+    p.name = "Updated Name";
+    p.age = p.age + 1;
+    return;
+}
+
+// ============================================================================
+// MAIN FUNCTION - Demonstrating all features
+// ============================================================================
+
+int main() {
+    printHeader();
+    writeLine("CLN Language Comprehensive Feature Demo");
+    printHeader();
+    
+    // ========================================================================
+    // 1. VARIABLES AND TYPES
+    // ========================================================================
+    writeLine("\n1. Variables and Types:");
+    
+    // Primitive types
+    var int number = 42;
+    var bool flag = true;
+    var string text = "Hello, CLN!";
+    
+    writeLine("Integer: " + intToStr(number));
+    writeLine("String: " + text);
+    writeLine("String length: " + intToStr(strLen(text)));
+    
+    // ========================================================================
+    // 2. ARITHMETIC OPERATIONS
+    // ========================================================================
+    writeLine("\n2. Arithmetic Operations:");
+    
+    var int a = 10;
+    var int b = 5;
+    
+    var int sum = a + b;
+    var int difference = a - b;
+    var int product = a * b;
+    var int quotient = a / b;
+    
+    writeLine("a = " + intToStr(a) + ", b = " + intToStr(b));
+    writeLine("a + b = " + intToStr(sum));
+    writeLine("a - b = " + intToStr(difference));
+    writeLine("a * b = " + intToStr(product));
+    writeLine("a / b = " + intToStr(quotient));
+    
+    // Complex expressions
+    var int complex = (a + b) * (a - b) / 2;
+    writeLine("(a + b) * (a - b) / 2 = " + intToStr(complex));
+    
+    // ========================================================================
+    // 3. INCREMENT/DECREMENT OPERATORS
+    // ========================================================================
+    writeLine("\n3. Increment/Decrement Operators:");
+    
+    var int counter = 5;
+    writeLine("counter = " + intToStr(counter));
+    
+    counter++;
+    writeLine("counter++ -> " + intToStr(counter));
+    
+    ++counter;
+    writeLine("++counter -> " + intToStr(counter));
+    
+    counter--;
+    writeLine("counter-- -> " + intToStr(counter));
+    
+    --counter;
+    writeLine("--counter -> " + intToStr(counter));
+    
+    // ========================================================================
+    // 4. COMPARISON OPERATORS
+    // ========================================================================
+    writeLine("\n4. Comparison Operators:");
+    
+    var int x = 10;
+    var int y = 20;
+    
+    if (x < y) {
+        writeLine(intToStr(x) + " < " + intToStr(y) + " is true");
+    }
+    
+    if (x <= y) {
+        writeLine(intToStr(x) + " <= " + intToStr(y) + " is true");
+    }
+    
+    if (y > x) {
+        writeLine(intToStr(y) + " > " + intToStr(x) + " is true");
+    }
+    
+    if (y >= x) {
+        writeLine(intToStr(y) + " >= " + intToStr(x) + " is true");
+    }
+    
+    if (x == x) {
+        writeLine(intToStr(x) + " == " + intToStr(x) + " is true");
+    }
+    
+    if (x != y) {
+        writeLine(intToStr(x) + " != " + intToStr(y) + " is true");
+    }
+    
+    // ========================================================================
+    // 5. LOGICAL OPERATORS
+    // ========================================================================
+    writeLine("\n5. Logical Operators:");
+    
+    var bool t = true;
+    var bool f = false;
+    
+    if (t && t) {
+        writeLine("true && true = true");
+    }
+    
+    if (t || f) {
+        writeLine("true || false = true");
+    }
+    
+    if (!f) {
+        writeLine("!false = true");
+    }
+    
+    // ========================================================================
+    // 6. FUNCTION CALLS
+    // ========================================================================
+    writeLine("\n6. Function Calls:");
+    
+    var int sum1 = add(15, 25);
+    writeLine("add(15, 25) = " + intToStr(sum1));
+    
+    var int product1 = multiply(6, 7);
+    writeLine("multiply(6, 7) = " + intToStr(product1));
+    
+    // Multiple return values
+    (int sumResult, int diffResult) = addAndSubtract(30, 10);
+    writeLine("addAndSubtract(30, 10) -> sum: " + intToStr(sumResult) + ", diff: " + intToStr(diffResult));
+    
+    var int maxVal = max(42, 17);
+    writeLine("max(42, 17) = " + intToStr(maxVal));
+    
+    // ========================================================================
+    // 7. IF-ELSE STATEMENTS
+    // ========================================================================
+    writeLine("\n7. If-Else Statements:");
+    
+    var int testValue = 15;
+    
+    if (testValue > 10) {
+        writeLine("testValue is greater than 10");
+        
+        if (testValue > 20) {
+            writeLine("testValue is also greater than 20");
+        } else {
+            writeLine("testValue is not greater than 20");
+        }
+    } else {
+        writeLine("testValue is not greater than 10");
+    }
+    
+    // ========================================================================
+    // 8. WHILE LOOPS
+    // ========================================================================
+    writeLine("\n8. While Loops:");
+    
+    var int loopCounter = 1;
+    writeLine("Counting from 1 to 5:");
+    while (loopCounter <= 5) {
+        writeLine("  " + intToStr(loopCounter));
+        loopCounter = loopCounter + 1;
+    }
+    
+    var int fact = factorial(5);
+    writeLine("factorial(5) = " + intToStr(fact));
+    
+    // ========================================================================
+    // 9. STRUCTS
+    // ========================================================================
+    writeLine("\n9. Structs:");
+    
+    // Struct literal initialization
+    Point pt = Point(x: 10, y: 20);
+    writeLine("Point: x = " + intToStr(pt.x) + ", y = " + intToStr(pt.y));
+    
+    // Modify mutable field
+    pt.y = 30;
+    writeLine("After modifying y: x = " + intToStr(pt.x) + ", y = " + intToStr(pt.y));
+    
+    Person person = Person(id: 1, name: "John Doe", age: 25);
+    writeLine("Person: " + person.name + ", age: " + intToStr(person.age));
+    
+    updatePerson(person);
+    writeLine("After update: " + person.name + ", age: " + intToStr(person.age));
+    
+    // ========================================================================
+    // 10. ARRAYS
+    // ========================================================================
+    writeLine("\n10. Arrays:");
+    
+    // Note: Array syntax is available in the grammar (type with [])
+    // but may have limited runtime support
+    writeLine("Array syntax is defined in the grammar: int[], string[]");
+    
+    // ========================================================================
+    // 11. GLOBAL VARIABLES
+    // ========================================================================
+    writeLine("\n11. Global Variables:");
+    
+    writeLine("Global message: " + globalMessage);
+    writeLine("Global counter: " + intToStr(globalCounter));
+    
+    globalCounter = 42;
+    writeLine("Updated global counter: " + intToStr(globalCounter));
+    
+    // ========================================================================
+    // 12. SWITCH STATEMENTS (with unions)
+    // ========================================================================
+    writeLine("\n12. Switch Statements:");
+    
+    Rectangle rect = Rectangle(width: 5, height: 10);
+    writeLine("Rectangle area: width=" + intToStr(rect.width) + ", height=" + intToStr(rect.height));
+    writeLine("Area = " + intToStr(rect.width * rect.height));
+    
+    Circle circ = Circle(radius: 7);
+    writeLine("Circle area: radius=" + intToStr(circ.radius));
+    writeLine("Approximate area = " + intToStr(circ.radius * circ.radius * 3));
+    
+    // Note: Union value construction from member types may not be fully implemented
+    writeLine("Switch/case with unions is defined in the grammar");
+    
+    // ========================================================================
+    // 13. UNARY OPERATORS
+    // ========================================================================
+    writeLine("\n13. Unary Operators:");
+    
+    var int positive = 42;
+    var int negative = -positive;
+    writeLine("Negation: -" + intToStr(positive) + " = " + intToStr(negative));
+    
+    var bool condition = false;
+    if (!condition) {
+        writeLine("Logical NOT works: !false = true");
+    }
+    
+    // ========================================================================
+    // 14. NESTED BLOCKS
+    // ========================================================================
+    writeLine("\n14. Nested Blocks:");
+    
+    {
+        var int outerVar = 10;
+        writeLine("Outer block: outerVar = " + intToStr(outerVar));
+        
+        {
+            var int innerVar = 20;
+            writeLine("Inner block: innerVar = " + intToStr(innerVar));
+            writeLine("Can access outer: outerVar = " + intToStr(outerVar));
+        }
+    }
+    
+    // ========================================================================
+    // CONCLUSION
+    // ========================================================================
+    writeLine("\n");
+    printHeader();
+    writeLine("All CLN language features demonstrated!");
+    printHeader();
+    
+    return 0;
+}

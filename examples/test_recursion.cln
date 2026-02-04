@@ -1,0 +1,19 @@
+package main;
+
+import std.console.*;
+import std.str.*;
+
+int factorial(int n) {
+  if (n == 0) {
+    return 1;
+  } else {
+    return n * factorial(n - 1);
+  }
+}
+
+int main() {
+  int value = factorial(5);
+  writeLine("Calculated factorial for 5: " + intToStr(value));
+
+  return 0;
+}
