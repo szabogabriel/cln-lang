@@ -17,14 +17,14 @@ An interpreter for **cln**, a small embeddable scripting language with ANTLR4-ba
 
 - **Parser & Lexer**: Complete ANTLR4-based grammar for cln-lang
 - **AST Construction**: Parse tree to structured Abstract Syntax Tree conversion
-- **Type System**: Primitives (int, bool, string), structs, and unions
+- **Type System**: Primitives (int, bool, string, dec), structs, and unions
 - **Runtime Execution**: Full interpreter with execution context and function invocation
 - **Module System**: Package declarations and imports (including wildcard imports)
 - **Expressions**:
   - Binary operators: `+`, `-`, `*`, `/`, `==`, `!=`, `<`, `<=`, `>`, `>=`, `&&`, `||`
   - Unary operators: `!`, `-`
   - Increment/decrement operators: `++`, `--` (both prefix and postfix)
-  - Literals: integers, booleans, strings
+  - Literals: integers, booleans, strings, decimals
   - Identifiers and function calls
   - String concatenation with `+` operator
   - **Struct literals**: Construction with field initialization (e.g., `Circle(radius: 5)`)
@@ -48,11 +48,13 @@ An interpreter for **cln**, a small embeddable scripting language with ANTLR4-ba
   - **Struct declaration and instantiation**: Full support for creating and using struct types
   - **Struct field access**: Read and write struct fields
   - **Union declarations**: Type definitions for tagged unions
-- **Integer Type**: 64-bit signed integers (using Java `long`, range: -2^63 to 2^63-1)
+- **Numeric Types**: 
+  - **Integer**: 64-bit signed integers (using Java `long`, range: -2^63 to 2^63-1)
+  - **Decimal**: Arbitrary precision decimal numbers (using Java `BigDecimal` for precise decimal arithmetic)
 - **Standard Library**: Console I/O (`std.console.writeLine`, `std.console.write`, `std.console.readLine`)
 - **String Utilities**: `intToStr` function for integer-to-string conversion
 - **Error Handling**: Comprehensive exception handling with detailed error messages
-- **Type Safety**: Runtime type checking for operators and conditionals with strict primitive type validation (case-sensitive: `int`, `bool`, `string`)
+- **Type Safety**: Runtime type checking for operators and conditionals with strict primitive type validation (case-sensitive: `int`, `bool`, `string`, `dec`)
 - **Global Variables**: Full support for mutable global variables with `var` keyword
 
 ### 🚧 Partially Implemented
@@ -204,7 +206,7 @@ int add(int a, int b) {
   - Exit codes from main function return value
 - **Variables**: `var int x = 10;` or type-inferred `var x = 10;`
 - **Data Types**:
-  - Primitives: `int` (64-bit), `bool`, `string`
+  - Primitives: `int` (64-bit), `bool`, `string`, `dec` (BigDecimal)
   - Structs: Declare, instantiate, access, and modify fields
   - Unions: Declare and pattern match with switch/case
 - **Struct Operations**:
@@ -303,6 +305,61 @@ int main() {
 }
 ```
 
+### Decimal Type (BigDecimal)
+
+The `dec` type provides arbitrary precision decimal arithmetic, ideal for financial calculations and situations requiring exact decimal representation:
+
+```cln
+package main;
+
+import std.console.*;
+
+int main() {
+    // Decimal literals with fractional parts
+    dec price = 19.99;
+    dec tax_rate = 0.08;
+    dec quantity = 3.5;
+    
+    // Arithmetic operations with decimals
+    dec subtotal = price * quantity;           // 69.965
+    dec tax = subtotal * tax_rate;             // 5.59720
+    dec total = subtotal + tax;                // 75.56220
+    
+    writeLine("Total: " + total);
+    
+    // Mixed operations (int and dec)
+    var int whole_units = 10;
+    dec unit_price = 5.75;
+    dec mixed_total = whole_units * unit_price;  // 57.50
+    
+    writeLine("Mixed calculation: " + mixed_total);
+    
+    // Precise division (no rounding errors)
+    dec dividend = 10.0;
+    dec divisor = 3.0;
+    dec result = dividend / divisor;  // 3.333333333333333333333333333333333
+    
+    writeLine("Precise division: " + result);
+    
+    // Comparison operations
+    dec value1 = 5.5;
+    dec value2 = 6.0;
+    
+    if (value1 < value2) {
+        writeLine("5.5 < 6.0 is true");
+    }
+    
+    return 0;
+}
+```
+
+**Key Features:**
+- **Precise arithmetic**: No floating-point rounding errors
+- **Mixed operations**: Can combine `int` and `dec` types in expressions
+- **All operators supported**: `+`, `-`, `*`, `/`, `<`, `<=`, `>`, `>=`, `==`, `!=`
+- **Java BigDecimal**: Uses `java.math.BigDecimal` with `DECIMAL128` precision for division
+- **Literal syntax**: Must include decimal point (e.g., `3.14`, `10.0`)
+
 ### Known Limitations
 
 - **Union type parameters**: Cannot pass struct instances directly to functions expecting union types (implicit upcasting not implemented)
@@ -323,13 +380,14 @@ int main() {
 - **Unions**: Declaration and switch/case pattern matching
 - **Control flow**: `if/else` statements, `while` loops, and `switch/case` on union types
 - **Operators**:
-  - Arithmetic: `+`, `-`, `*`, `/`
-  - Comparison: `<`, `<=`, `>`, `>=`, `==`, `!=`
+  - Arithmetic: `+`, `-`, `*`, `/` (supports both integer and decimal types)
+  - Comparison: `<`, `<=`, `>`, `>=`, `==`, `!=` (supports both integer and decimal types)
   - Logical: `&&`, `||`, `!`
   - Increment/Decrement: `++`, `--`
 - **Tuple assignment**: `(var x, var y) = functionReturningTwo();`
 - **String operations**: String concatenation with `+`, `intToStr()` conversion
 - **Global variables**: Both mutable (`var`) and constant declarations
+- **Decimal arithmetic**: Precise decimal calculations using BigDecimal (supports mixed int/dec operations)
 
 ### Language Constructs Not Yet Functional
 
@@ -400,6 +458,8 @@ Example programs in `examples/` directory:
 - `demo_while.cln` - While loop examples
 - `demo_exit_code.cln` - Main function exit codes
 - `demo_both_syntaxes.cln` - Different syntax variations
+- `demo_decimal.cln` - Decimal type (BigDecimal) arithmetic and operations
+- `comprehensive_demo.cln` - Complete showcase of all language features
 
 **Tests:**
 - `test_global_var.cln` - Mutable global variables
@@ -443,11 +503,12 @@ Additional test files in `core/src/test/resources/`:
    - ✅ Standard library (console I/O, string conversion)
 
 2. **Type System**
-   - ✅ Primitive types (int, bool, string)
+   - ✅ Primitive types (int, bool, string, dec)
    - ✅ Struct types with field access
    - ✅ Union types for tagged variants
    - ✅ Type-safe operators with runtime validation
    - ✅ Case-sensitive type names
+   - ✅ Mixed numeric operations (int and dec)
 
 3. **Java 21 Upgrade**
    - ✅ Migrated from Java 17 to Java 21 LTS

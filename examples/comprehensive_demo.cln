@@ -137,9 +137,12 @@ int main() {
     var int number = 42;
     var bool flag = true;
     var string text = "Hello, CLN!";
+    dec decimal = 3.14159;
     
     writeLine("Integer: " + intToStr(number));
+    writeLine("Boolean: true/false");
     writeLine("String: " + text);
+    writeLine("Decimal: " + decimal);
     writeLine("String length: " + intToStr(strLen(text)));
     
     // ========================================================================
