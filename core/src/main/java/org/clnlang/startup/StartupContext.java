@@ -276,10 +276,20 @@ public class StartupContext {
         for (File file : targetFiles) {
             ProgramImpl program = registry.getProgram(file);
             
+            // If file not in registry, compile and add it
             if (program == null) {
-                throw new ClnException("File not found in registry: " + file.getName() + 
-                    "\nMake sure the file exists in one of the source paths specified with -cp option." +
-                    "\nExample: java -jar cln.jar -cp /path/to/sources " + file.getName());
+                log("File not in registry, compiling: " + file.getName());
+                program = compileFile(file);
+                
+                String declaredPackage = "default";
+                if (program.getPackageDecl() != null && 
+                    program.getPackageDecl().getPackageName() != null &&
+                    !program.getPackageDecl().getPackageName().isEmpty()) {
+                    declaredPackage = program.getPackageDecl().getPackageName();
+                }
+                
+                registry.addProgram(file, program, declaredPackage);
+                registerProgramSymbols(program, declaredPackage);
             }
             
             if (program.getPackageDecl() != null && 
