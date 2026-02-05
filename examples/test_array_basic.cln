@@ -1,0 +1,49 @@
+import std.console.*;
+import std.str.*;
+
+// Test basic array operations with primitive types
+int main() {
+    // Test 1: Integer array creation and access
+    var int[] numbers = [1, 2, 3, 4, 5];
+    writeLine("Array created: [1, 2, 3, 4, 5]");
+    writeLine("First element: " + intToStr(numbers[0]));
+    writeLine("Last element: " + intToStr(numbers[4]));
+    writeLine("Array length: " + intToStr(numbers.length));
+    
+    // Test 2: Array modification
+    numbers[0] = 10;
+    numbers[4] = 50;
+    writeLine("After modification:");
+    writeLine("First element: " + intToStr(numbers[0]));
+    writeLine("Last element: " + intToStr(numbers[4]));
+    
+    // Test 3: Empty array
+    var int[] empty = [];
+    writeLine("Empty array length: " + intToStr(empty.length));
+    
+    // Test 4: String array
+    var string[] names = ["Alice", "Bob", "Charlie"];
+    writeLine("String array:");
+    writeLine("names[0]: " + names[0]);
+    writeLine("names[1]: " + names[1]);
+    writeLine("names[2]: " + names[2]);
+    writeLine("names.length: " + intToStr(names.length));
+    
+    // Test 5: Boolean array
+    var bool[] flags = [true, false, true];
+    writeLine("Boolean array:");
+    writeLine("flags[0]: " + boolToStr(flags[0]));
+    writeLine("flags[1]: " + boolToStr(flags[1]));
+    writeLine("flags[2]: " + boolToStr(flags[2]));
+    
+    // Test 6: Decimal array
+    var dec[] prices = [19.99, 25.50, 12.75];
+    writeLine("Decimal array:");
+    writeLine("prices[0]: " + prices[0]);
+    writeLine("prices[1]: " + prices[1]);
+    writeLine("prices[2]: " + prices[2]);
+    
+    writeLine("All array tests passed!");
+    
+    return 0;
+}

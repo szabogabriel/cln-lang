@@ -18,6 +18,13 @@ An interpreter for **cln**, a small embeddable scripting language with ANTLR4-ba
 - **Parser & Lexer**: Complete ANTLR4-based grammar for cln-lang
 - **AST Construction**: Parse tree to structured Abstract Syntax Tree conversion
 - **Type System**: Primitives (int, bool, string, dec), structs, and unions
+- **Arrays**: Full support for arrays of primitive types (int[], dec[], bool[], string[])
+  - Array literals: `[1, 2, 3]`
+  - Array indexing: `arr[0]`
+  - Array assignment: `arr[0] = 10`
+  - Array length: `arr.length`
+  - String indexing: `str[0]` returns single character
+  - Bounds checking at runtime
 - **Runtime Execution**: Full interpreter with execution context and function invocation
 - **Module System**: 
   - Package declarations with hierarchical namespacing
@@ -71,13 +78,12 @@ An interpreter for **cln**, a small embeddable scripting language with ANTLR4-ba
 
 ### 🚧 Partially Implemented
 
-- **Arrays**: Grammar support exists, runtime implementation pending
+- **Arrays of Structs/Unions**: Grammar supports it, but runtime implementation pending for next release
 
 ### ❌ Not Yet Implemented
 
-- **Index Access**: Array indexing (`[]` operator) not functional
-- **Assignment to array elements**: Array element assignment not implemented
-- **Array Operations**: No array creation, indexing, or manipulation
+- **Multi-dimensional Arrays**: Only 1D arrays currently supported
+- **Array Resizing**: Arrays are fixed-size after creation
 - **Type Checking**: Static type checking not implemented (runtime only)
 - **Semantic Analysis**: No compile-time validation beyond basic type checks
 
@@ -233,8 +239,15 @@ int add(int a, int b) {
 - **Variables**: `var int x = 10;` or type-inferred `var x = 10;`
 - **Data Types**:
   - Primitives: `int` (64-bit), `bool`, `string`, `dec` (BigDecimal)
+  - Arrays: `int[]`, `string[]`, `bool[]`, `dec[]` with literal syntax `[1, 2, 3]`
   - Structs: Declare, instantiate, access, and modify fields
   - Unions: Declare and pattern match with switch/case
+- **Array Operations**:
+  - Creation: `var int[] arr = [1, 2, 3];`
+  - Access: `arr[0]`, `arr[i]`
+  - Assignment: `arr[0] = 10;`
+  - Length: `arr.length`
+  - String indexing: `"hello"[0]` returns `"h"`
 - **Struct Operations**:
   - Declaration: `struct Point { var int x; var int y; };`
   - Instantiation: `var Point p = Point(x: 10, y: 20);`
@@ -672,19 +685,27 @@ Additional test files in `core/src/test/resources/`:
    - ✅ Case-sensitive type names
    - ✅ Mixed numeric operations (int and dec)
 
-3. **Java 21 Upgrade**
+3. **Arrays** (NEW!)
+   - ✅ Array literals: `[1, 2, 3]`
+   - ✅ Array types: `int[]`, `string[]`, `bool[]`, `dec[]`
+   - ✅ Index access: `arr[0]`
+   - ✅ Array assignment: `arr[0] = 10`
+   - ✅ Array length property: `arr.length`
+   - ✅ String indexing: `str[0]`
+   - ✅ Bounds checking
+   - ✅ Arrays as function parameters
+
+4. **Java 21 Upgrade**
    - ✅ Migrated from Java 17 to Java 21 LTS
-   - ✅ All tests passing (62 unit tests)
+   - ✅ All tests passing (113 unit tests)
 
 ### 🚧 In Progress / Planned
 
-4. **Arrays**
-   - Grammar support exists
-   - Runtime implementation needed:
-     - Array creation and initialization
-     - Index access operator (`[]`)
-     - Array element assignment
-     - Array methods (length, iteration)
+5. **Advanced Arrays**
+   - Arrays of structs and unions
+   - Multi-dimensional arrays
+   - Array slicing and manipulation
+   - Built-in array utilities (sort, filter, map)
 
 5. **Union Type Enhancements**
    - Implicit upcasting from struct to union types

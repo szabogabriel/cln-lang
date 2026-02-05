@@ -4,6 +4,7 @@ import org.clnlang.compile.CompiledAction;
 import org.clnlang.compile.CompiledExpr;
 import org.clnlang.runtime.context.ExecutionContext;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -89,8 +90,45 @@ public class AssignStmtImpl implements CompiledAction {
                 throw new RuntimeException("Cannot assign to member '" + memberAccess.getMember() + 
                                          "' on non-struct type: " + objValue.getClass().getSimpleName());
             }
+        } else if (lvalue instanceof org.clnlang.compile.expression.IndexAccessExprImpl) {
+            // Array index assignment: arr[i] = value
+            org.clnlang.compile.expression.IndexAccessExprImpl indexAccess = 
+                (org.clnlang.compile.expression.IndexAccessExprImpl) lvalue;
+            
+            // Evaluate the array expression
+            Object arrayObj = indexAccess.getArray().evaluate(context);
+            
+            if (arrayObj == null) {
+                throw new RuntimeException("Cannot assign to index of null array");
+            }
+            
+            // Index must be an integer
+            Object indexObj = indexAccess.getIndex().evaluate(context);
+            if (!(indexObj instanceof Long)) {
+                throw new RuntimeException("Array index must be an integer, got: " + 
+                    (indexObj == null ? "null" : indexObj.getClass().getSimpleName()));
+            }
+            
+            long indexValue = (Long) indexObj;
+            
+            // Only arrays (List) support index assignment, not strings
+            if (arrayObj instanceof List) {
+                @SuppressWarnings("unchecked")
+                List<Object> list = (List<Object>) arrayObj;
+                
+                // Check bounds
+                if (indexValue < 0 || indexValue >= list.size()) {
+                    throw new RuntimeException("Array index out of bounds: " + indexValue + 
+                        " (array size: " + list.size() + ")");
+                }
+                
+                // Assign the new value
+                list.set((int) indexValue, val);
+            } else {
+                throw new RuntimeException("Cannot assign to index of non-array type: " + 
+                    arrayObj.getClass().getSimpleName());
+            }
         } else {
-            // TODO: Support array index access lvalues
             throw new RuntimeException("Unsupported lvalue type for assignment: " + lvalue.getClass().getSimpleName());
         }
     }

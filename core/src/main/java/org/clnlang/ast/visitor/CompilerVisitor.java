@@ -607,6 +607,8 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
                          .replace("\\\"", "\"")
                          .replace("\\\\", "\\");
             return new StringLiteralExprImpl(value);
+        } else if (ctx.arrayLiteral() != null) {
+            return compileArrayLiteral(ctx.arrayLiteral());
         } else if (ctx.structLiteral() != null) {
             return compileStructLiteral(ctx.structLiteral());
         } else if (ctx.ID() != null) {
@@ -644,6 +646,21 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
         }
         
         return new StructLiteralExprImpl(typeName, fields);
+    }
+    
+    /**
+     * Compile array literal
+     */
+    private CompiledExpr compileArrayLiteral(clnParser.ArrayLiteralContext ctx) {
+        List<CompiledExpr> elements = new ArrayList<>();
+        
+        if (ctx.exprList() != null) {
+            for (clnParser.ExprContext exprCtx : ctx.exprList().expr()) {
+                elements.add(compileExpression(exprCtx));
+            }
+        }
+        
+        return new ArrayLiteralExprImpl(elements);
     }
     
     /**

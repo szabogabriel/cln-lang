@@ -91,7 +91,7 @@ public class FunctionInvoker {
      */
     private static Object getDefaultValue(String type) {
         return switch (type) {
-            case "int" -> 0;
+            case "int" -> 0L;  // Use Long for consistency with int literals
             case "float" -> 0.0;
             case "bool" -> false;
             case "String" -> "";

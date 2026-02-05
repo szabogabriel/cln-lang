@@ -224,9 +224,14 @@ primaryExpr
   | DEC_LIT
   | BOOL_LIT
   | STRING_LIT
+  | arrayLiteral
   | structLiteral
   | ID
   | LPAREN expr RPAREN
+  ;
+
+arrayLiteral
+  : LBRACK exprList? RBRACK
   ;
 
 structLiteral

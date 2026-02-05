@@ -1,0 +1,20 @@
+import std.console.*;
+import std.str.*;
+
+int main() {
+    var int[] numbers = [15, 8, 23];
+    
+    writeLine("Testing array element access:");
+    var int first = numbers[0];
+    writeLine("First element: " + intToStr(first));
+    
+    writeLine("Testing addition:");
+    var int sum = 0;
+    var int elem = numbers[0];
+    writeLine("elem type seems to be int: " + intToStr(elem));
+    writeLine("sum before: " + intToStr(sum));
+    sum = sum + elem;
+    writeLine("sum after: " + intToStr(sum));
+    
+    return 0;
+}

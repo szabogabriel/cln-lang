@@ -3,10 +3,12 @@ package org.clnlang.compile.expression;
 import org.clnlang.compile.CompiledExpr;
 import org.clnlang.runtime.context.ExecutionContext;
 
+import java.util.List;
 import java.util.Map;
 
 /**
  * Compiled representation of a member access expression.
+ * Supports accessing struct fields and special properties (like array.length).
  */
 public class MemberAccessExprImpl implements CompiledExpr {
     private CompiledExpr object;
@@ -31,6 +33,19 @@ public class MemberAccessExprImpl implements CompiledExpr {
         
         if (objValue == null) {
             throw new RuntimeException("Cannot access member '" + member + "' of null object");
+        }
+        
+        // Handle array.length
+        if (objValue instanceof List && member.equals("length")) {
+            @SuppressWarnings("unchecked")
+            List<Object> list = (List<Object>) objValue;
+            return (long) list.size();
+        }
+        
+        // Handle string.length
+        if (objValue instanceof String && member.equals("length")) {
+            String str = (String) objValue;
+            return (long) str.length();
         }
         
         // Structs (and union members) are represented as Maps
@@ -63,7 +78,7 @@ public class MemberAccessExprImpl implements CompiledExpr {
             return structMap.get(member);
         }
         
-        throw new RuntimeException("Cannot access member '" + member + "' on non-struct type: " + 
+        throw new RuntimeException("Cannot access member '" + member + "' on type: " + 
                                  objValue.getClass().getSimpleName());
     }
 }

@@ -1,0 +1,12 @@
+import std.console.*;
+import std.str.*;
+
+int main() {
+    var int[] numbers = [1, 2, 3];
+    writeLine("Array created");
+    writeLine("First: " + intToStr(numbers[0]));
+    writeLine("Second: " + intToStr(numbers[1]));
+    writeLine("Third: " + intToStr(numbers[2]));
+    writeLine("Length: " + intToStr(numbers.length));
+    return 0;
+}

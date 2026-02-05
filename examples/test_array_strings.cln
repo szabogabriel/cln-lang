@@ -1,0 +1,50 @@
+import std.console.*;
+import std.str.*;
+
+// Test string arrays and string operations
+int main() {
+    var string[] words = ["hello", "world", "from", "CLN"];
+    
+    writeLine("String array operations:");
+    
+    // Test 1: Access and print
+    var int i = 0;
+    while (i < words.length) {
+        writeLine("words[" + intToStr(i) + "] = " + words[i]);
+        i++;
+    }
+    
+    // Test 2: Concatenate all strings
+    var string result = "";
+    i = 0;
+    while (i < words.length) {
+        result = result + words[i];
+        if (i < words.length - 1) {
+            result = result + " ";
+        }
+        i++;
+    }
+    writeLine("Concatenated: " + result);
+    
+    // Test 3: Find longest string
+    var string longest = words[0];
+    i = 1;
+    while (i < words.length) {
+        if (strLen(words[i]) > strLen(longest)) {
+            longest = words[i];
+        }
+        i++;
+    }
+    writeLine("Longest word: " + longest + " (length: " + intToStr(strLen(longest)) + ")");
+    
+    // Test 4: Modify array elements
+    words[0] = "HELLO";
+    words[1] = "WORLD";
+    writeLine("After modification:");
+    writeLine("words[0] = " + words[0]);
+    writeLine("words[1] = " + words[1]);
+    
+    writeLine("String array tests passed!");
+    
+    return 0;
+}

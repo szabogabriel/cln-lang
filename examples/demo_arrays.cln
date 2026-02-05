@@ -1,0 +1,165 @@
+import std.console.*;
+import std.str.*;
+
+// Comprehensive array demonstration for CLN language
+
+// Function to print an integer array
+printIntArray(string name, int[] arr) {
+    writeLine(name + ":");
+    var int i = 0;
+    while (i < arr.length) {
+        writeLine("  [" + intToStr(i) + "] = " + intToStr(arr[i]));
+        i++;
+    }
+    return;
+}
+
+// Function to calculate average of decimal array
+(var dec avg = 0.0) average(dec[] values) {
+    if (values.length == 0) {
+        return;
+    }
+    
+    var dec sum = 0.0;
+    var int i = 0;
+    while (i < values.length) {
+        sum = sum + values[i];
+        i++;
+    }
+    avg = sum / values.length;
+    return;
+}
+
+// Function to reverse an array (modifies in place)
+reverse(int[] arr) {
+    var int left = 0;
+    var int right = arr.length - 1;
+    
+    while (left < right) {
+        // Swap elements
+        var int temp = arr[left];
+        arr[left] = arr[right];
+        arr[right] = temp;
+        
+        left++;
+        right--;
+    }
+    return;
+}
+
+int main() {
+    writeLine("=== CLN Array Demonstration ===");
+    writeLine("");
+    
+    // 1. Integer arrays
+    writeLine("1. Integer Arrays:");
+    var int[] numbers = [10, 20, 30, 40, 50];
+    printIntArray("Original numbers", numbers);
+    
+    // Modify array
+    numbers[0] = 100;
+    numbers[4] = 500;
+    printIntArray("After modification", numbers);
+    
+    // Calculate sum
+    var int sum = 0;
+    var int i = 0;
+    while (i < numbers.length) {
+        sum = sum + numbers[i];
+        i++;
+    }
+    writeLine("Sum: " + intToStr(sum));
+    writeLine("");
+    
+    // 2. String arrays
+    writeLine("2. String Arrays:");
+    var string[] fruits = ["apple", "banana", "orange", "grape"];
+    writeLine("Fruits:");
+    i = 0;
+    while (i < fruits.length) {
+        writeLine("  " + intToStr(i + 1) + ". " + fruits[i]);
+        i++;
+    }
+    writeLine("");
+    
+    // 3. Boolean arrays
+    writeLine("3. Boolean Arrays:");
+    var bool[] flags = [true, false, true, true, false];
+    writeLine("Flags:");
+    i = 0;
+    while (i < flags.length) {
+        writeLine("  flags[" + intToStr(i) + "] = " + boolToStr(flags[i]));
+        i++;
+    }
+    writeLine("");
+    
+    // 4. Decimal arrays with calculations
+    writeLine("4. Decimal Arrays:");
+    var dec[] prices = [19.99, 25.50, 12.75, 8.25, 15.00];
+    writeLine("Prices:");
+    i = 0;
+    while (i < prices.length) {
+        writeLine("  $" + prices[i]);
+        i++;
+    }
+    
+    dec avgPrice = average(prices);
+    writeLine("Average price: $" + avgPrice);
+    writeLine("");
+    
+    // 5. Array algorithms
+    writeLine("5. Array Algorithms:");
+    var int[] data = [5, 2, 8, 1, 9, 3, 7];
+    printIntArray("Original data", data);
+    
+    // Find minimum and maximum
+    var int min = data[0];
+    var int max = data[0];
+    i = 1;
+    while (i < data.length) {
+        if (data[i] < min) {
+            min = data[i];
+        }
+        if (data[i] > max) {
+            max = data[i];
+        }
+        i++;
+    }
+    writeLine("Minimum: " + intToStr(min));
+    writeLine("Maximum: " + intToStr(max));
+    
+    // Reverse array
+    reverse(data);
+    printIntArray("After reversal", data);
+    writeLine("");
+    
+    // 6. String indexing
+    writeLine("6. String Indexing:");
+    var string text = "Hello, World!";
+    writeLine("Text: " + text);
+    writeLine("Length: " + intToStr(text.length));
+    writeLine("First character: " + text[0]);
+    writeLine("Last character: " + text[text.length - 1]);
+    writeLine("");
+    
+    // 7. Empty arrays
+    writeLine("7. Empty Arrays:");
+    var int[] empty = [];
+    writeLine("Empty array length: " + intToStr(empty.length));
+    writeLine("");
+    
+    // 8. Nested operations
+    writeLine("8. Nested Operations:");
+    var int[] sequence = [1, 2, 3, 4, 5];
+    writeLine("Building multiplication table:");
+    i = 0;
+    while (i < sequence.length) {
+        var int val = sequence[i];
+        writeLine(intToStr(val) + " x 3 = " + intToStr(val * 3));
+        i++;
+    }
+    writeLine("");
+    
+    writeLine("=== All demonstrations complete! ===");
+    return 0;
+}

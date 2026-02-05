@@ -1,0 +1,18 @@
+import std.console.*;
+import std.str.*;
+
+(var int sum = 0) testSum(int[] arr) {
+    writeLine("In testSum function");
+    var int first = arr[0];
+    writeLine("First element: " + intToStr(first));
+    sum = sum + first;
+    writeLine("Sum: " + intToStr(sum));
+    return;
+}
+
+int main() {
+    var int[] numbers = [15, 8, 23];
+    int result = testSum(numbers);
+    writeLine("Result: " + intToStr(result));
+    return 0;
+}
