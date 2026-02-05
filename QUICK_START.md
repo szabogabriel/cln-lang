@@ -2,6 +2,13 @@
 
 ## Building the Project
 
+**Using Maven Wrapper (recommended - no Maven installation required):**
+```bash
+cd core
+./mvnw clean package
+```
+
+**Or using your local Maven installation:**
 ```bash
 cd core
 mvn clean package

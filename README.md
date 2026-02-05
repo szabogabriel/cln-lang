@@ -133,12 +133,19 @@ core/
 ### Prerequisites
 
 - Java 21 or higher (LTS version)
-- Maven 3.9 or higher
+- Maven 3.9 or higher (or use the included Maven Wrapper - no installation needed)
 
 ### Building the Project
 
 Build the project and generate the standalone fat JAR:
 
+**Using Maven Wrapper (recommended - no Maven installation required):**
+```bash
+cd core
+./mvnw clean package
+```
+
+**Or using your local Maven installation:**
 ```bash
 cd core
 mvn clean package
