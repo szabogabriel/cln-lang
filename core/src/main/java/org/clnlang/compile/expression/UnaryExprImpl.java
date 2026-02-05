@@ -1,5 +1,7 @@
 package org.clnlang.compile.expression;
 
+import java.math.BigDecimal;
+
 import org.clnlang.compile.CompiledExpr;
 import org.clnlang.runtime.context.ExecutionContext;
 
@@ -39,6 +41,8 @@ public class UnaryExprImpl implements CompiledExpr {
                 // Numeric negation
                 if (value instanceof Long) {
                     return -(Long) value;
+                } else if (value instanceof BigDecimal) {
+                    return ((BigDecimal) value).negate();
                 }
                 throw new RuntimeException("Cannot apply '-' operator to non-numeric value: " + value);
                 
