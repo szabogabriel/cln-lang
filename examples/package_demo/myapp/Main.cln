@@ -1,0 +1,24 @@
+package myapp;
+
+import std.console.*;
+import std.str.*;
+
+(var int sum = 0) calculate(int a, int b) {
+    sum = a + b;
+    return;
+}
+
+int main() {
+    writeLine("Hello from myapp package!");
+    writeLine("This is the main entry point.");
+    
+    var int result = calculate(5, 3);
+    write("Calculation result: ");
+    writeLine(intToStr(result));
+
+    displayMessage("From myApp");
+    notExposed("From myApp");
+    
+    return 0;
+}
+

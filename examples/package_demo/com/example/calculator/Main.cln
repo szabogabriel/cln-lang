@@ -1,0 +1,49 @@
+package com.example.calculator;
+
+import std.console.*;
+import std.str.*;
+import myapp.*;
+
+(var int exitCode = 0) main() {
+    write("Calculator Application");
+    writeLine("");
+    write("=====================");
+    writeLine("");
+    
+    var int a = 10;
+    var int b = 5;
+    
+    var int sum = add(a, b);
+    write("Addition: ");
+    write(intToStr(a));
+    write(" + ");
+    write(intToStr(b));
+    write(" = ");
+    write(intToStr(sum));
+    writeLine("");
+    
+    var int diff = subtract(a, b);
+    write("Subtraction: ");
+    write(intToStr(a));
+    write(" - ");
+    write(intToStr(b));
+    write(" = ");
+    write(intToStr(diff));
+    writeLine("");
+
+    writeLine("TEST!!!!!!!!!");
+    displayMessage("Message");
+    notExposed("Message 2");
+    
+    return;
+}
+
+(var int result = 0) add(int x, int y) {
+    result = x + y;
+    return;
+}
+
+(var int result = 0) subtract(int x, int y) {
+    result = x - y;
+    return;
+}

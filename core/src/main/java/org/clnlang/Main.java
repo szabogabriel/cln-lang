@@ -28,10 +28,10 @@ import org.clnlang.parser.clnParser;
 import org.clnlang.runtime.context.ExecutionContext;
 import org.clnlang.runtime.execution.FunctionInvoker;
 import org.clnlang.runtime.execution.Registry;
+import org.clnlang.startup.StartupContext;
 
 public class Main {
     private static boolean verbose = false;
-    private static clnParser.ProgramContext programContext;
 
     public static void main(String[] args) {
         try {
@@ -64,44 +64,32 @@ public class Main {
         
         // Set verbose flag from configuration
         verbose = config.isVerbose();
-        String fileName = config.getFirstSourceFile();
         
-        // Create execution context and populate it
-        ExecutionContext context = new ExecutionContext();
-        Linker linker = new Linker();
+        // Create registry and register standard library
         Registry registry = new Registry();
-        
-        // Register standard library (after parsing args so log() respects verbose flag)
         log("Registering standard library...");
         StandardLibrary stdlib = new StandardLibrary();
         stdlib.registerAll(registry);
         log("Standard library registered (" + stdlib.getComponentCount() + " components).");
         
-        fileName = handleSourceFileName(fileName);
+        // Create startup context
+        StartupContext startupContext = new StartupContext(config, registry, verbose);
         
-        log("Loading file: " + fileName);
-        ProgramImpl program = createProgram(fileName);
-        log("Compilation completed successfully.");
+        // Initialize startup context (loads all files into index, determines mode)
+        startupContext.initialize();
         
-        log("Populating program context...");
-        program.populateContext(context);
-        log("Program context populated.");
-
-        log("Resolving imports...");
-        linker.resolveImports(context, registry);
-        log("Imports resolved.");
-
-        // Check for main function
-        if (!context.getGlobalContext().hasFunction("main")) {
-            System.err.println("Error: No 'main' function found in the program.");
-            throw new ClnException("No 'main' function found in the program.");
-        }
+        // Prepare execution context
+        startupContext.prepareExecutionContext();
         
-        log("Found 'main' function.");
+        // Find main function
+        FunctionDeclImpl mainFunction = startupContext.findMainFunction();
+        
+        // Get execution context
+        ExecutionContext context = startupContext.getExecutionContext();
 
         printProgramDetails();
-        return 
-        executeMainFunction(context);
+        
+        return executeMainFunction(context, mainFunction);
     }
 
     /**
@@ -109,23 +97,12 @@ public class Main {
      * Retrieves the main function from the global context and invokes it with no arguments.
      * 
      * @param context The execution context containing the main function
+     * @param mainFunction The main function to execute
      * @return The exit code from the main function (0 if none returned)
      * @throws Exception If execution fails
      */
-    private static int executeMainFunction(ExecutionContext context) throws Exception {
+    private static int executeMainFunction(ExecutionContext context, FunctionDeclImpl mainFunction) throws Exception {
         log("Executing main function...");
-        
-        // Get the main function from the global context
-        FunctionDeclImpl mainFunction = context.getGlobalContext().getFunction("main");
-        
-        if (mainFunction == null) {
-            throw new ClnException("Main function not found in global context");
-        }
-        
-        // Main function should have no parameters
-        if (mainFunction.getParameters() != null && !mainFunction.getParameters().isEmpty()) {
-            throw new ClnException("Main function should not have parameters");
-        }
         
         // Invoke the main function with no arguments
         Object result = FunctionInvoker.invoke(mainFunction, new ArrayList<>(), context);
@@ -148,104 +125,8 @@ public class Main {
     
     private static void printProgramDetails() {
         if (verbose) {
-            System.out.println("Found 'main' function.");
-            
-            // Build AST using the visitor pattern (for verbose output)
-            ClnASTBuilder astBuilder = new ClnASTBuilder();
-            ProgramNode ast = (ProgramNode) astBuilder.visit(programContext);
-            
-            // Print the AST using toString()
-            System.out.println("\n=== Abstract Syntax Tree (toString) ===");
-            System.out.println(ast);
-            
-            // Print the AST using visitor pattern
-            System.out.println("\n=== Abstract Syntax Tree (Visitor Pattern) ===");
-            ASTPrinterVisitor printer = new ASTPrinterVisitor();
-            ast.accept(printer);
-            
-            // Print detailed AST with statements and expressions
-            System.out.println("\n=== Detailed AST (Statements & Expressions) ===");
-            DetailedASTPrinter detailedPrinter = new DetailedASTPrinter();
-            ast.accept(detailedPrinter);
+            System.out.println("\n=== Program Execution ===");
         }
-    }
-
-    private static ProgramImpl createProgram(String fileName) throws Exception {
-                // Create a CharStream from the input file
-        CharStream input = CharStreams.fromFileName(fileName);
-        
-        // Create a lexer that feeds off of input CharStream
-        clnLexer lexer = new clnLexer(input);
-        
-        // Create a buffer of tokens pulled from the lexer
-        CommonTokenStream tokens = new CommonTokenStream(lexer);
-        
-        // Create a parser that feeds off the tokens buffer
-        clnParser parser = new clnParser(tokens);
-        
-        // Begin parsing at the program rule
-        programContext = parser.program();
-        
-        // Check for syntax errors
-        if (parser.getNumberOfSyntaxErrors() > 0) {
-            System.err.println("Parsing failed with " + parser.getNumberOfSyntaxErrors() + " errors.");
-            throw new ClnException("Parsing failed with " + parser.getNumberOfSyntaxErrors() + " errors.");
-        }
-        
-        if (verbose) {
-            System.out.println("Parsing completed successfully.");
-        }
-        
-        // Compile the program
-        CompilerVisitor compiler = new CompilerVisitor();
-        ProgramImpl program = compiler.compileProgram(programContext);
-        return program;
-    }
-    
-    private static String handleSourceFileName(String fileName) throws ClnException {
-                // If no file specified, find first .cln file in current directory
-        if (fileName == null) {
-            fileName = findFirstClnFile();
-            if (fileName == null) {
-                System.err.println("Error: No .cln file found in current directory.");
-                RuntimeConfiguration.printUsage();
-                throw new ClnException("No .cln file found in current directory.");
-            }
-            if (verbose) {
-                System.out.println("No file specified, using: " + fileName);
-            }
-        }
-        
-        // Verify file exists
-        File file = new File(fileName);
-        if (!file.exists()) {
-            System.err.println("Error: File not found: " + fileName);
-            throw new ClnException("File not found: " + fileName);
-        }
-
-        return fileName;
-    }
-    
-    /**
-     * Find the first .cln file in the current working directory
-     */
-    private static String findFirstClnFile() {
-        try {
-            Path currentDir = Paths.get(System.getProperty("user.dir"));
-            try (Stream<Path> paths = Files.walk(currentDir, 1)) {
-                List<Path> clnFiles = paths
-                    .filter(Files::isRegularFile)
-                    .filter(path -> path.toString().endsWith(".cln"))
-                    .collect(Collectors.toList());
-                
-                if (!clnFiles.isEmpty()) {
-                    return clnFiles.get(0).toString();
-                }
-            }
-        } catch (IOException e) {
-            System.err.println("Error searching for .cln files: " + e.getMessage());
-        }
-        return null;
     }
 
     private static void log(String message) {

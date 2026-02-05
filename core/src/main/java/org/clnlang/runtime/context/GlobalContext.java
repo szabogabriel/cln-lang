@@ -88,6 +88,15 @@ public class GlobalContext {
     public boolean hasFunction(String name) {
         return functions.containsKey(name);
     }
+    
+    /**
+     * Get all functions in the global context.
+     * 
+     * @return Map of function name to function declaration
+     */
+    public Map<String, FunctionDeclImpl> getAllFunctions() {
+        return new HashMap<>(functions);
+    }
 
     // Global variable methods
     /**

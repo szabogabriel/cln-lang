@@ -19,7 +19,14 @@ An interpreter for **cln**, a small embeddable scripting language with ANTLR4-ba
 - **AST Construction**: Parse tree to structured Abstract Syntax Tree conversion
 - **Type System**: Primitives (int, bool, string, dec), structs, and unions
 - **Runtime Execution**: Full interpreter with execution context and function invocation
-- **Module System**: Package declarations and imports (including wildcard imports)
+- **Module System**: 
+  - Package declarations with hierarchical namespacing
+  - Wildcard imports (`import package.*;`)
+  - Cross-package imports with visibility control
+  - `expose` keyword for exporting symbols to other packages
+  - Eager loading of all source files for comprehensive symbol resolution
+  - Standard library imports (`std.console.*`, `std.str.*`)
+  - Duplicate import handling (same package can be imported by multiple files)
 - **Expressions**:
   - Binary operators: `+`, `-`, `*`, `/`, `==`, `!=`, `<`, `<=`, `>`, `>=`, `&&`, `||`
   - Unary operators: `!`, `-`
@@ -135,16 +142,32 @@ This creates:
 
 ### Running Programs
 
-Execute a cln language program:
+Execute a cln language program using either file-based or package-based startup:
 
+**File-based execution** (for files without package declaration or in default package):
 ```bash
 java -jar target/core-1.0-SNAPSHOT-fat.jar <program.cln>
 ```
+
+**Package-based execution** (runs main() function from specified package):
+```bash
+java -jar target/core-1.0-SNAPSHOT-fat.jar -cp <source_path> <package.name>
+
+# Example: run main() from 'myapp' package
+java -jar target/core-1.0-SNAPSHOT-fat.jar -cp . myapp
+
+# Example: run main() from 'com.example.calculator' package  
+java -jar target/core-1.0-SNAPSHOT-fat.jar -cp . com.example.calculator
+```
+
+**Note**: When using package-based startup, all `.cln` files in the source path are loaded to enable cross-package imports.
 
 With verbose output (shows parsing, compilation, and execution details):
 
 ```bash
 java -jar target/core-1.0-SNAPSHOT-fat.jar -v <program.cln>
+# or
+java -jar target/core-1.0-SNAPSHOT-fat.jar -v -cp <source_path> <package.name>
 ```
 
 ## Language Features
@@ -441,10 +464,68 @@ int main() {
 - **Type names**: Primitive type names are case-sensitive and must be lowercase (`int`, `bool`, `string`)
 - **Variable mutability**: Variables must be declared with `var` keyword to be modifiable
 
+### Module System and Imports
+
+cln-lang has a fully functional package system with cross-package import support:
+
+**Package-Based Organization:**
+- Files declare their package: `package com.example.myapp;`
+- Directory structure reflects package hierarchy: `com/example/myapp/Main.cln`
+- Packages can span multiple files
+
+**Import Mechanisms:**
+- **Wildcard imports**: `import std.console.*;` imports all accessible symbols from a package
+- **Standard library imports**: `import std.console.*;`, `import std.str.*;`
+- **Cross-package imports**: Import from other user-defined packages with visibility control
+- **Duplicate imports**: Multiple files can safely import the same package
+
+**Visibility Control with `expose`:**
+- By default, symbols are package-scoped (only visible within the same package)
+- Use `expose` keyword to make symbols accessible from other packages:
+  ```cln
+  // Helper.cln in package myapp
+  package myapp;
+  
+  // This function is visible to other packages
+  expose displayMessage(string msg) {
+      writeLine("Helper says: " + msg);
+      return;
+  }
+  
+  // This function is only visible within myapp package
+  int getConstant() {
+      return 42;
+  }
+  ```
+
+**Cross-Package Import Example:**
+```cln
+// calculator/Main.cln
+package com.example.calculator;
+
+import std.console.*;
+import myapp.*;  // Import from another package
+
+int main() {
+    displayMessage("Hello from calculator!");  // Works - displayMessage is exposed
+    // getConstant();  // ERROR - not exposed
+    return 0;
+}
+```
+
+**Startup Modes:**
+- **Package-based**: `java -jar cln.jar -cp . myapp` - Runs main() from specified package
+- **File-based**: `java -jar cln.jar program.cln` - Runs main() from default package file
+- **Eager loading**: All `.cln` files from source paths are loaded at startup for import resolution
+
 ### Currently Supported Language Constructs
 
-- **Package declarations**: `package main;`
-- **Imports**: `import std.console.writeLine;` or `import std.console.*;`
+- **Package declarations**: `package main;` or `package com.example.myapp;`
+- **Imports**: 
+  - Standard library: `import std.console.*;`
+  - User packages: `import myapp.*;`
+  - Cross-package imports with visibility enforcement
+- **Visibility control**: `expose` keyword for cross-package symbol access
 - **Functions**: With named return variables and multiple return values
 - **Variables**: 
   - Mutable: `var int x = 10;` or type-inferred `var x = 10;`
@@ -518,6 +599,13 @@ The language grammar is defined in `src/main/antlr4/org/clnlang/parser/cln.g4`
 ## Example Programs
 
 Example programs in `examples/` directory:
+
+**Package Demos** (`examples/package_demo/`):
+- `myapp/` - Simple package with multiple files demonstrating cross-file organization
+  - `Main.cln` - Entry point with main() function
+  - `Helper.cln` - Helper functions with `expose` visibility control
+- `com/example/calculator/` - Nested package demonstrating cross-package imports
+  - `Main.cln` - Imports and uses symbols from `myapp` package
 
 **Demonstrations:**
 - `hello_world.cln` - Simple hello world program
@@ -635,6 +723,14 @@ Additional test files in `core/src/test/resources/`:
 ## Recent Updates
 
 ### February 2026
+- ✅ **Cross-Package Imports**: Full implementation of cross-package imports with `expose` visibility control
+  - Wildcard imports: `import myapp.*;`
+  - Visibility enforcement: symbols require `expose` keyword to be accessible from other packages
+  - Registry-based symbol resolution for import linking
+  - Eager loading: all `.cln` files loaded at startup for comprehensive symbol availability
+- ✅ **Package-Based Startup**: Dual-mode startup supporting both file-based and package-based execution
+  - `java -jar cln.jar -cp . myapp` runs main() from specified package
+  - `java -jar cln.jar program.cln` runs main() from file
 - ✅ **Increment/Decrement Operators**: Added `++` and `--` operators with both prefix and postfix support
 - ✅ **Global Variable Support**: Full implementation of mutable global variables with `var` keyword
 - ✅ **Unary Operator Fixes**: Fixed negation (`!`) and unary minus (`-`) operators

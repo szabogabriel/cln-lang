@@ -1,0 +1,17 @@
+package myapp;
+
+import std.console.*;
+
+expose (var int result = 0) displayMessage(string message) {
+    write("Helper says: ");
+    writeLine(message);
+    return;
+}
+
+notExposed(string message) {
+    writeLine("Not exposed say: " + message);
+}
+
+(var int value = 100) getConstant() {
+    return;
+}

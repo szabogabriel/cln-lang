@@ -4,17 +4,21 @@ import org.clnlang.runtime.types.FullyQualifiedName;
 import org.clnlang.runtime.types.StructDefinition;
 import org.clnlang.runtime.types.UnionDefinition;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.clnlang.compile.declaration.FunctionDeclImpl;
 import org.clnlang.compile.declaration.GlobalVarDeclImpl;
+import org.clnlang.compile.declaration.ProgramImpl;
 
 /**
  * Global registry for all available functions, variables, constants, types, etc.
  * This serves as a catalog that the Linker uses to resolve symbols during the linking phase.
+ * Also manages all compiled programs organized by package name.
  */
 public class Registry {
     
@@ -29,6 +33,9 @@ public class Registry {
     private final Map<FullyQualifiedName, StructDefinition> registeredStructTypes = new HashMap<>();
 
     private final Map<FullyQualifiedName, UnionDefinition> registeredUnionTypes = new HashMap<>();
+    
+    // Map of package name to list of compiled programs in that package
+    private final Map<String, Map<File, ProgramImpl>> packagePrograms = new HashMap<>();
     
     // ===== Registration Methods =====
     
@@ -203,5 +210,107 @@ public class Registry {
      */
     public Map<FullyQualifiedName, UnionDefinition> getAllUnionTypes() {
         return new HashMap<>(registeredUnionTypes);
+    }
+    
+    // ===== Program Index Methods =====
+    
+    /**
+     * Add a compiled program to the registry.
+     * 
+     * @param sourceFile The source file
+     * @param program The compiled program
+     * @param packageName The package name (empty string for default package)
+     */
+    public void addProgram(File sourceFile, ProgramImpl program, String packageName) {
+        try {
+            // Normalize to canonical path for consistent lookups
+            File canonicalFile = sourceFile.getCanonicalFile();
+            packagePrograms
+                .computeIfAbsent(packageName, k -> new HashMap<>())
+                .put(canonicalFile, program);
+        } catch (java.io.IOException e) {
+            // Fallback to absolute path if canonical fails
+            packagePrograms
+                .computeIfAbsent(packageName, k -> new HashMap<>())
+                .put(sourceFile.getAbsoluteFile(), program);
+        }
+    }
+    
+    /**
+     * Get all programs in a specific package.
+     * 
+     * @param packageName The package name (empty string for default package)
+     * @return Map of source files to programs, or empty map if package not found
+     */
+    public Map<File, ProgramImpl> getPackagePrograms(String packageName) {
+        return packagePrograms.getOrDefault(packageName, new HashMap<>());
+    }
+    
+    /**
+     * Get a specific program by its source file.
+     * 
+     * @param sourceFile The source file
+     * @return The compiled program, or null if not found
+     */
+    public ProgramImpl getProgram(File sourceFile) {
+        try {
+            // Normalize to canonical path for consistent lookups
+            File canonicalFile = sourceFile.getCanonicalFile();
+            for (Map<File, ProgramImpl> programs : packagePrograms.values()) {
+                ProgramImpl program = programs.get(canonicalFile);
+                if (program != null) {
+                    return program;
+                }
+            }
+        } catch (java.io.IOException e) {
+            // Fallback to absolute path if canonical fails
+            File absoluteFile = sourceFile.getAbsoluteFile();
+            for (Map<File, ProgramImpl> programs : packagePrograms.values()) {
+                ProgramImpl program = programs.get(absoluteFile);
+                if (program != null) {
+                    return program;
+                }
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * Get all package names in the registry.
+     * 
+     * @return List of package names
+     */
+    public List<String> getPackageNames() {
+        return List.copyOf(packagePrograms.keySet());
+    }
+    
+    /**
+     * Check if a package exists in the registry.
+     * 
+     * @param packageName The package name
+     * @return true if the package exists, false otherwise
+     */
+    public boolean hasPackage(String packageName) {
+        return packagePrograms.containsKey(packageName);
+    }
+    
+    /**
+     * Get all programs across all packages.
+     * 
+     * @return Map of all programs indexed by source file
+     */
+    public Map<File, ProgramImpl> getAllPrograms() {
+        Map<File, ProgramImpl> allPrograms = new HashMap<>();
+        for (Map<File, ProgramImpl> programs : packagePrograms.values()) {
+            allPrograms.putAll(programs);
+        }
+        return allPrograms;
+    }
+    
+    /**
+     * Clear all programs from the registry.
+     */
+    public void clearPrograms() {
+        packagePrograms.clear();
     }
 }

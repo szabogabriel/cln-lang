@@ -66,10 +66,10 @@ public class Linker {
                 
                 // Check visibility
                 if (isAccessible(importingPackage, funcDecl.getPackageName(), funcDecl.isExposed())) {
+                    foundAny = true;  // Mark that we found at least one accessible symbol
                     if (!resolvedSymbols.contains(simpleName)) {
                         globalContext.registerFunction(simpleName, funcDecl);
                         resolvedSymbols.add(simpleName);
-                        foundAny = true;
                     }
                 }
             }
@@ -83,10 +83,10 @@ public class Linker {
                 
                 // Check visibility
                 if (isAccessible(importingPackage, varDecl.getPackageName(), varDecl.isExposed())) {
+                    foundAny = true;
                     if (!resolvedSymbols.contains(simpleName)) {
                         globalContext.registerGlobalVariable(varDecl, null); // Value will be set during execution
                         resolvedSymbols.add(simpleName);
-                        foundAny = true;
                     }
                 }
             }
@@ -100,10 +100,10 @@ public class Linker {
                 
                 // Check visibility
                 if (isAccessible(importingPackage, constDecl.getPackageName(), constDecl.isExposed())) {
+                    foundAny = true;
                     if (!resolvedSymbols.contains(simpleName)) {
                         globalContext.registerGlobalVariable(constDecl, null); // Value will be set during execution
                         resolvedSymbols.add(simpleName);
-                        foundAny = true;
                     }
                 }
             }
@@ -117,10 +117,10 @@ public class Linker {
                 
                 // Check visibility
                 if (isAccessible(importingPackage, structDef.getPackageName(), structDef.isExposed())) {
+                    foundAny = true;
                     if (!resolvedSymbols.contains(simpleName)) {
                         globalContext.registerStructType(simpleName, structDef);
                         resolvedSymbols.add(simpleName);
-                        foundAny = true;
                     }
                 }
             }
@@ -134,10 +134,10 @@ public class Linker {
                 
                 // Check visibility
                 if (isAccessible(importingPackage, unionDef.getPackageName(), unionDef.isExposed())) {
+                    foundAny = true;
                     if (!resolvedSymbols.contains(simpleName)) {
                         globalContext.registerUnionType(simpleName, unionDef);
                         resolvedSymbols.add(simpleName);
-                        foundAny = true;
                     }
                 }
             }
