@@ -18,13 +18,15 @@ An interpreter for **cln**, a small embeddable scripting language with ANTLR4-ba
 - **Parser & Lexer**: Complete ANTLR4-based grammar for cln-lang
 - **AST Construction**: Parse tree to structured Abstract Syntax Tree conversion
 - **Type System**: Primitives (int, bool, string, dec), structs, and unions
-- **Arrays**: Full support for arrays of primitive types (int[], dec[], bool[], string[])
+- **Arrays**: Arrays of primitive types (int[], dec[], bool[], string[])
   - Array literals: `[1, 2, 3]`
   - Array indexing: `arr[0]`
   - Array assignment: `arr[0] = 10`
   - Array length: `arr.length`
   - String indexing: `str[0]` returns single character
   - Bounds checking at runtime
+  - Arrays as function parameters and return values
+  - **Limitations**: Fixed-size only (no resizing), 1D arrays only, primitive types only (no structs/unions)
 - **Runtime Execution**: Full interpreter with execution context and function invocation
 - **Module System**: 
   - Package declarations with hierarchical namespacing
@@ -471,7 +473,11 @@ int main() {
 
 ### Known Limitations
 
-
+- **Arrays**:
+  - Fixed-size only: cannot create pre-sized arrays or resize after creation
+  - No multi-dimensional arrays (only 1D arrays supported)
+  - Only primitive types: arrays of structs/unions not yet implemented
+  - No array constructor syntax (e.g., `int[](100)` to create array of size 100)
 - **Exit codes**: Process exit codes are 8-bit (0-255), so values > 255 are truncated via modulo operation
 - **Structs**: Represented internally as `Map<String, Object>` with `__type__` metadata
 - **Type names**: Primitive type names are case-sensitive and must be lowercase (`int`, `bool`, `string`)
@@ -558,8 +564,8 @@ int main() {
 
 ### Language Constructs Not Yet Functional
 
-- **Arrays**: Grammar exists but no runtime support for creation, indexing, or manipulation
 - **Static type checking**: Only runtime type validation is performed
+- **Advanced array features**: Multi-dimensional arrays, array resizing, arrays of structs/unions
 
 ## Architecture
 
@@ -693,7 +699,10 @@ Additional test files in `core/src/test/resources/`:
    - ✅ Array length property: `arr.length`
    - ✅ String indexing: `str[0]`
    - ✅ Bounds checking
-   - ✅ Arrays as function parameters
+   - ✅ Arrays as function parameters and return values
+   - ❌ Multi-dimensional arrays
+   - ❌ Array resizing/pre-sizing
+   - ❌ Arrays of structs/unions
 
 4. **Java 21 Upgrade**
    - ✅ Migrated from Java 17 to Java 21 LTS
@@ -704,7 +713,7 @@ Additional test files in `core/src/test/resources/`:
 5. **Advanced Arrays**
    - Arrays of structs and unions
    - Multi-dimensional arrays
-   - Array slicing and manipulation
+   - Array initialization only by size with default values
    - Built-in array utilities (sort, filter, map)
 
 5. **Union Type Enhancements**
@@ -744,6 +753,11 @@ Additional test files in `core/src/test/resources/`:
 ## Recent Updates
 
 ### February 2026
+- ✅ **Array Support**: Added arrays for primitive types (int[], dec[], bool[], string[])
+  - Array literals, indexing, assignment, and length property
+  - Arrays as function parameters and return values
+  - Bounds checking at runtime
+  - Fixed-size 1D arrays only (no resizing, no multi-dimensional, no struct/union arrays yet)
 - ✅ **Cross-Package Imports**: Full implementation of cross-package imports with `expose` visibility control
   - Wildcard imports: `import myapp.*;`
   - Visibility enforcement: symbols require `expose` keyword to be accessible from other packages
