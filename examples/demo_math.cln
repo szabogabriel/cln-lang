@@ -1,0 +1,266 @@
+import std.console.writeLine;
+
+import std.str.decToStr;
+import std.str.intToStr;
+
+import std.math.sin;
+import std.math.cos;
+import std.math.tan;
+import std.math.asin;
+import std.math.acos;
+import std.math.atan;
+import std.math.atan2;
+import std.math.exp;
+import std.math.log;
+import std.math.log10;
+import std.math.pow;
+import std.math.sqrt;
+import std.math.cbrt;
+import std.math.abs;
+import std.math.ceil;
+import std.math.floor;
+import std.math.round;
+import std.math.min;
+import std.math.max;
+import std.math.random;
+import std.math.toRadians;
+import std.math.toDegrees;
+
+testTrigonometric() {
+    writeLine("=== Trigonometric Functions ===");
+    var dec pi = 3.14159265359;
+    var dec halfPi = 1.57079632679;
+    
+    writeLine("sin(π/2) = " + decToStr(sin(halfPi)));
+    writeLine("cos(0) = " + decToStr(cos(0.0)));
+    writeLine("tan(π/4) = " + decToStr(tan(0.78539816339)));
+    
+    writeLine("asin(1.0) = " + decToStr(asin(1.0)));
+    writeLine("acos(0.0) = " + decToStr(acos(0.0)));
+    writeLine("atan(1.0) = " + decToStr(atan(1.0)));
+    writeLine("atan2(1.0, 1.0) = " + decToStr(atan2(1.0, 1.0)));
+    
+    return;
+}
+
+testExponentialLogarithmic() {
+    writeLine("=== Exponential and Logarithmic Functions ===");
+    
+    writeLine("exp(1.0) = " + decToStr(exp(1.0)));
+    writeLine("exp(2.0) = " + decToStr(exp(2.0)));
+    
+    writeLine("log(e) = " + decToStr(log(2.71828182846)));
+    writeLine("log(10) = " + decToStr(log(10.0)));
+    
+    writeLine("log10(10) = " + decToStr(log10(10.0)));
+    writeLine("log10(100) = " + decToStr(log10(100.0)));
+    writeLine("log10(1000) = " + decToStr(log10(1000.0)));
+    
+    return;
+}
+
+testPowerRoot() {
+    writeLine("=== Power and Root Functions ===");
+    
+    writeLine("pow(2, 3) = " + decToStr(pow(2.0, 3.0)));
+    writeLine("pow(5, 2) = " + decToStr(pow(5.0, 2.0)));
+    writeLine("pow(10, 4) = " + decToStr(pow(10.0, 4.0)));
+    
+    writeLine("sqrt(4) = " + decToStr(sqrt(4.0)));
+    writeLine("sqrt(9) = " + decToStr(sqrt(9.0)));
+    writeLine("sqrt(16) = " + decToStr(sqrt(16.0)));
+    writeLine("sqrt(2) = " + decToStr(sqrt(2.0)));
+    
+    writeLine("cbrt(8) = " + decToStr(cbrt(8.0)));
+    writeLine("cbrt(27) = " + decToStr(cbrt(27.0)));
+    writeLine("cbrt(64) = " + decToStr(cbrt(64.0)));
+    
+    return;
+}
+
+testRounding() {
+    writeLine("=== Rounding Functions ===");
+    
+    var dec val1 = 3.7;
+    var dec val2 = 3.2;
+    var dec val3 = -2.8;
+    
+    writeLine("ceil(3.7) = " + decToStr(ceil(val1)));
+    writeLine("floor(3.7) = " + decToStr(floor(val1)));
+    writeLine("round(3.7) = " + intToStr(round(val1)));
+    
+    writeLine("ceil(3.2) = " + decToStr(ceil(val2)));
+    writeLine("floor(3.2) = " + decToStr(floor(val2)));
+    writeLine("round(3.2) = " + intToStr(round(val2)));
+    
+    writeLine("ceil(-2.8) = " + decToStr(ceil(val3)));
+    writeLine("floor(-2.8) = " + decToStr(floor(val3)));
+    writeLine("round(-2.8) = " + intToStr(round(val3)));
+    
+    return;
+}
+
+testAbsolute() {
+    writeLine("=== Absolute Value ===");
+    
+    writeLine("abs(5) = " + intToStr(abs(5)));
+    writeLine("abs(-5) = " + intToStr(abs(-5)));
+    writeLine("abs(3.14) = " + decToStr(abs(3.14)));
+    writeLine("abs(-3.14) = " + decToStr(abs(-3.14)));
+    
+    return;
+}
+
+testMinMax() {
+    writeLine("=== Min and Max Functions ===");
+    
+    writeLine("min(5, 10) = " + intToStr(min(5, 10)));
+    writeLine("max(5, 10) = " + intToStr(max(5, 10)));
+    
+    writeLine("min(-5, 3) = " + intToStr(min(-5, 3)));
+    writeLine("max(-5, 3) = " + intToStr(max(-5, 3)));
+    
+    writeLine("min(3.14, 2.71) = " + decToStr(min(3.14, 2.71)));
+    writeLine("max(3.14, 2.71) = " + decToStr(max(3.14, 2.71)));
+    
+    return;
+}
+
+testRandom() {
+    writeLine("=== Random Number Generation ===");
+    
+    writeLine("random() = " + decToStr(random()));
+    writeLine("random() = " + decToStr(random()));
+    writeLine("random() = " + decToStr(random()));
+    
+    var dec rand = random();
+    var int randomInt = round(rand * 100.0);
+    writeLine("Random int (0-100) = " + intToStr(randomInt));
+    
+    return;
+}
+
+testAngleConversion() {
+    writeLine("=== Angle Conversion ===");
+    
+    var dec degrees90 = 90.0;
+    var dec degrees180 = 180.0;
+    var dec degrees360 = 360.0;
+    
+    writeLine("90 degrees to radians = " + decToStr(toRadians(degrees90)));
+    writeLine("180 degrees to radians = " + decToStr(toRadians(degrees180)));
+    writeLine("360 degrees to radians = " + decToStr(toRadians(degrees360)));
+    
+    var dec piRad = 3.14159265359;
+    var dec halfPiRad = 1.57079632679;
+    
+    writeLine("π radians to degrees = " + decToStr(toDegrees(piRad)));
+    writeLine("π/2 radians to degrees = " + decToStr(toDegrees(halfPiRad)));
+    
+    return;
+}
+
+testPythagoreanTheorem() {
+    writeLine("=== Pythagorean Theorem (a² + b² = c²) ===");
+    
+    var dec a = 3.0;
+    var dec b = 4.0;
+    var dec cSquared = pow(a, 2.0) + pow(b, 2.0);
+    var dec c = sqrt(cSquared);
+    
+    writeLine("Side a = " + decToStr(a));
+    writeLine("Side b = " + decToStr(b));
+    writeLine("Hypotenuse c = " + decToStr(c));
+    
+    return;
+}
+
+testQuadraticFormula() {
+    writeLine("=== Quadratic Formula: x² - 5x + 6 = 0 ===");
+    
+    var dec a = 1.0;
+    var dec b = -5.0;
+    var dec c = 6.0;
+    
+    var dec discriminant = pow(b, 2.0) - 4.0 * a * c;
+    writeLine("Discriminant = " + decToStr(discriminant));
+    
+    var dec sqrtDisc = sqrt(discriminant);
+    var dec x1 = (-b + sqrtDisc) / (2.0 * a);
+    var dec x2 = (-b - sqrtDisc) / (2.0 * a);
+    
+    writeLine("Root 1 = " + decToStr(x1));
+    writeLine("Root 2 = " + decToStr(x2));
+    
+    return;
+}
+
+testDistanceFormula() {
+    writeLine("=== Distance Formula: Distance between (1,2) and (4,6) ===");
+    
+    var dec x1 = 1.0;
+    var dec y1 = 2.0;
+    var dec x2 = 4.0;
+    var dec y2 = 6.0;
+    
+    var dec dx = x2 - x1;
+    var dec dy = y2 - y1;
+    var dec distance = sqrt(pow(dx, 2.0) + pow(dy, 2.0));
+    
+    writeLine("Point 1: (" + decToStr(x1) + ", " + decToStr(y1) + ")");
+    writeLine("Point 2: (" + decToStr(x2) + ", " + decToStr(y2) + ")");
+    writeLine("Distance = " + decToStr(distance));
+    
+    return;
+}
+
+(var int ret = 0) main() {
+    writeLine("==========================================");
+    writeLine("  Math Library Functions Demo");
+    writeLine("==========================================");
+    writeLine("");
+    
+    testTrigonometric();
+    writeLine("");
+    
+    testExponentialLogarithmic();
+    writeLine("");
+    
+    testPowerRoot();
+    writeLine("");
+    
+    testRounding();
+    writeLine("");
+    
+    testAbsolute();
+    writeLine("");
+    
+    testMinMax();
+    writeLine("");
+    
+    testRandom();
+    writeLine("");
+    
+    testAngleConversion();
+    writeLine("");
+    
+    writeLine("==========================================");
+    writeLine("  Practical Applications");
+    writeLine("==========================================");
+    writeLine("");
+    
+    testPythagoreanTheorem();
+    writeLine("");
+    
+    testQuadraticFormula();
+    writeLine("");
+    
+    testDistanceFormula();
+    writeLine("");
+    
+    writeLine("==========================================");
+    writeLine("  All tests completed!");
+    writeLine("==========================================");
+    
+    return 0;
+}

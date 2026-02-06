@@ -1,10 +1,12 @@
 package org.clnlang.lib.std.string;
 
+import java.math.BigDecimal;
+
 import org.clnlang.compile.declaration.FunctionDeclImpl;
 import org.clnlang.lib.ClnFunction;
 import org.clnlang.runtime.context.ExecutionContext;
-import org.clnlang.runtime.types.FullyQualifiedName;
 import org.clnlang.runtime.execution.Registry;
+import org.clnlang.runtime.types.FullyQualifiedName;
 
 /**
  * Standard library string utility functions providing C-like string operations.
@@ -21,6 +23,14 @@ public class StringUtil implements ClnFunction {
     private void executeIntToStr(ExecutionContext context) {
         long value = (long) context.getLocalContext().getValue("value");
         String result = intToStr(value);
+        // Set the return value in the local context AND mark as returned
+        context.getCurrentFrame().getLocalContext().setVariable("result", result);
+        context.setReturnValues(java.util.Collections.singletonList(result));
+    }
+
+    private void executeDecToStr(ExecutionContext context) {
+        BigDecimal value = (BigDecimal) context.getLocalContext().getValue("value");
+        String result = decToString(value);
         // Set the return value in the local context AND mark as returned
         context.getCurrentFrame().getLocalContext().setVariable("result", result);
         context.setReturnValues(java.util.Collections.singletonList(result));
@@ -220,6 +230,10 @@ public class StringUtil implements ClnFunction {
         return String.valueOf(value);
     }
 
+    public static String decToString(BigDecimal value) {
+        return value.toString();
+    }
+
     public static long strToInt(String str) {
         try {
             return Long.parseLong(str);
@@ -324,6 +338,9 @@ public class StringUtil implements ClnFunction {
         // Conversion functions
         registerFunction(registry, "intToStr", "String", "result", 
                         new String[]{"int"}, new String[]{"value"}, this::executeIntToStr);
+
+        registerFunction(registry, "decToStr", "String", "result", 
+                        new String[]{"dec"}, new String[]{"value"}, this::executeDecToStr);
         
         registerFunction(registry, "strToInt", "int", "result",
                         new String[]{"String"}, new String[]{"str"}, this::executeStrToInt);

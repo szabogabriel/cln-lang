@@ -1,0 +1,280 @@
+
+import std.console.writeLine;
+import std.str.decToStr;
+import std.str.intToStr;
+import std.math.*;
+
+// Advanced mathematical computations and edge case testing
+
+testCompoundInterest() {
+    writeLine("=== Compound Interest Calculator ===");
+    writeLine("Formula: A = P(1 + r/n)^(nt)");
+    
+    var dec principal = 1000.0;     // Initial investment
+    var dec rate = 0.05;            // 5% annual rate
+    var dec periods = 12.0;         // Monthly compounding
+    var dec years = 10.0;           // 10 years
+    
+    var dec base = 1.0 + (rate / periods);
+    var dec exponent = periods * years;
+    var dec amount = principal * pow(base, exponent);
+    
+    writeLine("Principal: $" + decToStr(principal));
+    writeLine("Annual Rate: " + decToStr(rate * 100.0) + "%");
+    writeLine("Compounding: Monthly");
+    writeLine("Time: " + decToStr(years) + " years");
+    writeLine("Final Amount: $" + decToStr(amount));
+    writeLine("Interest Earned: $" + decToStr(amount - principal));
+    
+    return;
+}
+
+testCircleCalculations() {
+    writeLine("=== Circle Calculations ===");
+    
+    var dec radius = 5.0;
+    var dec pi = 3.14159265359;
+    
+    var dec circumference = 2.0 * pi * radius;
+    var dec area = pi * pow(radius, 2.0);
+    
+    writeLine("Radius: " + decToStr(radius));
+    writeLine("Circumference: " + decToStr(circumference));
+    writeLine("Area: " + decToStr(area));
+    
+    return;
+}
+
+testSphereVolume() {
+    writeLine("=== Sphere Volume and Surface Area ===");
+    
+    var dec radius = 3.0;
+    var dec pi = 3.14159265359;
+    
+    var dec volume = (4.0 / 3.0) * pi * pow(radius, 3.0);
+    var dec surfaceArea = 4.0 * pi * pow(radius, 2.0);
+    
+    writeLine("Radius: " + decToStr(radius));
+    writeLine("Volume: " + decToStr(volume));
+    writeLine("Surface Area: " + decToStr(surfaceArea));
+    
+    return;
+}
+
+testTriangleAngles() {
+    writeLine("=== Triangle Angle Calculations ===");
+    writeLine("Law of Cosines: c² = a² + b² - 2ab*cos(C)");
+    
+    var dec a = 5.0;
+    var dec b = 7.0;
+    var dec c = 8.0;
+    
+    // Calculate angle C using law of cosines
+    var dec cosC = (pow(a, 2.0) + pow(b, 2.0) - pow(c, 2.0)) / (2.0 * a * b);
+    var dec angleC = acos(cosC);
+    var dec angleCDeg = toDegrees(angleC);
+    
+    writeLine("Side a: " + decToStr(a));
+    writeLine("Side b: " + decToStr(b));
+    writeLine("Side c: " + decToStr(c));
+    writeLine("Angle C: " + decToStr(angleCDeg) + " degrees");
+    
+    return;
+}
+
+testPolarToCartesian() {
+    writeLine("=== Polar to Cartesian Conversion ===");
+    
+    var dec r = 10.0;
+    var dec theta = toRadians(45.0);
+    
+    var dec x = r * cos(theta);
+    var dec y = r * sin(theta);
+    
+    writeLine("Polar coordinates:");
+    writeLine("  r = " + decToStr(r));
+    writeLine("  θ = 45 degrees");
+    writeLine("Cartesian coordinates:");
+    writeLine("  x = " + decToStr(x));
+    writeLine("  y = " + decToStr(y));
+    
+    return;
+}
+
+testCartesianToPolar() {
+    writeLine("=== Cartesian to Polar Conversion ===");
+    
+    var dec x = 3.0;
+    var dec y = 4.0;
+    
+    var dec r = sqrt(pow(x, 2.0) + pow(y, 2.0));
+    var dec theta = atan2(y, x);
+    var dec thetaDeg = toDegrees(theta);
+    
+    writeLine("Cartesian coordinates:");
+    writeLine("  x = " + decToStr(x));
+    writeLine("  y = " + decToStr(y));
+    writeLine("Polar coordinates:");
+    writeLine("  r = " + decToStr(r));
+    writeLine("  θ = " + decToStr(thetaDeg) + " degrees");
+    
+    return;
+}
+
+testStatisticalMean() {
+    writeLine("=== Statistical Calculations ===");
+    writeLine("Dataset: 12, 15, 18, 22, 25");
+    
+    var dec sum = 12.0 + 15.0 + 18.0 + 22.0 + 25.0;
+    var dec count = 5.0;
+    var dec mean = sum / count;
+    
+    writeLine("Sum: " + decToStr(sum));
+    writeLine("Count: " + decToStr(count));
+    writeLine("Mean: " + decToStr(mean));
+    
+    // Calculate standard deviation manually
+    var dec diff1 = pow(12.0 - mean, 2.0);
+    var dec diff2 = pow(15.0 - mean, 2.0);
+    var dec diff3 = pow(18.0 - mean, 2.0);
+    var dec diff4 = pow(22.0 - mean, 2.0);
+    var dec diff5 = pow(25.0 - mean, 2.0);
+    
+    var dec variance = (diff1 + diff2 + diff3 + diff4 + diff5) / count;
+    var dec stdDev = sqrt(variance);
+    
+    writeLine("Variance: " + decToStr(variance));
+    writeLine("Standard Deviation: " + decToStr(stdDev));
+    
+    return;
+}
+
+testExponentialGrowth() {
+    writeLine("=== Exponential Growth ===");
+    writeLine("Population growth: P(t) = P₀ * e^(rt)");
+    
+    var dec initialPop = 1000.0;
+    var dec growthRate = 0.03;      // 3% growth rate
+    var dec time = 20.0;            // 20 years
+    
+    var dec finalPop = initialPop * exp(growthRate * time);
+    
+    writeLine("Initial Population: " + decToStr(initialPop));
+    writeLine("Growth Rate: " + decToStr(growthRate * 100.0) + "%");
+    writeLine("Time: " + decToStr(time) + " years");
+    writeLine("Final Population: " + decToStr(finalPop));
+    
+    return;
+}
+
+testLogarithmicScale() {
+    writeLine("=== Logarithmic Scale (Richter Scale) ===");
+    writeLine("Earthquake magnitude comparison");
+    
+    var dec mag1 = 5.0;
+    var dec mag2 = 7.0;
+    
+    var dec energyRatio = pow(10.0, 1.5 * (mag2 - mag1));
+    
+    writeLine("Magnitude " + decToStr(mag1) + " earthquake");
+    writeLine("Magnitude " + decToStr(mag2) + " earthquake");
+    writeLine("Energy ratio: " + decToStr(energyRatio) + "x");
+    
+    return;
+}
+
+testNewtonMethod() {
+    writeLine("=== Newton's Method Approximation ===");
+    writeLine("Finding sqrt(2) iteratively");
+    
+    var dec x = 1.0;
+    var dec target = 2.0;
+    
+    // 5 iterations of Newton's method
+    x = (x + target / x) / 2.0;
+    writeLine("Iteration 1: " + decToStr(x));
+    
+    x = (x + target / x) / 2.0;
+    writeLine("Iteration 2: " + decToStr(x));
+    
+    x = (x + target / x) / 2.0;
+    writeLine("Iteration 3: " + decToStr(x));
+    
+    x = (x + target / x) / 2.0;
+    writeLine("Iteration 4: " + decToStr(x));
+    
+    x = (x + target / x) / 2.0;
+    writeLine("Iteration 5: " + decToStr(x));
+    
+    writeLine("Actual sqrt(2): " + decToStr(sqrt(2.0)));
+    writeLine("Difference: " + decToStr(abs(x - sqrt(2.0))));
+    
+    return;
+}
+
+testEdgeCases() {
+    writeLine("=== Edge Cases and Special Values ===");
+    
+    writeLine("min with equal values: " + intToStr(min(5, 5)));
+    writeLine("max with equal values: " + intToStr(max(5, 5)));
+    
+    writeLine("pow(2, 0) = " + decToStr(pow(2.0, 0.0)));
+    writeLine("pow(0, 2) = " + decToStr(pow(0.0, 2.0)));
+    
+    writeLine("sqrt(1) = " + decToStr(sqrt(1.0)));
+    writeLine("sqrt(0) = " + decToStr(sqrt(0.0)));
+    
+    writeLine("abs(0) = " + intToStr(abs(0)));
+    
+    writeLine("floor(5.0) = " + decToStr(floor(5.0)));
+    writeLine("ceil(5.0) = " + decToStr(ceil(5.0)));
+    writeLine("round(5.0) = " + intToStr(round(5.0)));
+    
+    return;
+}
+
+(var int ret = 0) main() {
+    writeLine("===========================================");
+    writeLine("  Advanced Math Applications");
+    writeLine("===========================================");
+    writeLine("");
+    
+    testCompoundInterest();
+    writeLine("");
+    
+    testCircleCalculations();
+    writeLine("");
+    
+    testSphereVolume();
+    writeLine("");
+    
+    testTriangleAngles();
+    writeLine("");
+    
+    testPolarToCartesian();
+    writeLine("");
+    
+    testCartesianToPolar();
+    writeLine("");
+    
+    testStatisticalMean();
+    writeLine("");
+    
+    testExponentialGrowth();
+    writeLine("");
+    
+    testLogarithmicScale();
+    writeLine("");
+    
+    testNewtonMethod();
+    writeLine("");
+    
+    testEdgeCases();
+    writeLine("");
+    
+    writeLine("===========================================");
+    writeLine("  All advanced tests completed!");
+    writeLine("===========================================");
+    
+    return 0;
+}

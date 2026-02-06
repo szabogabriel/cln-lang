@@ -1,12 +1,13 @@
 package org.clnlang.lib;
 
-import org.clnlang.lib.std.array.ArrayUtil;
-import org.clnlang.lib.std.console.Console;
-import org.clnlang.lib.std.string.StringUtil;
-import org.clnlang.runtime.execution.Registry;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import org.clnlang.lib.std.array.ArrayUtil;
+import org.clnlang.lib.std.console.Console;
+import org.clnlang.lib.std.math.DefaultMath;
+import org.clnlang.lib.std.string.StringUtil;
+import org.clnlang.runtime.execution.Registry;
 
 /**
  * Central registry for all standard library components.
@@ -37,6 +38,9 @@ public class StandardLibrary {
 
         // Array utilities
         standardLibraryComponents.add(new ArrayUtil());
+
+        // Math utils
+        standardLibraryComponents.add(new DefaultMath());
         
         // Future standard library components can be added here:
         // standardLibraryComponents.add(new File());
