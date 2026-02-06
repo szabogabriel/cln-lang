@@ -141,6 +141,22 @@ java -jar cln.jar -cp . hello_world.cln
 | `file.cln` | Run specific file (default package) | `hello.cln` |
 | `package.name` | Run package | `myapp` or `com.example.app` |
 
+## Embedding in Java
+
+You can embed cln in another Java application using the runtime API. The CLI stays in `Main`, while `ClnRuntime` provides an embeddable entry point that never calls `System.exit()`.
+
+```java
+import org.clnlang.ClnRuntime;
+import org.clnlang.RuntimeConfiguration;
+
+RuntimeConfiguration config = new RuntimeConfiguration();
+config.parse(new String[]{"-cp", "/path/to/cln/sources", "myapp"});
+
+int exitCode = ClnRuntime.execute(config);
+```
+
+For custom integrations, you can provide your own `Registry`, choose whether to register the standard library, and supply a logger.
+
 ## Examples Directory
 
 Try these examples:

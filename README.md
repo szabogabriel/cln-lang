@@ -34,7 +34,7 @@ An interpreter for **cln**, a small embeddable scripting language with ANTLR4-ba
   - Cross-package imports with visibility control
   - `expose` keyword for exporting symbols to other packages
   - Eager loading of all source files for comprehensive symbol resolution
-  - Standard library imports (`std.console.*`, `std.str.*`)
+  - Standard library imports (`std.console.*`, `std.str.*`, `std.array.*`, `std.math.*`)
   - Duplicate import handling (same package can be imported by multiple files)
 - **Expressions**:
   - Binary operators: `+`, `-`, `*`, `/`, `==`, `!=`, `<`, `<=`, `>`, `>=`, `&&`, `||`
@@ -67,8 +67,10 @@ An interpreter for **cln**, a small embeddable scripting language with ANTLR4-ba
 - **Numeric Types**: 
   - **Integer**: 64-bit signed integers (using Java `long`, range: -2^63 to 2^63-1)
   - **Decimal**: Arbitrary precision decimal numbers (using Java `BigDecimal` for precise decimal arithmetic)
-- **Standard Library**: Console I/O (`std.console.writeLine`, `std.console.write`, `std.console.readLine`)
+- **Standard Library**: Console I/O, string utilities, array utilities, and math utilities (`std.console.*`, `std.str.*`, `std.array.*`, `std.math.*`)
 - **String Utilities**: `intToStr` function for integer-to-string conversion
+- **Array Utilities**: `std.array.*` (creation, copy, search, slice, concat)
+- **Math Utilities**: `std.math.*` (trig, log/exp, pow/root, rounding, min/max)
 - **Error Handling**: Comprehensive exception handling with detailed error messages
 - **Type Safety**: Runtime type checking for operators and conditionals with strict primitive type validation (case-sensitive: `int`, `bool`, `string`, `dec`)
 - **Global Variables**: Full support for mutable global variables with `var` keyword
@@ -501,7 +503,7 @@ cln-lang has a fully functional package system with cross-package import support
 
 **Import Mechanisms:**
 - **Wildcard imports**: `import std.console.*;` imports all accessible symbols from a package
-- **Standard library imports**: `import std.console.*;`, `import std.str.*;`
+- **Standard library imports**: `import std.console.*;`, `import std.str.*;`, `import std.array.*;`, `import std.math.*;`
 - **Cross-package imports**: Import from other user-defined packages with visibility control
 - **Duplicate imports**: Multiple files can safely import the same package
 
@@ -688,7 +690,7 @@ Additional test files in `core/src/test/resources/`:
    - ✅ Global variables (mutable with `var`, constant without)
    - ✅ Type validation with runtime checking
    - ✅ String concatenation and utilities
-   - ✅ Standard library (console I/O, string conversion)
+  - ✅ Standard library (console I/O, string utilities, array utilities, math utilities)
 
 2. **Type System**
    - ✅ Primitive types (int, bool, string, dec)
