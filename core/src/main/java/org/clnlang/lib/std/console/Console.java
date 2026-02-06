@@ -1,4 +1,4 @@
-package org.clnlang.lib.std;
+package org.clnlang.lib.std.console;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;

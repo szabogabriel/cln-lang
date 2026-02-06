@@ -1,30 +1,10 @@
 package org.clnlang;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import org.antlr.v4.runtime.CharStream;
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.clnlang.ast.declaration.ProgramNode;
-import org.clnlang.ast.visitor.ASTPrinterVisitor;
-import org.clnlang.ast.visitor.CompilerVisitor;
-import org.clnlang.ast.visitor.DetailedASTPrinter;
 import org.clnlang.compile.declaration.FunctionDeclImpl;
-import org.clnlang.compile.declaration.ProgramImpl;
 import org.clnlang.exception.ClnException;
 import org.clnlang.lib.StandardLibrary;
-import org.clnlang.linker.Linker;
-import org.clnlang.parser.ClnASTBuilder;
-import org.clnlang.parser.clnLexer;
-import org.clnlang.parser.clnParser;
 import org.clnlang.runtime.context.ExecutionContext;
 import org.clnlang.runtime.execution.FunctionInvoker;
 import org.clnlang.runtime.execution.Registry;

@@ -1,0 +1,194 @@
+import std.console.writeLine;
+import std.str.intToStr;
+import std.str.boolToStr;
+import std.array.*;
+
+// Test edge cases and boundary conditions for array utilities
+
+testEmptyArrays() {
+    writeLine("=== Test Empty Arrays ===");
+    var int[] empty1 = [];
+    var int[] empty2 = [];
+    
+    writeLine("Length of empty array: " + intToStr(length(empty1)));
+    writeLine("isEmpty on empty: " + boolToStr(isEmpty(empty1)));
+    writeLine("Two empty arrays equal: " + boolToStr(equals(empty1, empty2)));
+    writeLine("indexOf in empty: " + intToStr(indexOf(empty1, 1)));
+    writeLine("contains in empty: " + boolToStr(contains(empty1, 1)));
+    
+    var int[] copied = copy(empty1);
+    writeLine("Copied empty array length: " + intToStr(length(copied)));
+    
+    return;
+}
+
+testSingleElement() {
+    writeLine("=== Test Single Element Array ===");
+    var int[] single = [42];
+    
+    writeLine("Length: " + intToStr(length(single)));
+    writeLine("Element: " + intToStr(single[0]));
+    writeLine("indexOf 42: " + intToStr(indexOf(single, 42)));
+    writeLine("lastIndexOf 42: " + intToStr(lastIndexOf(single, 42)));
+    writeLine("contains 42: " + boolToStr(contains(single, 42)));
+    
+    reverse(single);
+    writeLine("After reverse, element: " + intToStr(single[0]));
+    
+    return;
+}
+
+testReverseEvenOdd() {
+    writeLine("=== Test Reverse Even/Odd Length ===");
+    var int[] even = [1, 2, 3, 4];
+    var int[] odd = [1, 2, 3, 4, 5];
+    
+    writeLine("Even array before: " + intToStr(even[0]) + ", " + intToStr(even[3]));
+    reverse(even);
+    writeLine("Even array after: " + intToStr(even[0]) + ", " + intToStr(even[3]));
+    
+    writeLine("Odd array before: " + intToStr(odd[0]) + ", " + intToStr(odd[4]));
+    reverse(odd);
+    writeLine("Odd array after: " + intToStr(odd[0]) + ", " + intToStr(odd[4]));
+    
+    return;
+}
+
+testCopyRangeBoundaries() {
+    writeLine("=== Test CopyRange Boundaries ===");
+    var int[] arr = [10, 20, 30, 40, 50];
+    
+    // Copy from start
+    var int[] fromStart = copyRange(arr, 0, 3);
+    writeLine("CopyRange [0, 3): length = " + intToStr(length(fromStart)));
+    writeLine("First: " + intToStr(fromStart[0]));
+    
+    // Copy to end
+    var int[] toEnd = copyRange(arr, 2, 5);
+    writeLine("CopyRange [2, 5): length = " + intToStr(length(toEnd)));
+    writeLine("Last: " + intToStr(toEnd[2]));
+    
+    // Copy single element
+    var int[] single = copyRange(arr, 2, 3);
+    writeLine("CopyRange [2, 3): length = " + intToStr(length(single)));
+    writeLine("Element: " + intToStr(single[0]));
+    
+    return;
+}
+
+testSliceBoundaries() {
+    writeLine("=== Test Slice Boundaries ===");
+    var int[] arr = [1, 2, 3, 4, 5];
+    
+    // Slice from beginning
+    var int[] fromStart = slice(arr, 0, 3);
+    writeLine("Slice(0, 3): length = " + intToStr(length(fromStart)));
+    
+    // Slice middle
+    var int[] middle = slice(arr, 1, 3);
+    writeLine("Slice(1, 3): length = " + intToStr(length(middle)));
+    writeLine("Middle[0]: " + intToStr(middle[0]));
+    
+    // Slice with length exceeding array
+    var int[] exceed = slice(arr, 3, 10);
+    writeLine("Slice(3, 10): length = " + intToStr(length(exceed)));
+    
+    return;
+}
+
+testConcatVariations() {
+    writeLine("=== Test Concat Variations ===");
+    var int[] arr1 = [1, 2, 3];
+    var int[] empty = [];
+    
+    var int[] result1 = concat(arr1, empty);
+    writeLine("Array + Empty: length = " + intToStr(length(result1)));
+    
+    var int[] result2 = concat(empty, arr1);
+    writeLine("Empty + Array: length = " + intToStr(length(result2)));
+    
+    var int[] result3 = concat(empty, empty);
+    writeLine("Empty + Empty: length = " + intToStr(length(result3)));
+    
+    return;
+}
+
+testFillVariousTypes() {
+    writeLine("=== Test Fill Various Types ===");
+    var string[] strings = newArray(3);
+    fill(strings, "test");
+    writeLine("Filled strings[0]: " + strings[0]);
+    writeLine("Filled strings[2]: " + strings[2]);
+    
+    var bool[] bools = newArray(4);
+    fill(bools, true);
+    writeLine("Filled bools[0]: " + boolToStr(bools[0]));
+    writeLine("Filled bools[3]: " + boolToStr(bools[3]));
+    
+    return;
+}
+
+testEqualityEdgeCases() {
+    writeLine("=== Test Equality Edge Cases ===");
+    var int[] arr1 = [1, 2, 3];
+    var int[] arr2 = [1, 2, 3];
+    var int[] arr3 = [1, 2];
+    var int[] arr4 = [1, 2, 3, 4];
+    
+    writeLine("Same content: " + boolToStr(equals(arr1, arr2)));
+    writeLine("Different length (shorter): " + boolToStr(equals(arr1, arr3)));
+    writeLine("Different length (longer): " + boolToStr(equals(arr1, arr4)));
+    
+    return;
+}
+
+testIndexOfDuplicates() {
+    writeLine("=== Test IndexOf with Duplicates ===");
+    var int[] arr = [5, 10, 5, 20, 5, 30];
+    
+    writeLine("First occurrence of 5: " + intToStr(indexOf(arr, 5)));
+    writeLine("Last occurrence of 5: " + intToStr(lastIndexOf(arr, 5)));
+    writeLine("Contains 5: " + boolToStr(contains(arr, 5)));
+    
+    return;
+}
+
+(var int ret = 0) main() {
+    writeLine("====================================");
+    writeLine("  Array Util Edge Cases Tests");
+    writeLine("====================================");
+    writeLine("");
+    
+    testEmptyArrays();
+    writeLine("");
+    
+    testSingleElement();
+    writeLine("");
+    
+    testReverseEvenOdd();
+    writeLine("");
+    
+    testCopyRangeBoundaries();
+    writeLine("");
+    
+    testSliceBoundaries();
+    writeLine("");
+    
+    testConcatVariations();
+    writeLine("");
+    
+    testFillVariousTypes();
+    writeLine("");
+    
+    testEqualityEdgeCases();
+    writeLine("");
+    
+    testIndexOfDuplicates();
+    writeLine("");
+    
+    writeLine("====================================");
+    writeLine("  All edge case tests completed!");
+    writeLine("====================================");
+    
+    return 0;
+}

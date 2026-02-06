@@ -1,4 +1,4 @@
-package org.clnlang.lib.std;
+package org.clnlang.lib.std.string;
 
 import org.clnlang.compile.declaration.FunctionDeclImpl;
 import org.clnlang.lib.ClnFunction;

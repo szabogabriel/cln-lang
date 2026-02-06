@@ -1,0 +1,218 @@
+import std.console.writeLine;
+import std.str.intToStr;
+import std.str.boolToStr;
+import std.array.newArray;
+import std.array.copy;
+import std.array.copyRange;
+import std.array.length;
+import std.array.isEmpty;
+import std.array.indexOf;
+import std.array.lastIndexOf;
+import std.array.contains;
+import std.array.fill;
+import std.array.reverse;
+import std.array.equals;
+import std.array.concat;
+import std.array.slice;
+
+testNewArray() {
+    writeLine("=== Test newArray ===");
+    var int[] arr = newArray(5);
+    writeLine("Created array of size: " + intToStr(length(arr)));
+    return;
+}
+
+testCopy() {
+    writeLine("=== Test copy ===");
+    var int[] original = [1, 2, 3, 4, 5];
+    var int[] copied = copy(original);
+    writeLine("Original length: " + intToStr(length(original)));
+    writeLine("Copied length: " + intToStr(length(copied)));
+    writeLine("Are equal: " + boolToStr(equals(original, copied)));
+    return;
+}
+
+testCopyRange() {
+    writeLine("=== Test copyRange ===");
+    var int[] arr = [10, 20, 30, 40, 50];
+    var int[] range = copyRange(arr, 1, 4);
+    writeLine("Original length: " + intToStr(length(arr)));
+    writeLine("Range [1-4) length: " + intToStr(length(range)));
+    writeLine("First element of range: " + intToStr(range[0]));
+    writeLine("Last element of range: " + intToStr(range[2]));
+    return;
+}
+
+testLength() {
+    writeLine("=== Test length ===");
+    var int[] arr = [1, 2, 3];
+    writeLine("Array length: " + intToStr(length(arr)));
+    var string[] empty = [];
+    writeLine("Empty array length: " + intToStr(length(empty)));
+    return;
+}
+
+testIsEmpty() {
+    writeLine("=== Test isEmpty ===");
+    var int[] arr = [1, 2, 3];
+    writeLine("Array with elements is empty: " + boolToStr(isEmpty(arr)));
+    var int[] empty = [];
+    writeLine("Empty array is empty: " + boolToStr(isEmpty(empty)));
+    return;
+}
+
+testIndexOf() {
+    writeLine("=== Test indexOf ===");
+    var int[] numbers = [10, 20, 30, 20, 40];
+    writeLine("Index of 20: " + intToStr(indexOf(numbers, 20)));
+    writeLine("Index of 30: " + intToStr(indexOf(numbers, 30)));
+    writeLine("Index of 99 (not found): " + intToStr(indexOf(numbers, 99)));
+    return;
+}
+
+testLastIndexOf() {
+    writeLine("=== Test lastIndexOf ===");
+    var int[] numbers = [10, 20, 30, 20, 40];
+    writeLine("Last index of 20: " + intToStr(lastIndexOf(numbers, 20)));
+    writeLine("Last index of 40: " + intToStr(lastIndexOf(numbers, 40)));
+    writeLine("Last index of 99 (not found): " + intToStr(lastIndexOf(numbers, 99)));
+    return;
+}
+
+testContains() {
+    writeLine("=== Test contains ===");
+    var string[] fruits = ["apple", "banana", "orange"];
+    writeLine("Contains 'banana': " + boolToStr(contains(fruits, "banana")));
+    writeLine("Contains 'grape': " + boolToStr(contains(fruits, "grape")));
+    return;
+}
+
+testFill() {
+    writeLine("=== Test fill ===");
+    var int[] arr = newArray(5);
+    fill(arr, 42);
+    writeLine("After fill with 42:");
+    writeLine("arr[0]: " + intToStr(arr[0]));
+    writeLine("arr[2]: " + intToStr(arr[2]));
+    writeLine("arr[4]: " + intToStr(arr[4]));
+    return;
+}
+
+testReverse() {
+    writeLine("=== Test reverse ===");
+    var int[] arr = [1, 2, 3, 4, 5];
+    writeLine("Before reverse:");
+    writeLine("First: " + intToStr(arr[0]) + ", Last: " + intToStr(arr[4]));
+    reverse(arr);
+    writeLine("After reverse:");
+    writeLine("First: " + intToStr(arr[0]) + ", Last: " + intToStr(arr[4]));
+    return;
+}
+
+testEquals() {
+    writeLine("=== Test equals ===");
+    var int[] arr1 = [1, 2, 3];
+    var int[] arr2 = [1, 2, 3];
+    var int[] arr3 = [1, 2, 4];
+    writeLine("arr1 equals arr2: " + boolToStr(equals(arr1, arr2)));
+    writeLine("arr1 equals arr3: " + boolToStr(equals(arr1, arr3)));
+    return;
+}
+
+testConcat() {
+    writeLine("=== Test concat ===");
+    var int[] arr1 = [1, 2, 3];
+    var int[] arr2 = [4, 5, 6];
+    var int[] combined = concat(arr1, arr2);
+    writeLine("Length of arr1: " + intToStr(length(arr1)));
+    writeLine("Length of arr2: " + intToStr(length(arr2)));
+    writeLine("Length of combined: " + intToStr(length(combined)));
+    writeLine("First element: " + intToStr(combined[0]));
+    writeLine("Middle element: " + intToStr(combined[3]));
+    writeLine("Last element: " + intToStr(combined[5]));
+    return;
+}
+
+testSlice() {
+    writeLine("=== Test slice ===");
+    var int[] arr = [10, 20, 30, 40, 50, 60];
+    var int[] sliced = slice(arr, 2, 3);
+    writeLine("Original length: " + intToStr(length(arr)));
+    writeLine("Sliced [2, length=3] length: " + intToStr(length(sliced)));
+    writeLine("Sliced[0]: " + intToStr(sliced[0]));
+    writeLine("Sliced[1]: " + intToStr(sliced[1]));
+    writeLine("Sliced[2]: " + intToStr(sliced[2]));
+    return;
+}
+
+testStringArrayOperations() {
+    writeLine("=== Test String Array Operations ===");
+    var string[] fruits = ["apple", "banana", "orange"];
+    var string[] moreFruits = ["grape", "mango"];
+    var string[] allFruits = concat(fruits, moreFruits);
+    
+    writeLine("Combined fruits length: " + intToStr(length(allFruits)));
+    writeLine("Contains 'banana': " + boolToStr(contains(allFruits, "banana")));
+    writeLine("Contains 'mango': " + boolToStr(contains(allFruits, "mango")));
+    writeLine("Index of 'orange': " + intToStr(indexOf(allFruits, "orange")));
+    
+    reverse(allFruits);
+    writeLine("After reverse, first fruit: " + allFruits[0]);
+    writeLine("After reverse, last fruit: " + allFruits[4]);
+    return;
+}
+
+(var int ret = 0) main() {
+    writeLine("===================================");
+    writeLine("  Array Utility Functions Demo");
+    writeLine("===================================");
+    writeLine("");
+    
+    testNewArray();
+    writeLine("");
+    
+    testCopy();
+    writeLine("");
+    
+    testCopyRange();
+    writeLine("");
+    
+    testLength();
+    writeLine("");
+    
+    testIsEmpty();
+    writeLine("");
+    
+    testIndexOf();
+    writeLine("");
+    
+    testLastIndexOf();
+    writeLine("");
+    
+    testContains();
+    writeLine("");
+    
+    testFill();
+    writeLine("");
+    
+    testReverse();
+    writeLine("");
+    
+    testEquals();
+    writeLine("");
+    
+    testConcat();
+    writeLine("");
+    
+    testSlice();
+    writeLine("");
+    
+    testStringArrayOperations();
+    writeLine("");
+    
+    writeLine("===================================");
+    writeLine("  All tests completed!");
+    writeLine("===================================");
+    
+    return 0;
+}
