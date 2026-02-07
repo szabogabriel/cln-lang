@@ -1,0 +1,16 @@
+// Demonstration of the sys.exit function
+// This program exits with a specific exit code
+
+import std.console.writeLine;
+import std.sys.exit;
+
+(var int ret = 0) main() {
+    writeLine("This program will exit with code 42...");
+    
+    // Exit the program with code 42
+    // This terminates the program immediately
+    exit(42);
+    
+    // This line will never be reached
+    writeLine("This will not be printed");
+}

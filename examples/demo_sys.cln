@@ -1,0 +1,78 @@
+// Demonstration of the std.sys library 
+// Shows time functions, environment access, and system properties
+
+import std.console.writeLine;
+import std.sys.currentTimeMillis;
+import std.sys.nanoTime;
+import std.sys.getenv;
+import std.sys.getProperty;
+import std.sys.getPropertyWithDefault;
+import std.sys.freeMemory;
+import std.sys.totalMemory;
+import std.sys.maxMemory;
+
+(var int ret = 0) main() {
+    writeLine("=== System Library Demo ===");
+    writeLine("");
+    
+    // Time functions
+    writeLine("--- Time Functions ---");
+    var int timeMillis = currentTimeMillis();
+    writeLine("Current time (milliseconds): " + timeMillis);
+    
+    var int nanoStart = nanoTime();
+    var int nanoEnd = nanoTime();
+    var int elapsed = nanoEnd - nanoStart;
+    writeLine("Nano time measurement overhead: " + elapsed + " nanoseconds");
+    writeLine("");
+    
+    // System properties
+    writeLine("--- System Properties ---");
+    var string userName = getProperty("user.name");
+    writeLine("User name: " + userName);
+    
+    var string userHome = getProperty("user.home");
+    writeLine("User home: " + userHome);
+    
+    var string userDir = getProperty("user.dir");
+    writeLine("Current directory: " + userDir);
+    
+    var string osName = getProperty("os.name");
+    writeLine("Operating system: " + osName);
+    
+    var string osVersion = getProperty("os.version");
+    writeLine("OS version: " + osVersion);
+    
+    var string javaVersion = getProperty("java.version");
+    writeLine("Java version: " + javaVersion);
+    writeLine("");
+    
+    // Property with default value
+    writeLine("--- Property with Default ---");
+    var string customProp = getPropertyWithDefault("custom.property", "default_value");
+    writeLine("Custom property (should be default): " + customProp);
+    writeLine("");
+    
+    // Environment variables
+    writeLine("--- Environment Variables ---");
+    var string path = getenv("PATH");
+    writeLine("PATH is set");
+    
+    var string home = getenv("HOME");
+    writeLine("HOME: " + home);
+    writeLine("");
+    
+    // Memory information
+    writeLine("--- Memory Information ---");
+    var int freeMem = freeMemory();
+    var int totalMem = totalMemory();
+    var int maxMem = maxMemory();
+    
+    writeLine("Free memory: " + (freeMem / 1024 / 1024) + " MB");
+    writeLine("Total memory: " + (totalMem / 1024 / 1024) + " MB");
+    writeLine("Max memory: " + (maxMem / 1024 / 1024) + " MB");
+    writeLine("");
+    
+    writeLine("Demo completed successfully!");
+}
+

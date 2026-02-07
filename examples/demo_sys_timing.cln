@@ -1,0 +1,28 @@
+// Example: Using sys.currentTimeMillis to measure execution time
+
+import std.console.writeLine;
+import std.sys.currentTimeMillis;
+
+// Simple function to simulate some work
+doWork() {
+    var int sum = 0;
+    var int i = 0;
+    while (i < 1000000) {
+        sum = sum + i;
+        i++;
+    }
+}
+
+(var int ret = 0) main() {
+    writeLine("Starting benchmark...");
+    
+    var int startTime = currentTimeMillis();
+    
+    // Do some work
+    doWork();
+    
+    var int endTime = currentTimeMillis();
+    var int elapsed = endTime - startTime;
+    
+    writeLine("Elapsed time: " + elapsed + " milliseconds");
+}

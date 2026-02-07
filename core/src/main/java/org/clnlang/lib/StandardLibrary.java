@@ -7,6 +7,7 @@ import org.clnlang.lib.std.array.ArrayUtil;
 import org.clnlang.lib.std.console.Console;
 import org.clnlang.lib.std.math.DefaultMath;
 import org.clnlang.lib.std.string.StringUtil;
+import org.clnlang.lib.std.sys.Sys;
 import org.clnlang.runtime.execution.Registry;
 
 /**
@@ -42,9 +43,11 @@ public class StandardLibrary {
         // Math utils
         standardLibraryComponents.add(new DefaultMath());
         
+        // System functions
+        standardLibraryComponents.add(new Sys());
+        
         // Future standard library components can be added here:
         // standardLibraryComponents.add(new File());
-        // standardLibraryComponents.add(new Math());
         // etc.
     }
     
