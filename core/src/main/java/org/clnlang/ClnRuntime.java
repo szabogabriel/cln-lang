@@ -26,7 +26,7 @@ import org.clnlang.startup.StartupContext;
  */
 public final class ClnRuntime {
 
-    private ClnRuntime() {
+    public ClnRuntime() {
     }
 
     /**
