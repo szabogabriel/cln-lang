@@ -9,7 +9,7 @@ An interpreter for **cln**, a small embeddable scripting language with ANTLR4-ba
 - **Module system with import resolution**: Package-based organization with wildcard import support
 - **Domain data modeling**: Structs and unions enable clear representation of business domain entities
 - **Pattern matching**: Switch/case on union types allows elegant handling of variant data
-- **Simple, readable syntax**: Familiar C-like syntax with modern features like tuple destructuring and named returns
+- **Simple, readable syntax**: Familiar syntax with modern features like tuple destructuring and named returns
 
 ## Features
 
@@ -23,10 +23,9 @@ An interpreter for **cln**, a small embeddable scripting language with ANTLR4-ba
   - Array indexing: `arr[0]`
   - Array assignment: `arr[0] = 10`
   - Array length: `arr.length`
-  - String indexing: `str[0]` returns single character
   - Bounds checking at runtime
   - Arrays as function parameters and return values
-  - **Limitations**: Fixed-size only (no resizing), 1D arrays only, primitive types only (no structs/unions)
+  - **Limitations**: Fixed-size only (no resizing besides copy function), 1D arrays only, primitive type arrays only (no structs/unions)
 - **Runtime Execution**: Full interpreter with execution context and function invocation
 - **Module System**: 
   - Package declarations with hierarchical namespacing
@@ -87,7 +86,7 @@ An interpreter for **cln**, a small embeddable scripting language with ANTLR4-ba
 ### ❌ Not Yet Implemented
 
 - **Multi-dimensional Arrays**: Only 1D arrays currently supported
-- **Array Resizing**: Arrays are fixed-size after creation
+- **Array Resizing**: Arrays are fixed-size after creation. Resize only available via copy and creating a new array.
 - **Type Checking**: Static type checking not implemented (runtime only)
 - **Semantic Analysis**: No compile-time validation beyond basic type checks
 
@@ -134,7 +133,7 @@ core/
 
 ### Prerequisites
 
-- Java 21 or higher (LTS version)
+- Java 17 or higher (LTS version)
 - Maven 3.9 or higher (or use the included Maven Wrapper - no installation needed)
 
 ### Building the Project
@@ -475,7 +474,7 @@ int main() {
 
 **Key Features:**
 - **Precise arithmetic**: No floating-point rounding errors
-- **Mixed operations**: Can combine `int` and `dec` types in expressions
+- **Mixed operations**: Can combine `int` and `dec` types in expressions always resulting in a `dec` type
 - **All operators supported**: `+`, `-`, `*`, `/`, `<`, `<=`, `>`, `>=`, `==`, `!=`
 - **Java BigDecimal**: Uses `java.math.BigDecimal` with `DECIMAL128` precision for division
 - **Literal syntax**: Must include decimal point (e.g., `3.14`, `10.0`)
@@ -498,7 +497,7 @@ cln-lang has a fully functional package system with cross-package import support
 
 **Package-Based Organization:**
 - Files declare their package: `package com.example.myapp;`
-- Directory structure reflects package hierarchy: `com/example/myapp/Main.cln`
+- Directory structure (like in Java) reflects package hierarchy: `com/example/myapp/Main.cln`
 - Packages can span multiple files
 
 **Import Mechanisms:**
