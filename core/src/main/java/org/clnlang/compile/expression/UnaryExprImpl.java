@@ -50,4 +50,5 @@ public class UnaryExprImpl implements CompiledExpr {
                 throw new RuntimeException("Unknown unary operator: " + operator);
         }
     }
+
 }
