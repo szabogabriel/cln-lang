@@ -65,7 +65,7 @@ An interpreter for **cln**, a small embeddable scripting language with ANTLR4-ba
   - **Union declarations**: Type definitions for tagged unions
 - **Numeric Types**: 
   - **Integer**: 64-bit signed integers (using Java `long`, range: -2^63 to 2^63-1)
-  - **Decimal**: Arbitrary precision decimal numbers (using Java `BigDecimal` for precise decimal arithmetic)
+  - **Decimal**: Arbitrary precision decimal numbers with optional precision control (using Java `BigDecimal`, supports `dec`, `dec(precision)`, `dec(precision, roundingMode)`)
 - **Standard Library**: Console I/O, string utilities, array utilities, and math utilities (`std.console.*`, `std.str.*`, `std.array.*`, `std.math.*`)
 - **String Utilities**: `intToStr` function for integer-to-string conversion
 - **Array Utilities**: `std.array.*` (creation, copy, search, slice, concat)
@@ -248,7 +248,7 @@ int add(int a, int b) {
   - Exit codes from main function return value
 - **Variables**: `var int x = 10;` or type-inferred `var x = 10;`
 - **Data Types**:
-  - Primitives: `int` (64-bit), `bool`, `string`, `dec` (BigDecimal)
+  - Primitives: `int` (64-bit), `bool`, `string`, `dec` (BigDecimal with optional precision: `dec`, `dec(2)`, `dec(2, HALF_UP)`)
   - Arrays: `int[]`, `string[]`, `bool[]`, `dec[]` with literal syntax `[1, 2, 3]`
   - Structs: Declare, instantiate, access, and modify fields
   - Unions: Declare and pattern match with switch/case
@@ -478,6 +478,49 @@ int main() {
 - **All operators supported**: `+`, `-`, `*`, `/`, `<`, `<=`, `>`, `>=`, `==`, `!=`
 - **Java BigDecimal**: Uses `java.math.BigDecimal` with `DECIMAL128` precision for division
 - **Literal syntax**: Must include decimal point (e.g., `3.14`, `10.0`)
+- **Precision control**: Optional precision and rounding mode specification (e.g., `dec(2)`, `dec(2, HALF_UP)`)
+
+#### Decimal Type Variants
+
+The `dec` type supports three declaration variants:
+
+1. **Unlimited Precision** (default):
+```cln
+dec pi = 3.14159265;  // Full precision, no rounding
+```
+
+2. **Fixed Precision**:
+```cln
+dec(2) price = 19.999;  // Rounded to 2 decimal places: 20.00
+// Uses HALF_UP rounding by default
+```
+
+3. **Fixed Precision with Custom Rounding Mode**:
+```cln
+dec(2, FLOOR) value = 2.125;  // Rounded down to 2 decimals: 2.12
+```
+
+**Supported Rounding Modes:**
+- `HALF_UP` (default) - Round towards nearest neighbor, up if equidistant
+- `HALF_DOWN` - Round towards nearest neighbor, down if equidistant
+- `HALF_EVEN` - Round towards nearest neighbor, to even neighbor if equidistant
+- `UP` - Round away from zero
+- `DOWN` - Round towards zero
+- `CEILING` - Round towards positive infinity
+- `FLOOR` - Round towards negative infinity
+- `UNNECESSARY` - Assert that no rounding is necessary (throws exception if rounding needed)
+
+**Precision Inheritance:**
+
+When a variable is declared with precision constraints, all assignments to that variable automatically apply the constraints:
+
+```cln
+var dec(2) price = 10.555;  // Stored as: 10.56
+price = 15.999;             // Automatically rounded to: 16.00
+price = 7.123;              // Automatically rounded to: 7.12
+```
+
+This ensures consistent precision throughout calculations, making it ideal for financial applications where you need to maintain a specific number of decimal places.
 
 ### Known Limitations
 
