@@ -1,0 +1,33 @@
+import std.console.*;
+
+(var int exitCode = 0) main() {
+    // Test 1: Basic decimal without precision
+    dec pi = 3.14159265;
+    writeLine("Original pi: " + pi);
+    
+    // Test 2: Decimal with precision (should round to 2 decimal places)
+    dec(2) pi2 = pi;
+    writeLine("pi2 (2 decimals): " + pi2);
+    
+    // Test 3: Decimal with precision and HALF_UP rounding mode
+    dec(2, HALF_UP) pi3 = pi;
+    writeLine("pi3 (2 decimals, HALF_UP): " + pi3);
+    
+    // Test 4: Variable assignment should maintain constraints
+    var dec(2) price = 19.999;
+    writeLine("Price (2 decimals): " + price);
+    
+    price = 15.556;
+    writeLine("Updated price: " + price);
+    
+    // Test 5: Different rounding modes
+    dec testVal = 2.125;
+    dec(2, HALF_UP) roundedUp = testVal;
+    dec(2, HALF_DOWN) roundedDown = testVal;
+    
+    writeLine("testVal: " + testVal);
+    writeLine("HALF_UP: " + roundedUp);
+    writeLine("HALF_DOWN: " + roundedDown);
+    
+    return;
+}

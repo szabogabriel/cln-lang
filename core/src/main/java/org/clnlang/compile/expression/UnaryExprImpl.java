@@ -50,5 +50,34 @@ public class UnaryExprImpl implements CompiledExpr {
                 throw new RuntimeException("Unknown unary operator: " + operator);
         }
     }
+    
+    @Override
+    public long longValue(ExecutionContext context) throws Exception {
+        // Optimized path for integer negation (zero boxing!)
+        if ("-".equals(operator)) {
+            return -operand.longValue(context);
+        }
+        // Fallback to generic evaluate()
+        Object result = evaluate(context);
+        if (result instanceof Long) {
+            return (Long) result;
+        }
+        throw new IllegalStateException("Expected long result from unary operator: " + operator);
+    }
+    
+    @Override
+    public boolean boolValue(ExecutionContext context) throws Exception {
+        // Optimized path for boolean NOT (zero boxing!)
+        if ("!".equals(operator)) {
+            return !operand.boolValue(context);
+        }
+        // Fallback to generic evaluate()
+        Object result = evaluate(context);
+        if (result instanceof Boolean) {
+            return (Boolean) result;
+        }
+        throw new IllegalStateException("Expected boolean result from unary operator: " + operator);
+    }
+
 
 }

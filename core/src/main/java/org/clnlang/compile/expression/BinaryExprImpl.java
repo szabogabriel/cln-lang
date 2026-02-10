@@ -218,4 +218,94 @@ public class BinaryExprImpl implements CompiledExpr {
                 throw new UnsupportedOperationException("Operator not implemented: " + operator);
         }
     }
+    
+    @Override
+    public long longValue(ExecutionContext context) throws Exception {
+        // Optimized path for integer arithmetic (zero boxing!)
+        switch (operator) {
+            case PLUS:
+            case MINUS:
+            case STAR:
+            case SLASH:
+                // Assume both operands are integers - use typed methods (zero boxing!)
+                long leftVal = left.longValue(context);
+                long rightVal = right.longValue(context);
+                
+                switch (operator) {
+                    case PLUS:
+                        return leftVal + rightVal;
+                    case MINUS:
+                        return leftVal - rightVal;
+                    case STAR:
+                        return leftVal * rightVal;
+                    case SLASH:
+                        if (rightVal == 0) {
+                            throw new ArithmeticException("Division by zero");
+                        }
+                        return leftVal / rightVal;
+                }
+                break;
+            default:
+                // For non-arithmetic operators, fallback to generic evaluate()
+                Object result = evaluate(context);
+                if (result instanceof Long) {
+                    return (Long) result;
+                }
+                throw new IllegalStateException("Expected long result from operator: " + operator);
+        }
+        throw new IllegalStateException("Unreachable");
+    }
+    
+    @Override
+    public boolean boolValue(ExecutionContext context) throws Exception {
+        // Optimized path for comparisons and logical operations (zero boxing!)
+        switch (operator) {
+            case LT:
+            case LTE:
+            case GT:
+            case GTE:
+            case EQ:
+            case NEQ:
+                // Assume both operands are integers - use typed methods (zero boxing!)
+                long leftVal = left.longValue(context);
+                long rightVal = right.longValue(context);
+                
+                switch (operator) {
+                    case LT:
+                        return leftVal < rightVal;
+                    case LTE:
+                        return leftVal <= rightVal;
+                    case GT:
+                        return leftVal > rightVal;
+                    case GTE:
+                        return leftVal >= rightVal;
+                    case EQ:
+                        return leftVal == rightVal;
+                    case NEQ:
+                        return leftVal != rightVal;
+                }
+                break;
+            case AND:
+            case OR:
+                // Boolean logical operations
+                boolean leftBool = left.boolValue(context);
+                boolean rightBool = right.boolValue(context);
+                
+                switch (operator) {
+                    case AND:
+                        return leftBool && rightBool;
+                    case OR:
+                        return leftBool || rightBool;
+                }
+                break;
+            default:
+                // For non-boolean operators, fallback to generic evaluate()
+                Object result = evaluate(context);
+                if (result instanceof Boolean) {
+                    return (Boolean) result;
+                }
+                throw new IllegalStateException("Expected boolean result from operator: " + operator);
+        }
+        throw new IllegalStateException("Unreachable");
+    }
 }

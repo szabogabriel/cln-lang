@@ -85,4 +85,42 @@ public class IncrementExprImpl implements CompiledExpr {
             return longValue; // x++ returns old value
         }
     }
+    
+    @Override
+    public long longValue(ExecutionContext context) throws Exception {
+        // Optimized path for integer increment/decrement using index-based access (zero boxing!)
+        if (!(operand instanceof IdentifierExprImpl)) {
+            throw new RuntimeException("Increment/decrement operators can only be applied to variables");
+        }
+        
+        IdentifierExprImpl id = (IdentifierExprImpl) operand;
+        
+        // Try index-based access if available (zero boxing!)
+        if (id.getIndex() >= 0 && "int".equals(id.getType())) {
+            int index = id.getIndex();
+            long currentValue = context.getLocalContext().getLongByIndex(index);
+            
+            long newValue;
+            if ("++".equals(operator)) {
+                newValue = currentValue + 1;
+            } else if ("--".equals(operator)) {
+                newValue = currentValue - 1;
+            } else {
+                throw new RuntimeException("Unknown increment/decrement operator: " + operator);
+            }
+            
+            // Update the variable using index (zero boxing!)
+            context.getLocalContext().updateLongByIndex(index, newValue);
+            
+            // Return appropriate value based on prefix/postfix
+            if (isPrefix) {
+                return newValue; // ++x returns new value
+            } else {
+                return currentValue; // x++ returns old value
+            }
+        }
+        
+        // Fallback to name-based access
+        return (long) evaluate(context);
+    }
 }

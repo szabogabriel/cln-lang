@@ -45,7 +45,11 @@ primitiveType
   : INT_T
   | BOOL_T
   | STRING_T
-  | DEC_T
+  | decimalType
+  ;
+
+decimalType
+  : DEC_T (LPAREN INT_LIT (COMMA ID)? RPAREN)?
   ;
 
 // ---- Structs and Unions ----

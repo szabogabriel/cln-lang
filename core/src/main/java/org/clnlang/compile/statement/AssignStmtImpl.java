@@ -29,6 +29,7 @@ public class AssignStmtImpl implements CompiledAction {
 
     @Override
     public void execute(ExecutionContext context) throws Exception {
+        // Evaluate the value once (used by all assignment types)
         Object val = value.evaluate(context);
         
         // Handle different types of lvalues
@@ -38,7 +39,43 @@ public class AssignStmtImpl implements CompiledAction {
                 (org.clnlang.compile.expression.IdentifierExprImpl) lvalue;
             String varName = id.getName();
             
-            // Try to update the variable in the local context first
+            // Try index-based update first (zero boxing for primitives!)
+            if (id.getIndex() >= 0 && id.getType() != null) {
+                int index = id.getIndex();
+                boolean updated = false;
+                
+                switch (id.getType()) {
+                    case "int":
+                        long longValue = value.longValue(context);
+                        updated = context.getLocalContext().updateLongByIndex(index, longValue);
+                        break;
+                    case "bool":
+                        boolean boolValue = value.boolValue(context);
+                        updated = context.getLocalContext().updateBoolByIndex(index, boolValue);
+                        break;
+                    case "dec":
+                    case "decimal":  // Backward compatibility
+                        java.math.BigDecimal decimalValue = value.decimalValue(context);
+                        updated = context.getLocalContext().updateDecimalByIndex(index, decimalValue);
+                        break;
+                    case "string":
+                        String stringValue = value.stringValue(context);
+                        updated = context.getLocalContext().updateStringByIndex(index, stringValue);
+                        break;
+                    default:
+                        // Object type
+                        Object objectValue = value.evaluate(context);
+                        updated = context.getLocalContext().updateObjectByIndex(index, objectValue);
+                        break;
+                }
+                
+                if (updated) {
+                    return; // Success!
+                }
+                // If index-based update failed, fall through to name-based update
+            }
+            
+            // Fallback to name-based update (backward compatibility)
             boolean updated = context.getLocalContext().updateVariable(varName, val);
             
             if (!updated) {

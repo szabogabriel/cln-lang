@@ -6,9 +6,11 @@ import org.clnlang.compile.CompiledExpr;
 import org.clnlang.compile.declaration.*;
 import org.clnlang.compile.expression.*;
 import org.clnlang.compile.statement.*;
+import org.clnlang.compile.types.DecimalTypeInfo;
 import org.clnlang.parser.clnBaseVisitor;
 import org.clnlang.parser.clnParser;
 
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -20,8 +22,148 @@ import java.util.Set;
  */
 public class CompilerVisitor extends clnBaseVisitor<Object> {
     
+    /**
+     * Tracks variable names, types, and indices during compilation for index-based runtime access.
+     */
+    private static class VariableScope {
+        private final VariableScope parent;
+        
+        // Separate indices for each type (matching LocalContext structure)
+        private final java.util.Map<String, Integer> longIndices = new java.util.HashMap<>();
+        private final java.util.Map<String, Integer> boolIndices = new java.util.HashMap<>();
+        private final java.util.Map<String, Integer> decimalIndices = new java.util.HashMap<>();
+        private final java.util.Map<String, Integer> stringIndices = new java.util.HashMap<>();
+        private final java.util.Map<String, Integer> objectIndices = new java.util.HashMap<>();
+        
+        // Track types for all variables
+        private final java.util.Map<String, String> variableTypes = new java.util.HashMap<>();
+        
+        // Track decimal type info for decimal variables
+        private final java.util.Map<String, DecimalTypeInfo> decimalTypeInfos = new java.util.HashMap<>();
+        
+        private int nextLongIndex = 0;
+        private int nextBoolIndex = 0;
+        private int nextDecimalIndex = 0;
+        private int nextStringIndex = 0;
+        private int nextObjectIndex = 0;
+        
+        public VariableScope() {
+            this(null);
+        }
+        
+        public VariableScope(VariableScope parent) {
+            this.parent = parent;
+        }
+        
+        /**
+         * Register a variable and assign it an index based on its type.
+         */
+        public void registerVariable(String name, String type, DecimalTypeInfo decimalTypeInfo) {
+            variableTypes.put(name, type);
+            
+            String baseType = type.replaceAll("\\[\\]", ""); // Strip array brackets
+            
+            switch (baseType) {
+                case "int":
+                    longIndices.put(name, nextLongIndex++);
+                    break;
+                case "bool":
+                    boolIndices.put(name, nextBoolIndex++);
+                    break;
+                case "dec":
+                    decimalIndices.put(name, nextDecimalIndex++);
+                    decimalTypeInfos.put(name, decimalTypeInfo);
+                    break;
+                case "string":
+                    stringIndices.put(name, nextStringIndex++);
+                    break;
+                default:
+                    // Structs, unions, arrays of non-primitives
+                    objectIndices.put(name, nextObjectIndex++);
+                    break;
+            }
+        }
+        
+        /**
+         * Backward compatibility method
+         */
+        public void registerVariable(String name, String type) {
+            registerVariable(name, type, DecimalTypeInfo.DEFAULT);
+        }
+        
+        /**
+         * Get the index and type for a variable.
+         * Returns null if not found in this scope or parent scopes.
+         */
+        public VarInfo getVariableInfo(String name) {
+            // Check current scope
+            if (variableTypes.containsKey(name)) {
+                String type = variableTypes.get(name);
+                String baseType = type.replaceAll("\\[\\]", "");
+                
+                Integer index = null;
+                DecimalTypeInfo decimalTypeInfo = DecimalTypeInfo.DEFAULT;
+                
+                switch (baseType) {
+                    case "int":
+                        index = longIndices.get(name);
+                        break;
+                    case "bool":
+                        index = boolIndices.get(name);
+                        break;
+                    case "dec":
+                        index = decimalIndices.get(name);
+                        decimalTypeInfo = decimalTypeInfos.getOrDefault(name, DecimalTypeInfo.DEFAULT);
+                        break;
+                    case "string":
+                        index = stringIndices.get(name);
+                        break;
+                    default:
+                        index = objectIndices.get(name);
+                        break;
+                }
+                
+                if (index != null) {
+                    return new VarInfo(name, type, index, decimalTypeInfo);
+                }
+            }
+            
+            // Check parent scope
+            if (parent != null) {
+                return parent.getVariableInfo(name);
+            }
+            
+            return null;
+        }
+    }
+    
+    /**
+     * Variable information: name, type, index, and decimal type info.
+     */
+    private static class VarInfo {
+        final String name;
+        final String type;
+        final int index;
+        final DecimalTypeInfo decimalTypeInfo;
+        
+        VarInfo(String name, String type, int index, DecimalTypeInfo decimalTypeInfo) {
+            this.name = name;
+            this.type = type;
+            this.index = index;
+            this.decimalTypeInfo = decimalTypeInfo;
+        }
+        
+        // Backward compatibility constructor
+        VarInfo(String name, String type, int index) {
+            this(name, type, index, DecimalTypeInfo.DEFAULT);
+        }
+    }
+    
     // Track the current function being compiled to access return variables
     private FunctionDeclImpl currentFunction = null;
+    
+    // Track the current variable scope for index assignment
+    private VariableScope currentScope = null;
     
     // Track defined types for validation
     private Set<String> definedTypes = new HashSet<>();
@@ -129,56 +271,63 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
         String name = ctx.ID().getText();
         FunctionDeclImpl func = new FunctionDeclImpl(name, isExposed);
         
-        // Compile return type
-        if (ctx.returnType() != null) {
-            clnParser.ReturnTypeContext retType = ctx.returnType();
-            
-            if (retType.type() != null) {
-                // Simple return type: int main()
-                String simpleType = retType.type().getText();
-                validateType(simpleType, retType.type().getStart().getLine());
-                func.setSimpleReturnType(simpleType);
-            } else if (retType.namedReturnSig() != null) {
-                // Named return signature: (var int x = 0) main()
-                for (clnParser.ReturnVarContext retVar : retType.namedReturnSig().returnVar()) {
-                    String type = retVar.type().getText();
-                    String varName = retVar.ID().getText();
-                    
-                    // Validate return type
-                    validateType(type, retVar.type().getStart().getLine());
-                    
-                    func.addReturnVar(type, varName);
-                }
-            }
-        }
-        
-        // Compile parameters
-        if (ctx.paramList() != null) {
-            for (clnParser.ParamContext param : ctx.paramList().param()) {
-                String type = param.type().getText();
-                String paramName = param.ID().getText();
-                
-                // Validate parameter type
-                validateType(type, param.type().getStart().getLine());
-                
-                func.addParameter(type, paramName);
-            }
-        }
-        
-        // Set current function context for compiling return statements
+        // Set current function context and create new variable scope
         FunctionDeclImpl previousFunction = this.currentFunction;
+        VariableScope previousScope = this.currentScope;
         this.currentFunction = func;
+        this.currentScope = new VariableScope(); // New scope for function
         
         try {
+            // Compile return type
+            if (ctx.returnType() != null) {
+                clnParser.ReturnTypeContext retType = ctx.returnType();
+                
+                if (retType.type() != null) {
+                    // Simple return type: int main()
+                    String simpleType = retType.type().getText();
+                    validateType(simpleType, retType.type().getStart().getLine());
+                    func.setSimpleReturnType(simpleType);
+                } else if (retType.namedReturnSig() != null) {
+                    // Named return signature: (var int x = 0) main()
+                    for (clnParser.ReturnVarContext retVar : retType.namedReturnSig().returnVar()) {
+                        String type = retVar.type().getText();
+                        String varName = retVar.ID().getText();
+                        
+                        // Validate return type
+                        validateType(type, retVar.type().getStart().getLine());
+                        
+                        func.addReturnVar(type, varName);
+                        // Register return variable in scope
+                        currentScope.registerVariable(varName, type);
+                    }
+                }
+            }
+            
+            // Compile parameters
+            if (ctx.paramList() != null) {
+                for (clnParser.ParamContext param : ctx.paramList().param()) {
+                    String type = param.type().getText();
+                    String paramName = param.ID().getText();
+                    
+                    // Validate parameter type
+                    validateType(type, param.type().getStart().getLine());
+                    
+                    func.addParameter(type, paramName);
+                    // Register parameter in scope
+                    currentScope.registerVariable(paramName, type);
+                }
+            }
+            
             // Compile body
             BlockImpl body = compileBlock(ctx.block());
             func.setBlock(body);
+            
+            return func;
         } finally {
-            // Restore previous function context
+            // Restore previous function context and scope
             this.currentFunction = previousFunction;
+            this.currentScope = previousScope;
         }
-        
-        return func;
     }
     
     /**
@@ -276,12 +425,28 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
         String type = ctx.type().getText();
         String name = ctx.ID().getText();
         
+        // Normalize decimal type to "dec" (strip parameters)
+        String normalizedType = type.replaceAll("^dec\\(.*\\)", "dec");
+        
         // Validate type
-        validateType(type, ctx.type().getStart().getLine());
+        validateType(normalizedType, ctx.type().getStart().getLine());
+        
+        // Extract decimal type info if it's a decimal type
+        DecimalTypeInfo decimalTypeInfo = extractDecimalTypeInfo(ctx.type());
+        
+        // Register variable in current scope and get the assigned index
+        int index = -1;
+        if (currentScope != null) {
+            currentScope.registerVariable(name, normalizedType, decimalTypeInfo);
+            VarInfo varInfo = currentScope.getVariableInfo(name);
+            if (varInfo != null) {
+                index = varInfo.index;
+            }
+        }
         
         CompiledExpr initializer = compileExpression(ctx.expr());
         
-        return new VarDeclStmtImpl(isVar, type, name, initializer);
+        return new VarDeclStmtImpl(isVar, normalizedType, name, initializer, index, decimalTypeInfo);
     }
     
     /**
@@ -298,7 +463,21 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
      * Compile lvalue (left-hand side of assignment)
      */
     private CompiledExpr compileLvalue(clnParser.LvalueContext ctx) {
-        CompiledExpr base = new IdentifierExprImpl(ctx.ID().getText());
+        String baseName = ctx.ID().getText();
+        
+        // Try to resolve base identifier with index
+        CompiledExpr base;
+        if (currentScope != null) {
+            VarInfo varInfo = currentScope.getVariableInfo(baseName);
+            if (varInfo != null) {
+                base = new IdentifierExprImpl(baseName, varInfo.type, varInfo.index);
+            } else {
+                // Not in local scope, use name-based lookup
+                base = new IdentifierExprImpl(baseName);
+            }
+        } else {
+            base = new IdentifierExprImpl(baseName);
+        }
         
         for (clnParser.LvalueSuffixContext suffix : ctx.lvalueSuffix()) {
             if (suffix.DOT() != null) {
@@ -328,6 +507,11 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
             validateType(type, bind.type().getStart().getLine());
             
             bindings.add(new TupleAssignStmtImpl.TupleBind(isVar, type, name));
+            
+            // Register new variables in scope (if VAR is present)
+            if (isVar && currentScope != null) {
+                currentScope.registerVariable(name, type);
+            }
         }
         
         CompiledExpr value = compileExpression(ctx.expr());
@@ -612,7 +796,16 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
         } else if (ctx.structLiteral() != null) {
             return compileStructLiteral(ctx.structLiteral());
         } else if (ctx.ID() != null) {
-            return new IdentifierExprImpl(ctx.ID().getText());
+            String idName = ctx.ID().getText();
+            // Try to resolve with index from current scope
+            if (currentScope != null) {
+                VarInfo varInfo = currentScope.getVariableInfo(idName);
+                if (varInfo != null) {
+                    return new IdentifierExprImpl(idName, varInfo.type, varInfo.index);
+                }
+            }
+            // Not in local scope or no scope, use name-based lookup
+            return new IdentifierExprImpl(idName);
         } else if (ctx.expr() != null) {
             // Parenthesized expression
             return compileExpression(ctx.expr());
@@ -641,7 +834,18 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
         // Struct literals should have at least one field or be a qualified name.
         if (fields.isEmpty() && !typeName.contains(".")) {
             // This is actually a function call with no arguments, not a struct literal
-            CompiledExpr functionExpr = new IdentifierExprImpl(typeName);
+            // Try to resolve with index from current scope (though functions are usually global)
+            CompiledExpr functionExpr;
+            if (currentScope != null) {
+                VarInfo varInfo = currentScope.getVariableInfo(typeName);
+                if (varInfo != null) {
+                    functionExpr = new IdentifierExprImpl(typeName, varInfo.type, varInfo.index);
+                } else {
+                    functionExpr = new IdentifierExprImpl(typeName);
+                }
+            } else {
+                functionExpr = new IdentifierExprImpl(typeName);
+            }
             return new CallExprImpl(functionExpr, new ArrayList<>());
         }
         
@@ -685,5 +889,45 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
                 "Type must be one of the primitive types (int, bool, string, dec) or a declared struct/union."
             );
         }
+    }
+    
+    /**
+     * Extract DecimalTypeInfo from a type context
+     */
+    private DecimalTypeInfo extractDecimalTypeInfo(clnParser.TypeContext typeCtx) {
+        if (typeCtx == null || typeCtx.baseType() == null || typeCtx.baseType().primitiveType() == null) {
+            return DecimalTypeInfo.DEFAULT;
+        }
+        
+        clnParser.PrimitiveTypeContext primitiveType = typeCtx.baseType().primitiveType();
+        if (primitiveType.decimalType() == null) {
+            return DecimalTypeInfo.DEFAULT;
+        }
+        
+        clnParser.DecimalTypeContext decimalType = primitiveType.decimalType();
+        
+        // Check if it has parameters (precision)
+        if (decimalType.INT_LIT() == null) {
+            return DecimalTypeInfo.DEFAULT;
+        }
+        
+        int precision = Integer.parseInt(decimalType.INT_LIT().getText());
+        
+        // Check if it has rounding mode
+        if (decimalType.ID() != null) {
+            String roundingModeStr = decimalType.ID().getText();
+            try {
+                RoundingMode roundingMode = RoundingMode.valueOf(roundingModeStr);
+                return new DecimalTypeInfo(precision, roundingMode);
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException(
+                    "line " + decimalType.ID().getSymbol().getLine() + 
+                    ": Invalid rounding mode '" + roundingModeStr + "'. " +
+                    "Valid values are: UP, DOWN, CEILING, FLOOR, HALF_UP, HALF_DOWN, HALF_EVEN, UNNECESSARY"
+                );
+            }
+        }
+        
+        return new DecimalTypeInfo(precision);
     }
 }
