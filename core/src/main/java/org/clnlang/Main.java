@@ -1,11 +1,16 @@
 package org.clnlang;
 
+import java.io.File;
+
 import org.clnlang.exception.ClnException;
 
 public class Main {
     public static void main(String[] args) {
         try {
-            int exitCode = run(args);
+            //int exitCode = run(args);
+            File f = new File(".");
+            System.out.println(f.getAbsolutePath());
+            int exitCode = run(new String[] {"examples/hello_world.cln"});
             System.exit(exitCode);
         } catch (ClnException e) {
             System.err.println(e.getMessage());
