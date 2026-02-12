@@ -64,7 +64,7 @@ public class TypecheckCompilerVisitor implements ASTVisitor {
 
     @Override
     public void visit(PackageDeclNode node) {
-        this.packageName = node.getPackageName()
+        this.packageName = node.getPackageName();
     }
 
     @Override

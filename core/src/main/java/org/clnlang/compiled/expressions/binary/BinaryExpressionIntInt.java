@@ -58,13 +58,13 @@ public class BinaryExpressionIntInt implements Instruction {
     }
 
     @Override
-    public int result() {
-        return target;
+    public int[] result() {
+        return new int[]{target};
     }
 
     @Override
-    public Types getResultType() {
-        return Types.INT;
+    public Types[] getResultType() {
+        return new Types[]{Types.INT};
     }
     
 }

@@ -7,8 +7,8 @@ public interface Instruction {
 
     void execute(ExecutionContext context);
 
-    int result();
+    int[] result();
 
-    Types getResultType();
+    Types[] getResultType();
     
 }

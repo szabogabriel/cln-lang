@@ -13,13 +13,13 @@ public class Assign implements Instruction {
     }
 
     @Override
-    public int result() {
+    public int[] result() {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'result'");
     }
 
     @Override
-    public Types getResultType() {
+    public Types[] getResultType() {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'getResultType'");
     }

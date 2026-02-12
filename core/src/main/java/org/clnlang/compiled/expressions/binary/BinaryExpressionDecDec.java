@@ -60,13 +60,13 @@ public class BinaryExpressionDecDec implements Instruction {
     }
 
     @Override
-    public int result() {
-        return target;
+    public int[] result() {
+        return new int[]{target};
     }
 
     @Override
-    public Types getResultType() {
-        return Types.DEC;
+    public Types[] getResultType() {
+        return new Types[]{Types.DEC};
     }
     
 }
