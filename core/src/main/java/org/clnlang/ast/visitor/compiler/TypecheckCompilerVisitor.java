@@ -35,6 +35,8 @@ import org.clnlang.ast.statement.TupleAssignStmt;
 import org.clnlang.ast.statement.VarDeclStmt;
 import org.clnlang.ast.statement.WhileStmt;
 import org.clnlang.ast.visitor.ASTVisitor;
+import org.clnlang.compiled.CFunction;
+import org.clnlang.compiled.Instruction;
 import org.clnlang.compiled.types.Types;
 
 public class TypecheckCompilerVisitor implements ASTVisitor {
@@ -49,15 +51,35 @@ public class TypecheckCompilerVisitor implements ASTVisitor {
     private List<String> unionNames = new ArrayList<>();
     private List<String> functionNames = new ArrayList<>();
     private List<String> globalVariableNames = new ArrayList<>();
+    
+    // Compiled functions
+    private List<CFunction> compiledFunctions = new ArrayList<>();
+    
+    // Current function being compiled
+    private List<Instruction> currentFunctionInstructions = new ArrayList<>();
 
+    // Global variable tracking
+    private Map<String, Variable> globalVariableTypes = new HashMap<>();
+    private Map<String, Integer> globalVariableAddresses = new HashMap<>();
+    private int globalVarAddrCounterInt = 0;
+    private int globalVarAddrCounterDec = 0;
+    private int globalVarAddrCounterBool = 0;
+    private int globalVarAddrCounterString = 0;
+    private int globalVarAddrCounterStruct = 0;
+    private int globalVarAddrCounterUnion = 0;
+
+    // Local variable tracking (reset per function)
     private Map<String, Variable> localVariableTypes = new HashMap<>();
     private Map<String, Integer> localVariableAddresses = new HashMap<>();
-    int localVarAddrCounterInt = 0;
-    int localVarAddrCounterDec = 0;
-    int localVarAddrCounterBool = 0;
-    int localVarAddrCounterString = 0;
-    int localVarAddrCounterStruct = 0;
-    int localVarAddrCounterUnion = 0;
+    private int localVarAddrCounterInt = 0;
+    private int localVarAddrCounterDec = 0;
+    private int localVarAddrCounterBool = 0;
+    private int localVarAddrCounterString = 0;
+    private int localVarAddrCounterStruct = 0;
+    private int localVarAddrCounterUnion = 0;
+
+    // Track if we're currently in a function (for scoping)
+    private boolean inFunction = false;
 
     @Override
     public void visit(ProgramNode node) {
@@ -105,31 +127,83 @@ public class TypecheckCompilerVisitor implements ASTVisitor {
         // TODO: Process union members
     }
 
+    /**
+     * Reset local variable context when entering a new function.
+     */
+    private void resetLocalContext() {
+        localVariableTypes.clear();
+        localVariableAddresses.clear();
+        localVarAddrCounterInt = 0;
+        localVarAddrCounterDec = 0;
+        localVarAddrCounterBool = 0;
+        localVarAddrCounterString = 0;
+        localVarAddrCounterStruct = 0;
+        localVarAddrCounterUnion = 0;
+        currentFunctionInstructions.clear();
+    }
+
     @Override
     public void visit(FunctionDeclNode node) {
         functionNames.add(node.getName());
+
+        // Reset local context for this function
+        resetLocalContext();
+        inFunction = true;
 
         List<FunctionDeclNode.Parameter> parameters = node.getParameters();
         List<ReturnVar> returnVars = node.getReturnVars();
 
         int[] mappedParameters = new int[parameters.size()];
         Types[] mappedParameterTypes = new Types[parameters.size()];
+        
+        // Register parameters as local variables
         for (int i = 0; i < parameters.size(); i++) {
             FunctionDeclNode.Parameter param = parameters.get(i);
             String paramName = param.getName();
             String paramType = param.getType();
             Types type = Types.fromString(paramType);
             mappedParameterTypes[i] = type;
-
+            
+            // Register parameter in local context and get its address
+            registerVariable(paramName, paramType, true);
+            mappedParameters[i] = localVariableAddresses.get(paramName);
         }
         
-        // TODO: Process parameters
-        // TODO: Process return types
+        // Process return types
+        int[] mappedReturns = new int[returnVars.size()];
+        Types[] mappedReturnTypes = new Types[returnVars.size()];
         
-        // Visit function body
+        for (int i = 0; i < returnVars.size(); i++) {
+            ReturnVar retVar = returnVars.get(i);
+            String retName = retVar.getName();
+            String retType = retVar.getType();
+            Types type = Types.fromString(retType);
+            mappedReturnTypes[i] = type;
+            
+            // Register return variable in local context and get its address
+            registerVariable(retName, retType, true);
+            mappedReturns[i] = localVariableAddresses.get(retName);
+        }
+        
+        // Visit function body to compile instructions
         if (node.getBlock() != null) {
             node.getBlock().accept(this);
         }
+        
+        // Create CFunction instance with compiled data
+        Instruction[] instructions = currentFunctionInstructions.toArray(new Instruction[0]);
+        CFunction cFunction = new CFunction(
+            node.getName(),
+            mappedParameters,
+            mappedParameterTypes,
+            mappedReturns,
+            mappedReturnTypes,
+            instructions
+        );
+        
+        compiledFunctions.add(cFunction);
+        
+        inFunction = false;
     }
 
     @Override
@@ -196,10 +270,105 @@ public class TypecheckCompilerVisitor implements ASTVisitor {
         // TODO: Process tuple assignment
     }
 
+    /**
+     * Register a variable (global or local) with its type and address.
+     */
+    private void registerVariable(String name, String type, boolean isLocal) {
+        Variable varType = mapTypeToVariable(type);
+        
+        if (isLocal) {
+            localVariableTypes.put(name, varType);
+            int address = getNextLocalAddress(varType);
+            localVariableAddresses.put(name, address);
+        } else {
+            globalVariableTypes.put(name, varType);
+            globalVariableNames.add(name);
+            int address = getNextGlobalAddress(varType);
+            globalVariableAddresses.put(name, address);
+        }
+    }
+    
+    /**
+     * Map type string to Variable enum.
+     */
+    private Variable mapTypeToVariable(String type) {
+        Types parsedType = Types.fromString(type);
+        switch (parsedType) {
+            case INT:
+                return Variable.INT;
+            case DEC:
+                return Variable.DEC;
+            case BOOL:
+                return Variable.BOOL;
+            case STRING:
+                return Variable.STRING;
+            case STRUCT:
+                return Variable.STRUCT;
+            case UNION:
+                return Variable.UNION;
+            default:
+                throw new IllegalArgumentException("Unknown type: " + type);
+        }
+    }
+    
+    /**
+     * Get next local variable address for the given type.
+     */
+    private int getNextLocalAddress(Variable varType) {
+        switch (varType) {
+            case INT:
+                return localVarAddrCounterInt++;
+            case DEC:
+                return localVarAddrCounterDec++;
+            case BOOL:
+                return localVarAddrCounterBool++;
+            case STRING:
+                return localVarAddrCounterString++;
+            case STRUCT:
+                return localVarAddrCounterStruct++;
+            case UNION:
+                return localVarAddrCounterUnion++;
+            default:
+                throw new IllegalArgumentException("Unknown variable type: " + varType);
+        }
+    }
+    
+    /**
+     * Get next global variable address for the given type.
+     */
+    private int getNextGlobalAddress(Variable varType) {
+        switch (varType) {
+            case INT:
+                return globalVarAddrCounterInt++;
+            case DEC:
+                return globalVarAddrCounterDec++;
+            case BOOL:
+                return globalVarAddrCounterBool++;
+            case STRING:
+                return globalVarAddrCounterString++;
+            case STRUCT:
+                return globalVarAddrCounterStruct++;
+            case UNION:
+                return globalVarAddrCounterUnion++;
+            default:
+                throw new IllegalArgumentException("Unknown variable type: " + varType);
+        }
+    }
+
     @Override
     public void visit(VarDeclStmt node) {
-        // TODO: Process variable declaration
-        System.out.println("Processing variable declaration: " + node.getName() + " of type " + node.getType());
+        String name = node.getName();
+        String type = node.getType();
+        
+        System.out.println("Processing variable declaration: " + name + " of type " + type);
+        
+        // Register variable in the appropriate scope
+        registerVariable(name, type, inFunction);
+        
+        // TODO: Visit initializer expression if present
+        // if (node.getInitializer() != null) {
+        //     node.getInitializer().accept(this);
+        // }
     }
 
     @Override
@@ -258,6 +427,43 @@ public class TypecheckCompilerVisitor implements ASTVisitor {
     @Override
     public void visit(UnaryExpr node) {
         // TODO: Process unary expression
+    }
+    
+    // ==================== Getters for compiled results ====================
+    
+    /**
+     * Get the list of compiled functions.
+     */
+    public List<CFunction> getCompiledFunctions() {
+        return compiledFunctions;
+    }
+    
+    /**
+     * Get the package name.
+     */
+    public String getPackageName() {
+        return packageName;
+    }
+    
+    /**
+     * Get the imported packages.
+     */
+    public Set<String> getImports() {
+        return imports;
+    }
+    
+    /**
+     * Get global variable addresses.
+     */
+    public Map<String, Integer> getGlobalVariableAddresses() {
+        return globalVariableAddresses;
+    }
+    
+    /**
+     * Get global variable types.
+     */
+    public Map<String, Variable> getGlobalVariableTypes() {
+        return globalVariableTypes;
     }
     
 }
