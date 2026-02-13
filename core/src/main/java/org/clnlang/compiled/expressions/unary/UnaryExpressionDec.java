@@ -11,19 +11,25 @@ public class UnaryExpressionDec implements Instruction {
 
     private int operand;
     private int target;
+
+    private boolean operand_is_global;
+    private boolean target_is_global;
+
     private UnaryOperators operator;
 
-    public UnaryExpressionDec(int operand, int target, UnaryOperators operator) {
+    public UnaryExpressionDec(int operand, int target, boolean operand_is_global, boolean target_is_global, UnaryOperators operator) {
         this.operand = operand;
         this.target = target;
+        this.operand_is_global = operand_is_global;
+        this.target_is_global = target_is_global;
         this.operator = operator;
     }
 
     @Override
     public void execute(ExecutionContext context) {
-        LocalContext localContext = context.getCurrentLocalContext();
-        
-        BigDecimal operandValue = localContext.getBigDecimal(operand);
+        BigDecimal operandValue = operand_is_global ?
+            context.getGlobalContext().getBigDecimal(operand) :
+            context.getCurrentLocalContext().getBigDecimal(operand);
         BigDecimal result;
 
         switch (operator) {
@@ -32,17 +38,29 @@ public class UnaryExpressionDec implements Instruction {
                 break;
             case PLUSPLUS:
                 result = operandValue.add(BigDecimal.ONE);
-                localContext.setBigDecimal(operand, result);  // Modify operand in place
+                if (operand_is_global) {
+                    context.getGlobalContext().setBigDecimal(operand, result);
+                } else {
+                    context.getCurrentLocalContext().setBigDecimal(operand, result);
+                }
                 break;
             case MINUSMINUS:
                 result = operandValue.subtract(BigDecimal.ONE);
-                localContext.setBigDecimal(operand, result);  // Modify operand in place
+                if (operand_is_global) {
+                    context.getGlobalContext().setBigDecimal(operand, result);
+                } else {
+                    context.getCurrentLocalContext().setBigDecimal(operand, result);
+                }
                 break;
             default:
                 throw new IllegalStateException("Unexpected operator for decimal: " + operator);
         }
 
-        localContext.setBigDecimal(target, result);
+        if (target_is_global) {
+            context.getGlobalContext().setBigDecimal(target, result);
+        } else {
+            context.getCurrentLocalContext().setBigDecimal(target, result);
+        }
     }
 
     @Override

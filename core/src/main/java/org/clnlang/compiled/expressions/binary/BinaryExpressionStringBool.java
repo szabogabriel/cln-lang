@@ -11,21 +11,30 @@ public class BinaryExpressionStringBool implements Instruction {
     private int right_bool;
     private int target;
 
+    private boolean left_is_global;
+    private boolean right_is_global;
+    private boolean target_is_global;
+
     private BinaryOperators operator;
 
-    public BinaryExpressionStringBool(int left_string, int right_bool, int target, BinaryOperators operator) {
+    public BinaryExpressionStringBool(int left_string, int right_bool, int target, boolean left_is_global, boolean right_is_global, boolean target_is_global, BinaryOperators operator) {
         this.left_string = left_string;
         this.right_bool = right_bool;
         this.target = target;
+        this.left_is_global = left_is_global;
+        this.right_is_global = right_is_global;
+        this.target_is_global = target_is_global;
         this.operator = operator;
     }
 
     @Override
     public void execute(ExecutionContext context) {
-        LocalContext localContext = context.getCurrentLocalContext();
-        
-        String leftValue = localContext.getString(left_string);
-        boolean rightValue = localContext.getBoolean(right_bool);
+        String leftValue = left_is_global ?
+            context.getGlobalContext().getString(left_string) :
+            context.getCurrentLocalContext().getString(left_string);
+        boolean rightValue = right_is_global ?
+            context.getGlobalContext().getBoolean(right_bool) :
+            context.getCurrentLocalContext().getBoolean(right_bool);
         String result;
 
         switch (operator) {
@@ -36,7 +45,11 @@ public class BinaryExpressionStringBool implements Instruction {
                 throw new IllegalStateException("Unexpected operator for string-boolean: " + operator);
         }
 
-        localContext.setString(target, result);
+        if (target_is_global) {
+            context.getGlobalContext().setString(target, result);
+        } else {
+            context.getCurrentLocalContext().setString(target, result);
+        }
     }
 
     @Override

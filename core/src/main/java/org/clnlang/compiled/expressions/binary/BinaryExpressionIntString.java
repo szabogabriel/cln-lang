@@ -11,21 +11,30 @@ public class BinaryExpressionIntString implements Instruction {
     private int right_string;
     private int target;
 
+    private boolean left_is_global;
+    private boolean right_is_global;
+    private boolean target_is_global;
+
     private BinaryOperators operator;
 
-    public BinaryExpressionIntString(int left_int, int right_string, int target, BinaryOperators operator) {
+    public BinaryExpressionIntString(int left_int, int right_string, int target, boolean left_is_global, boolean right_is_global, boolean target_is_global, BinaryOperators operator) {
         this.left_int = left_int;
         this.right_string = right_string;
         this.target = target;
+        this.left_is_global = left_is_global;
+        this.right_is_global = right_is_global;
+        this.target_is_global = target_is_global;
         this.operator = operator;
     }
 
     @Override
     public void execute(ExecutionContext context) {
-        LocalContext localContext = context.getCurrentLocalContext();
-        
-        long leftValue = localContext.getLong(left_int);
-        String rightValue = localContext.getString(right_string);
+        long leftValue = left_is_global ?
+            context.getGlobalContext().getLong(left_int) :
+            context.getCurrentLocalContext().getLong(left_int);
+        String rightValue = right_is_global ?
+            context.getGlobalContext().getString(right_string) :
+            context.getCurrentLocalContext().getString(right_string);
         String result;
 
         switch (operator) {
@@ -36,7 +45,11 @@ public class BinaryExpressionIntString implements Instruction {
                 throw new IllegalStateException("Unexpected operator for int-string: " + operator);
         }
 
-        localContext.setString(target, result);
+        if (target_is_global) {
+            context.getGlobalContext().setString(target, result);
+        } else {
+            context.getCurrentLocalContext().setString(target, result);
+        }
     }
 
     @Override

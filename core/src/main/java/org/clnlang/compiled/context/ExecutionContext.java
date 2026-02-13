@@ -13,6 +13,12 @@ public class ExecutionContext {
         localContexts.push(localContext);
     }
 
+    public void popLocalContext() {
+        if (!localContexts.isEmpty()) {
+            localContexts.pop();
+        }
+    }
+
     public LocalContext getCurrentLocalContext() {
         return localContexts.peek();
     }

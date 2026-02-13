@@ -13,21 +13,30 @@ public class BinaryExpressionDecDec implements Instruction {
     private int right;
     private int target;
 
+    private boolean left_is_global;
+    private boolean right_is_global;
+    private boolean target_is_global;
+
     private BinaryOperators operator;
 
-    public BinaryExpressionDecDec(int left, int right, int target, BinaryOperators operator) {
+    public BinaryExpressionDecDec(int left, int right, int target, boolean left_is_global, boolean right_is_global, boolean target_is_global, BinaryOperators operator) {
         this.left = left;
         this.right = right;
         this.target = target;
+        this.left_is_global = left_is_global;
+        this.right_is_global = right_is_global;
+        this.target_is_global = target_is_global;
         this.operator = operator;
     }
 
     @Override
     public void execute(ExecutionContext context) {
-        LocalContext localContext = context.getCurrentLocalContext();
-        
-        BigDecimal leftValue = localContext.getBigDecimal(left);
-        BigDecimal rightValue = localContext.getBigDecimal(right);
+        BigDecimal leftValue = left_is_global ?
+            context.getGlobalContext().getBigDecimal(left) :
+            context.getCurrentLocalContext().getBigDecimal(left);
+        BigDecimal rightValue = right_is_global ?
+            context.getGlobalContext().getBigDecimal(right) :
+            context.getCurrentLocalContext().getBigDecimal(right);
         BigDecimal result;
 
         switch (operator) {
@@ -56,7 +65,11 @@ public class BinaryExpressionDecDec implements Instruction {
                 throw new IllegalStateException("Unexpected operator: " + operator);
         }
 
-        localContext.setBigDecimal(target, result);
+        if (target_is_global) {
+            context.getGlobalContext().setBigDecimal(target, result);
+        } else {
+            context.getCurrentLocalContext().setBigDecimal(target, result);
+        }
     }
 
     @Override

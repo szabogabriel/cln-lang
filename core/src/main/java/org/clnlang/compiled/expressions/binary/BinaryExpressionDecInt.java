@@ -13,21 +13,31 @@ public class BinaryExpressionDecInt implements Instruction {
     private int right_int;
     private int target;
 
+    private boolean left_is_global;
+    private boolean right_is_global;
+    private boolean target_is_global;
+
     private BinaryOperators operator;
 
-    public BinaryExpressionDecInt(int left_dec, int right_int, int target, BinaryOperators operator) {
+    public BinaryExpressionDecInt(int left_dec, int right_int, int target, boolean left_is_global, boolean right_is_global, boolean target_is_global, BinaryOperators operator) {
         this.left_dec = left_dec;
         this.right_int = right_int;
         this.target = target;
+        this.left_is_global = left_is_global;
+        this.right_is_global = right_is_global;
+        this.target_is_global = target_is_global;
         this.operator = operator;
     }
 
     @Override
     public void execute(ExecutionContext context) {
-        LocalContext localContext = context.getCurrentLocalContext();
-        
-        BigDecimal leftValue = localContext.getBigDecimal(left_dec);
-        BigDecimal rightValue = BigDecimal.valueOf(localContext.getLong(right_int));
+        BigDecimal leftValue = left_is_global ?
+            context.getGlobalContext().getBigDecimal(left_dec) :
+            context.getCurrentLocalContext().getBigDecimal(left_dec);
+        long rightLongValue = right_is_global ?
+            context.getGlobalContext().getLong(right_int) :
+            context.getCurrentLocalContext().getLong(right_int);
+        BigDecimal rightValue = BigDecimal.valueOf(rightLongValue);
         BigDecimal result;
 
         switch (operator) {
@@ -56,7 +66,11 @@ public class BinaryExpressionDecInt implements Instruction {
                 throw new IllegalStateException("Unexpected operator: " + operator);
         }
 
-        localContext.setBigDecimal(target, result);
+        if (target_is_global) {
+            context.getGlobalContext().setBigDecimal(target, result);
+        } else {
+            context.getCurrentLocalContext().setBigDecimal(target, result);
+        }
     }
 
     @Override

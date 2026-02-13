@@ -11,21 +11,30 @@ public class BinaryExpressionIntInt implements Instruction {
     private int right;
     private int target;
 
+    private boolean left_is_global;
+    private boolean right_is_global;
+    private boolean target_is_global;
+
     private BinaryOperators operator;
 
-    public BinaryExpressionIntInt(int left, int right, int target, BinaryOperators operator) {
+    public BinaryExpressionIntInt(int left, int right, int target, boolean left_is_global, boolean right_is_global, boolean target_is_global, BinaryOperators operator) {
         this.left = left;
         this.right = right;
         this.target = target;
+        this.left_is_global = left_is_global;
+        this.right_is_global = right_is_global;
+        this.target_is_global = target_is_global;
         this.operator = operator;
     }
 
     @Override
     public void execute(ExecutionContext context) {
-        LocalContext localContext = context.getCurrentLocalContext();
-        
-        long leftValue = localContext.getLong(left);
-        long rightValue = localContext.getLong(right);
+        long leftValue = left_is_global ?
+            context.getGlobalContext().getLong(left) :
+            context.getCurrentLocalContext().getLong(left);
+        long rightValue = right_is_global ?
+            context.getGlobalContext().getLong(right) :
+            context.getCurrentLocalContext().getLong(right);
         long result;
 
         switch (operator) {
@@ -54,7 +63,11 @@ public class BinaryExpressionIntInt implements Instruction {
                 throw new IllegalStateException("Unexpected operator: " + operator);
         }
 
-        localContext.setLong(target, result);
+        if (target_is_global) {
+            context.getGlobalContext().setLong(target, result);
+        } else {
+            context.getCurrentLocalContext().setLong(target, result);
+        }
     }
 
     @Override

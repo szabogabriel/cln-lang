@@ -24,8 +24,23 @@ public class CFunction implements Instruction {
 
     @Override
     public void execute(ExecutionContext context) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'execute'");
+        createNewLocalContext(context);
+        executeInstructions(context);
+        popCurrentLocalContext(context);
+    }
+
+    private void executeInstructions(ExecutionContext context) {
+        for (Instruction instr : instructions) {
+            instr.execute(context);
+        }
+    }
+
+    private void createNewLocalContext(ExecutionContext context) {
+        context.pushLocalContext();
+    }
+
+    private void popCurrentLocalContext(ExecutionContext context) {
+        context.popLocalContext();
     }
 
     @Override

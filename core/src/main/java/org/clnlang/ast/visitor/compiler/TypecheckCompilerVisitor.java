@@ -9,6 +9,7 @@ import java.util.Set;
 
 import org.clnlang.ast.BlockNode;
 import org.clnlang.ast.declaration.FunctionDeclNode;
+import org.clnlang.ast.declaration.FunctionDeclNode.ReturnVar;
 import org.clnlang.ast.declaration.ImportDeclNode;
 import org.clnlang.ast.declaration.PackageDeclNode;
 import org.clnlang.ast.declaration.ProgramNode;
@@ -34,6 +35,7 @@ import org.clnlang.ast.statement.TupleAssignStmt;
 import org.clnlang.ast.statement.VarDeclStmt;
 import org.clnlang.ast.statement.WhileStmt;
 import org.clnlang.ast.visitor.ASTVisitor;
+import org.clnlang.compiled.types.Types;
 
 public class TypecheckCompilerVisitor implements ASTVisitor {
 
@@ -48,18 +50,37 @@ public class TypecheckCompilerVisitor implements ASTVisitor {
     private List<String> functionNames = new ArrayList<>();
     private List<String> globalVariableNames = new ArrayList<>();
 
-    private Map<String, Variable> variableTypes = new HashMap<>();
-    private Map<String, Integer> variableAddresses = new HashMap<>();
-    int varAddrCounterInt = 0;
-    int varAddrCounterDec = 0;
-    int varAddrCounterBool = 0;
-    int varAddrCounterString = 0;
-    int varAddrCounterStruct = 0;
-    int varAddrCounterUnion = 0;
+    private Map<String, Variable> localVariableTypes = new HashMap<>();
+    private Map<String, Integer> localVariableAddresses = new HashMap<>();
+    int localVarAddrCounterInt = 0;
+    int localVarAddrCounterDec = 0;
+    int localVarAddrCounterBool = 0;
+    int localVarAddrCounterString = 0;
+    int localVarAddrCounterStruct = 0;
+    int localVarAddrCounterUnion = 0;
 
     @Override
     public void visit(ProgramNode node) {
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        // Visit package declaration
+        if (node.getPackageDecl() != null) {
+            node.getPackageDecl().accept(this);
+        }
+        
+        // Visit imports
+        for (ImportDeclNode importNode : node.getImports()) {
+            importNode.accept(this);
+        }
+        
+        // Visit declarations (structs, unions, functions)
+        for (Object decl : node.getDeclarations()) {
+            if (decl instanceof StructDeclNode) {
+                ((StructDeclNode) decl).accept(this);
+            } else if (decl instanceof UnionDeclNode) {
+                ((UnionDeclNode) decl).accept(this);
+            } else if (decl instanceof FunctionDeclNode) {
+                ((FunctionDeclNode) decl).accept(this);
+            }
+        }
     }
 
     @Override
@@ -74,141 +95,169 @@ public class TypecheckCompilerVisitor implements ASTVisitor {
 
     @Override
     public void visit(StructDeclNode node) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        structNames.add(node.getName());
+        // TODO: Process struct fields
     }
 
     @Override
     public void visit(UnionDeclNode node) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        unionNames.add(node.getName());
+        // TODO: Process union members
     }
 
     @Override
     public void visit(FunctionDeclNode node) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        functionNames.add(node.getName());
+
+        List<FunctionDeclNode.Parameter> parameters = node.getParameters();
+        List<ReturnVar> returnVars = node.getReturnVars();
+
+        int[] mappedParameters = new int[parameters.size()];
+        Types[] mappedParameterTypes = new Types[parameters.size()];
+        for (int i = 0; i < parameters.size(); i++) {
+            FunctionDeclNode.Parameter param = parameters.get(i);
+            String paramName = param.getName();
+            String paramType = param.getType();
+            Types type = Types.fromString(paramType);
+            mappedParameterTypes[i] = type;
+
+        }
+        
+        // TODO: Process parameters
+        // TODO: Process return types
+        
+        // Visit function body
+        if (node.getBlock() != null) {
+            node.getBlock().accept(this);
+        }
     }
 
     @Override
     public void visit(BlockNode node) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        // Visit all statements in the block
+        for (Object stmt : node.getStatements()) {
+            if (stmt instanceof AssignStmt) {
+                ((AssignStmt) stmt).accept(this);
+            } else if (stmt instanceof VarDeclStmt) {
+                ((VarDeclStmt) stmt).accept(this);
+            } else if (stmt instanceof ReturnStmt) {
+                ((ReturnStmt) stmt).accept(this);
+            } else if (stmt instanceof IfStmt) {
+                ((IfStmt) stmt).accept(this);
+            } else if (stmt instanceof WhileStmt) {
+                ((WhileStmt) stmt).accept(this);
+            } else if (stmt instanceof ExprStmt) {
+                ((ExprStmt) stmt).accept(this);
+            } else if (stmt instanceof EmptyStmt) {
+                ((EmptyStmt) stmt).accept(this);
+            }
+        }
     }
 
     @Override
     public void visit(AssignStmt node) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        // TODO: Process assignment
+        // Visit lvalue and value expressions
     }
 
     @Override
     public void visit(EmptyStmt node) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        // No-op for empty statements
     }
 
     @Override
     public void visit(ExprStmt node) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        // TODO: Process expression statement
+        if (node.getExpression() != null) {
+            // node.getExpression().accept(this);
+        }
     }
 
     @Override
     public void visit(IfStmt node) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        // TODO: Process if statement
+        // Visit condition, then block, else block
     }
 
     @Override
     public void visit(ReturnStmt node) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        // TODO: Process return statement
+        // Visit return value expressions
+        System.out.println("Processing return statement");
     }
 
     @Override
     public void visit(SwitchStmt node) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        // TODO: Process switch statement
     }
 
     @Override
     public void visit(TupleAssignStmt node) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        // TODO: Process tuple assignment
     }
 
     @Override
     public void visit(VarDeclStmt node) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        // TODO: Process variable declaration
+        System.out.println("Processing variable declaration: " + node.getName() + " of type " + node.getType());
     }
 
     @Override
     public void visit(WhileStmt node) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        // TODO: Process while statement
     }
 
     @Override
     public void visit(BinaryExpr node) {
-        
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        // TODO: Process binary expression
+        System.out.println("Processing binary expression with operator: " + node.getOperator());
     }
 
     @Override
     public void visit(BoolLiteralExpr node) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        // TODO: Process boolean literal
     }
 
     @Override
     public void visit(CallExpr node) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        // TODO: Process function call
     }
 
     @Override
     public void visit(IdentifierExpr node) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        // TODO: Process identifier
+        System.out.println("Processing identifier: " + node.getName());
     }
 
     @Override
     public void visit(IndexAccessExpr node) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        // TODO: Process array/index access
     }
 
     @Override
     public void visit(IntLiteralExpr node) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        // TODO: Process integer literal
+        System.out.println("Processing int literal: " + node.getLongValue());
     }
 
     @Override
     public void visit(MemberAccessExpr node) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        // TODO: Process member access
     }
 
     @Override
     public void visit(StringLiteralExpr node) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        // TODO: Process string literal
     }
 
     @Override
     public void visit(StructLiteralExpr node) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        // TODO: Process struct literal
     }
 
     @Override
     public void visit(UnaryExpr node) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        // TODO: Process unary expression
     }
     
 }
