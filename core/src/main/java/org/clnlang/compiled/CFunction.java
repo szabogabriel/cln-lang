@@ -48,7 +48,7 @@ public class CFunction implements CExecutable {
     }
 
     @Override
-    public Types[] getResultType() {
+    public Types[] getResultTypes() {
         return returnTypes;
     }
 

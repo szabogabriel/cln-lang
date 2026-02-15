@@ -8,6 +8,7 @@ import org.clnlang.ast.declaration.*;
 import org.clnlang.ast.expression.BinaryExpr;
 import org.clnlang.ast.expression.BoolLiteralExpr;
 import org.clnlang.ast.expression.CallExpr;
+import org.clnlang.ast.expression.DecLiteralExpr;
 import org.clnlang.ast.expression.IdentifierExpr;
 import org.clnlang.ast.expression.IndexAccessExpr;
 import org.clnlang.ast.expression.IntLiteralExpr;
@@ -221,6 +222,12 @@ class ASTVisitorTest {
             @Override
             public void visit(UnaryExpr node) {
                 // No-op for counting visitor
+            }
+
+            @Override
+            public void visit(DecLiteralExpr node) {
+                // TODO Auto-generated method stub
+                throw new UnsupportedOperationException("Unimplemented method 'visit'");
             }
         }
 

@@ -19,7 +19,7 @@ public class Assign implements CExecutable {
     }
 
     @Override
-    public Types[] getResultType() {
+    public Types[] getResultTypes() {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'getResultType'");
     }
