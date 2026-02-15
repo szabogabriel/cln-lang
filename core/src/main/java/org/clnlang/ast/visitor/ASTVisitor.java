@@ -35,6 +35,7 @@ public interface ASTVisitor {
     void visit(BinaryExpr node);
     void visit(BoolLiteralExpr node);
     void visit(CallExpr node);
+    void visit(DecLiteralExpr node);
     void visit(IdentifierExpr node);
     void visit(IndexAccessExpr node);
     void visit(IntLiteralExpr node);

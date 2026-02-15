@@ -1,4 +1,4 @@
-package org.clnlang.compiled.types;
+package org.clnlang.compiled;
 
 public enum Types {
 

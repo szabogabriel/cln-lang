@@ -2,11 +2,11 @@ package org.clnlang.compiled.expressions.unary;
 
 import java.math.BigDecimal;
 
-import org.clnlang.compiled.Instruction;
+import org.clnlang.compiled.CExecutable;
+import org.clnlang.compiled.Types;
 import org.clnlang.compiled.context.ExecutionContext;
-import org.clnlang.compiled.types.Types;
 
-public class UnaryExpressionDec implements Instruction {
+public class UnaryExpressionDec implements CExecutable {
 
     private int operand;
     private int target;
@@ -63,13 +63,18 @@ public class UnaryExpressionDec implements Instruction {
     }
 
     @Override
-    public int[] result() {
+    public int[] getResults() {
         return new int[]{target};
     }
 
     @Override
-    public Types[] getResultType() {
+    public Types[] getResultTypes() {
         return new Types[]{Types.DEC};
+    }
+
+    @Override
+    public boolean isGlobal() {
+        return false;
     }
     
 }

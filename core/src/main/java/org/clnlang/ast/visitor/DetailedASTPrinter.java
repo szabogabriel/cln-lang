@@ -252,4 +252,10 @@ public class DetailedASTPrinter implements ASTVisitor {
         print(message);
         System.out.println();
     }
+
+    @Override
+    public void visit(DecLiteralExpr node) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+    }
 }

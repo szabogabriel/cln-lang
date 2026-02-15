@@ -1,14 +1,13 @@
 package org.clnlang.compiled.expressions.binary;
 
-import java.math.BigDecimal;
-
-import org.clnlang.compiled.Instruction;
+import org.clnlang.compiled.CExecutable;
+import org.clnlang.compiled.Types;
 import org.clnlang.compiled.context.ExecutionContext;
-import org.clnlang.compiled.types.Types;
+import org.clnlang.compiled.expressions.CExpression;
 
-public class BinaryExpressionDecString implements Instruction {
+public class CBinaryExpressionIntString extends CExpression implements CExecutable {
 
-    private int left_dec;
+    private int left_int;
     private int right_string;
     private int target;
 
@@ -18,8 +17,9 @@ public class BinaryExpressionDecString implements Instruction {
 
     private BinaryOperators operator;
 
-    public BinaryExpressionDecString(int left_dec, int right_string, int target, boolean left_is_global, boolean right_is_global, boolean target_is_global, BinaryOperators operator) {
-        this.left_dec = left_dec;
+    public CBinaryExpressionIntString(int left_int, int right_string, int target, boolean left_is_global, boolean right_is_global, boolean target_is_global, BinaryOperators operator) {
+        super(ExpressionType.BINARY_EXPRESSION_INT_STRING);
+        this.left_int = left_int;
         this.right_string = right_string;
         this.target = target;
         this.left_is_global = left_is_global;
@@ -30,9 +30,9 @@ public class BinaryExpressionDecString implements Instruction {
 
     @Override
     public void execute(ExecutionContext context) {
-        BigDecimal leftValue = left_is_global ?
-            context.getGlobalContext().getBigDecimal(left_dec) :
-            context.getCurrentLocalContext().getBigDecimal(left_dec);
+        long leftValue = left_is_global ?
+            context.getGlobalContext().getLong(left_int) :
+            context.getCurrentLocalContext().getLong(left_int);
         String rightValue = right_is_global ?
             context.getGlobalContext().getString(right_string) :
             context.getCurrentLocalContext().getString(right_string);
@@ -40,10 +40,10 @@ public class BinaryExpressionDecString implements Instruction {
 
         switch (operator) {
             case PLUS:
-                result = leftValue.toString() + rightValue;
+                result = leftValue + rightValue;
                 break;
             default:
-                throw new IllegalStateException("Unexpected operator for decimal-string: " + operator);
+                throw new IllegalStateException("Unexpected operator for int-string: " + operator);
         }
 
         if (target_is_global) {
@@ -54,13 +54,18 @@ public class BinaryExpressionDecString implements Instruction {
     }
 
     @Override
-    public int[] result() {
+    public int[] getResults() {
         return new int[]{target};
     }
 
     @Override
-    public Types[] getResultType() {
+    public Types[] getResultTypes() {
         return new Types[]{Types.STRING};
+    }
+
+    @Override
+    public boolean isGlobal() {
+        return false;
     }
     
 }

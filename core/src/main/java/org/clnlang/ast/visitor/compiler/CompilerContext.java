@@ -30,7 +30,11 @@ public class CompilerContext {
      * Reset local variable context when entering a new function.
      */
     public void newLocalContext() {
-        localVariableStack.offer(new CompilerContextPart());
+        CompilerContextPart newLocalContextPart = new CompilerContextPart();
+        if (!localVariableStack.isEmpty()) {
+            newLocalContextPart.setParent(localVariableStack.peek());
+        }
+        localVariableStack.offer(newLocalContextPart);
     }
 
     public void popLocalContext() {

@@ -1,10 +1,11 @@
 package org.clnlang.compiled.expressions.binary;
 
-import org.clnlang.compiled.Instruction;
+import org.clnlang.compiled.CExecutable;
+import org.clnlang.compiled.Types;
 import org.clnlang.compiled.context.ExecutionContext;
-import org.clnlang.compiled.types.Types;
+import org.clnlang.compiled.expressions.CExpression;
 
-public class BinaryExpressionStringString implements Instruction {
+public class CBinaryExpressionStringString extends CExpression implements CExecutable {
 
     private int left;
     private int right;
@@ -16,7 +17,8 @@ public class BinaryExpressionStringString implements Instruction {
 
     private BinaryOperators operator;
 
-    public BinaryExpressionStringString(int left, int right, int target, boolean left_is_global, boolean right_is_global, boolean target_is_global, BinaryOperators operator) {
+    public CBinaryExpressionStringString(int left, int right, int target, boolean left_is_global, boolean right_is_global, boolean target_is_global, BinaryOperators operator) {
+        super(ExpressionType.BINARY_EXPRESSION_STRING_STRING, new Types[] {Types.STRING});
         this.left = left;
         this.right = right;
         this.target = target;
@@ -56,13 +58,18 @@ public class BinaryExpressionStringString implements Instruction {
     }
 
     @Override
-    public int[] result() {
+    public int[] getResults() {
         return new int[]{target};
     }
 
     @Override
-    public Types[] getResultType() {
+    public Types[] getResultTypes() {
         return new Types[]{Types.STRING};
+    }
+
+    @Override
+    public boolean isGlobal() {
+        return false;
     }
     
 }

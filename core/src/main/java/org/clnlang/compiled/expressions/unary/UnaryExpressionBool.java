@@ -1,10 +1,10 @@
 package org.clnlang.compiled.expressions.unary;
 
-import org.clnlang.compiled.Instruction;
+import org.clnlang.compiled.CExecutable;
+import org.clnlang.compiled.Types;
 import org.clnlang.compiled.context.ExecutionContext;
-import org.clnlang.compiled.types.Types;
 
-public class UnaryExpressionBool implements Instruction {
+public class UnaryExpressionBool implements CExecutable {
 
     private int operand;
     private int target;
@@ -45,13 +45,18 @@ public class UnaryExpressionBool implements Instruction {
     }
 
     @Override
-    public int[] result() {
+    public int[] getResults() {
         return new int[]{target};
     }
 
     @Override
-    public Types[] getResultType() {
+    public Types[] getResultTypes() {
         return new Types[]{Types.BOOL};
+    }
+
+    @Override
+    public boolean isGlobal() {
+        return false;
     }
     
 }

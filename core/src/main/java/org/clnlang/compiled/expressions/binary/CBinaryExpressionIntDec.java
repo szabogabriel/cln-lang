@@ -2,14 +2,15 @@ package org.clnlang.compiled.expressions.binary;
 
 import java.math.BigDecimal;
 
-import org.clnlang.compiled.Instruction;
+import org.clnlang.compiled.CExecutable;
+import org.clnlang.compiled.Types;
 import org.clnlang.compiled.context.ExecutionContext;
-import org.clnlang.compiled.types.Types;
+import org.clnlang.compiled.expressions.CExpression;
 
-public class BinaryExpressionDecDec implements Instruction {
+public class CBinaryExpressionIntDec extends CExpression implements CExecutable {
 
-    private int left;
-    private int right;
+    private int left_int;
+    private int right_dec;
     private int target;
 
     private boolean left_is_global;
@@ -18,9 +19,10 @@ public class BinaryExpressionDecDec implements Instruction {
 
     private BinaryOperators operator;
 
-    public BinaryExpressionDecDec(int left, int right, int target, boolean left_is_global, boolean right_is_global, boolean target_is_global, BinaryOperators operator) {
-        this.left = left;
-        this.right = right;
+    public CBinaryExpressionIntDec(int left_int, int right_dec, int target, boolean left_is_global, boolean right_is_global, boolean target_is_global, BinaryOperators operator) {
+        super(ExpressionType.BINARY_EXPRESSION_INT_DEC);
+        this.left_int = left_int;
+        this.right_dec = right_dec;
         this.target = target;
         this.left_is_global = left_is_global;
         this.right_is_global = right_is_global;
@@ -30,12 +32,13 @@ public class BinaryExpressionDecDec implements Instruction {
 
     @Override
     public void execute(ExecutionContext context) {
-        BigDecimal leftValue = left_is_global ?
-            context.getGlobalContext().getBigDecimal(left) :
-            context.getCurrentLocalContext().getBigDecimal(left);
+        long leftLongValue = left_is_global ?
+            context.getGlobalContext().getLong(left_int) :
+            context.getCurrentLocalContext().getLong(left_int);
+        BigDecimal leftValue = BigDecimal.valueOf(leftLongValue);
         BigDecimal rightValue = right_is_global ?
-            context.getGlobalContext().getBigDecimal(right) :
-            context.getCurrentLocalContext().getBigDecimal(right);
+            context.getGlobalContext().getBigDecimal(right_dec) :
+            context.getCurrentLocalContext().getBigDecimal(right_dec);
         BigDecimal result;
 
         switch (operator) {
@@ -54,12 +57,6 @@ public class BinaryExpressionDecDec implements Instruction {
                 }
                 result = leftValue.divide(rightValue);
                 break;
-            case MODULO:
-                if (rightValue.compareTo(BigDecimal.ZERO) == 0) {
-                    throw new ArithmeticException("Division by zero");
-                }
-                result = leftValue.remainder(rightValue);
-                break;
             default:
                 throw new IllegalStateException("Unexpected operator: " + operator);
         }
@@ -72,13 +69,18 @@ public class BinaryExpressionDecDec implements Instruction {
     }
 
     @Override
-    public int[] result() {
+    public int[] getResults() {
         return new int[]{target};
     }
 
     @Override
-    public Types[] getResultType() {
+    public Types[] getResultTypes() {
         return new Types[]{Types.DEC};
+    }
+
+    @Override
+    public boolean isGlobal() {
+        return false;
     }
     
 }

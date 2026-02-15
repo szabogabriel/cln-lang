@@ -1,9 +1,8 @@
 package org.clnlang.compiled;
 
 import org.clnlang.compiled.context.ExecutionContext;
-import org.clnlang.compiled.types.Types;
 
-public class CFunction implements Instruction {
+public class CFunction implements CExecutable {
 
     private String name;
 
@@ -11,9 +10,9 @@ public class CFunction implements Instruction {
     private Types[] parameterTypes;
     private int[] returns;
     private Types[] returnTypes;
-    private Instruction[] instructions;
+    private CExecutable[] instructions;
 
-    public CFunction(String name, int[] parameters, Types[] parameterTypes, int[] returns, Types[] returnTypes, Instruction[] instructions) {
+    public CFunction(String name, int[] parameters, Types[] parameterTypes, int[] returns, Types[] returnTypes, CExecutable[] instructions) {
         this.name = name;
         this.parameters = parameters;
         this.parameterTypes = parameterTypes;
@@ -30,7 +29,7 @@ public class CFunction implements Instruction {
     }
 
     private void executeInstructions(ExecutionContext context) {
-        for (Instruction instr : instructions) {
+        for (CExecutable instr : instructions) {
             instr.execute(context);
         }
     }
@@ -44,13 +43,18 @@ public class CFunction implements Instruction {
     }
 
     @Override
-    public int[] result() {
+    public int[] getResults() {
         return returns;
     }
 
     @Override
     public Types[] getResultType() {
         return returnTypes;
+    }
+
+    @Override
+    public boolean isGlobal() {
+        return false;
     }
     
 }

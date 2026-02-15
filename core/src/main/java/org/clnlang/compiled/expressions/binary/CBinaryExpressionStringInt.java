@@ -1,13 +1,14 @@
 package org.clnlang.compiled.expressions.binary;
 
-import org.clnlang.compiled.Instruction;
+import org.clnlang.compiled.CExecutable;
+import org.clnlang.compiled.Types;
 import org.clnlang.compiled.context.ExecutionContext;
-import org.clnlang.compiled.types.Types;
+import org.clnlang.compiled.expressions.CExpression;
 
-public class BinaryExpressionStringBool implements Instruction {
+public class CBinaryExpressionStringInt extends CExpression implements CExecutable {
 
     private int left_string;
-    private int right_bool;
+    private int right_int;
     private int target;
 
     private boolean left_is_global;
@@ -16,9 +17,10 @@ public class BinaryExpressionStringBool implements Instruction {
 
     private BinaryOperators operator;
 
-    public BinaryExpressionStringBool(int left_string, int right_bool, int target, boolean left_is_global, boolean right_is_global, boolean target_is_global, BinaryOperators operator) {
+    public CBinaryExpressionStringInt(int left_string, int right_int, int target, boolean left_is_global, boolean right_is_global, boolean target_is_global, BinaryOperators operator) {
+        super(ExpressionType.BINARY_EXPRESSION_STRING_INT);
         this.left_string = left_string;
-        this.right_bool = right_bool;
+        this.right_int = right_int;
         this.target = target;
         this.left_is_global = left_is_global;
         this.right_is_global = right_is_global;
@@ -31,9 +33,9 @@ public class BinaryExpressionStringBool implements Instruction {
         String leftValue = left_is_global ?
             context.getGlobalContext().getString(left_string) :
             context.getCurrentLocalContext().getString(left_string);
-        boolean rightValue = right_is_global ?
-            context.getGlobalContext().getBoolean(right_bool) :
-            context.getCurrentLocalContext().getBoolean(right_bool);
+        long rightValue = right_is_global ?
+            context.getGlobalContext().getLong(right_int) :
+            context.getCurrentLocalContext().getLong(right_int);
         String result;
 
         switch (operator) {
@@ -41,7 +43,7 @@ public class BinaryExpressionStringBool implements Instruction {
                 result = leftValue + rightValue;
                 break;
             default:
-                throw new IllegalStateException("Unexpected operator for string-boolean: " + operator);
+                throw new IllegalStateException("Unexpected operator for string-int: " + operator);
         }
 
         if (target_is_global) {
@@ -52,13 +54,18 @@ public class BinaryExpressionStringBool implements Instruction {
     }
 
     @Override
-    public int[] result() {
+    public int[] getResults() {
         return new int[]{target};
     }
 
     @Override
-    public Types[] getResultType() {
+    public Types[] getResultTypes() {
         return new Types[]{Types.STRING};
+    }
+
+    @Override
+    public boolean isGlobal() {
+        return false;
     }
     
 }

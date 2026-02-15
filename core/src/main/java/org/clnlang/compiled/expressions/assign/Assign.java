@@ -1,10 +1,10 @@
 package org.clnlang.compiled.expressions.assign;
 
-import org.clnlang.compiled.Instruction;
+import org.clnlang.compiled.CExecutable;
+import org.clnlang.compiled.Types;
 import org.clnlang.compiled.context.ExecutionContext;
-import org.clnlang.compiled.types.Types;
 
-public class Assign implements Instruction {
+public class Assign implements CExecutable {
 
     @Override
     public void execute(ExecutionContext context) {
@@ -13,7 +13,7 @@ public class Assign implements Instruction {
     }
 
     @Override
-    public int[] result() {
+    public int[] getResults() {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'result'");
     }
@@ -22,6 +22,12 @@ public class Assign implements Instruction {
     public Types[] getResultType() {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'getResultType'");
+    }
+
+    @Override
+    public boolean isGlobal() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'isGlobal'");
     }
     
 }

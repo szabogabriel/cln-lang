@@ -1,14 +1,15 @@
 package org.clnlang.compiled;
 
 import org.clnlang.compiled.context.ExecutionContext;
-import org.clnlang.compiled.types.Types;
 
-public interface Instruction {
+public interface CExecutable {
 
     void execute(ExecutionContext context);
 
-    int[] result();
+    int[] getResults();
 
-    Types[] getResultType();
+    Types[] getResultTypes();
+
+    boolean isGlobal();
     
 }

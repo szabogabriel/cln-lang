@@ -1,10 +1,11 @@
 package org.clnlang.compiled.expressions.binary;
 
-import org.clnlang.compiled.Instruction;
+import org.clnlang.compiled.CExecutable;
+import org.clnlang.compiled.Types;
 import org.clnlang.compiled.context.ExecutionContext;
-import org.clnlang.compiled.types.Types;
+import org.clnlang.compiled.expressions.CExpression;
 
-public class BinaryExpressionIntInt implements Instruction {
+public class CBinaryExpressionIntInt extends CExpression implements CExecutable {
 
     private int left;
     private int right;
@@ -16,7 +17,8 @@ public class BinaryExpressionIntInt implements Instruction {
 
     private BinaryOperators operator;
 
-    public BinaryExpressionIntInt(int left, int right, int target, boolean left_is_global, boolean right_is_global, boolean target_is_global, BinaryOperators operator) {
+    public CBinaryExpressionIntInt(int left, int right, int target, boolean left_is_global, boolean right_is_global, boolean target_is_global, BinaryOperators operator) {
+        super(ExpressionType.BINARY_EXPRESSION_INT_INT);
         this.left = left;
         this.right = right;
         this.target = target;
@@ -52,12 +54,6 @@ public class BinaryExpressionIntInt implements Instruction {
                 }
                 result = leftValue / rightValue;
                 break;
-            case MODULO:
-                if (rightValue == 0) {
-                    throw new ArithmeticException("Division by zero");
-                }
-                result = leftValue % rightValue;
-                break;
             default:
                 throw new IllegalStateException("Unexpected operator: " + operator);
         }
@@ -70,13 +66,17 @@ public class BinaryExpressionIntInt implements Instruction {
     }
 
     @Override
-    public int[] result() {
+    public int[] getResults() {
         return new int[]{target};
     }
 
     @Override
-    public Types[] getResultType() {
+    public Types[] getResultTypes() {
         return new Types[]{Types.INT};
     }
     
+    @Override
+    public boolean isGlobal() {
+        return false;
+    }
 }

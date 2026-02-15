@@ -6,7 +6,6 @@ public enum BinaryOperators {
     MINUS("-"),
     MULTIPLY("*"),
     DIVIDE("/"),
-    MODULO("%"),
     EQUALS("=="),
     NOT_EQUALS("!="),
     GREATER(">"),
@@ -16,12 +15,6 @@ public enum BinaryOperators {
     AND("&&"),
     OR("||"),
     NOT("!"),
-    BITWISE_AND("&"),
-    BITWISE_OR("|"),
-    BITWISE_XOR("^"),
-    BITWISE_NOT("~"),
-    LEFT_SHIFT("<<"),
-    RIGHT_SHIFT(">>"),
     UNSUPPORTED("unsupported")
     ;
 

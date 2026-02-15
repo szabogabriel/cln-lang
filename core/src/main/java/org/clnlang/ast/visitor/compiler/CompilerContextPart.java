@@ -5,12 +5,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.clnlang.compiled.Instruction;
-import org.clnlang.compiled.types.Types;
+import org.clnlang.compiled.CExecutable;
+import org.clnlang.compiled.Types;
 
 public class CompilerContextPart {
 
-        private Map<String, Types> variableTypes = new HashMap<>();
+    private CompilerContextPart parent;
+
+    private Map<String, Types> variableTypes = new HashMap<>();
     private Map<String, Integer> variableAddresses = new HashMap<>();
     private int varAddrCounterInt = 0;
     private int varAddrCounterDec = 0;
@@ -20,7 +22,7 @@ public class CompilerContextPart {
     private int varAddrCounterUnion = 0;
 
     // Current function being compiled
-    private List<Instruction> currentFunctionInstructions = new ArrayList<>();
+    private List<CExecutable> currentFunctionInstructions = new ArrayList<>();
 
     public int registerVariable(String name, Types type) {
         if (variableTypes.containsKey(name)) {
@@ -65,11 +67,23 @@ public class CompilerContextPart {
         return variableAddresses.get(name);
     }
 
-    public List<Instruction> getCurrentFunctionInstructions() {
+    public List<CExecutable> getCurrentFunctionInstructions() {
         return currentFunctionInstructions;
     }
 
-    public void addInstruction(Instruction instr) {
+    public void addInstruction(CExecutable instr) {
         currentFunctionInstructions.add(instr);
+    }
+
+    public boolean hasVariable(String name) {
+        return variableTypes.containsKey(name);
+    }
+
+    public void setParent(CompilerContextPart parent) {
+        this.parent = parent;
+    }
+
+    public CompilerContextPart getParent() {
+        return parent;
     }
 }

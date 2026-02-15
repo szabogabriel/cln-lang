@@ -1,12 +1,15 @@
 package org.clnlang.compiled.expressions.binary;
 
-import org.clnlang.compiled.Instruction;
+import java.math.BigDecimal;
+
+import org.clnlang.compiled.CExecutable;
+import org.clnlang.compiled.Types;
 import org.clnlang.compiled.context.ExecutionContext;
-import org.clnlang.compiled.types.Types;
+import org.clnlang.compiled.expressions.CExpression;
 
-public class BinaryExpressionBoolString implements Instruction {
+public class CBinaryExpressionDecString extends CExpression implements CExecutable {
 
-    private int left_bool;
+    private int left_dec;
     private int right_string;
     private int target;
 
@@ -16,8 +19,9 @@ public class BinaryExpressionBoolString implements Instruction {
 
     private BinaryOperators operator;
 
-    public BinaryExpressionBoolString(int left_bool, int right_string, int target, boolean left_is_global, boolean right_is_global, boolean target_is_global, BinaryOperators operator) {
-        this.left_bool = left_bool;
+    public CBinaryExpressionDecString(int left_dec, int right_string, int target, boolean left_is_global, boolean right_is_global, boolean target_is_global, BinaryOperators operator) {
+        super(ExpressionType.BINARY_EXPRESSION_DEC_STRING);
+        this.left_dec = left_dec;
         this.right_string = right_string;
         this.target = target;
         this.left_is_global = left_is_global;
@@ -28,9 +32,9 @@ public class BinaryExpressionBoolString implements Instruction {
 
     @Override
     public void execute(ExecutionContext context) {
-        boolean leftValue = left_is_global ? 
-            context.getGlobalContext().getBoolean(left_bool) :
-            context.getCurrentLocalContext().getBoolean(left_bool);
+        BigDecimal leftValue = left_is_global ?
+            context.getGlobalContext().getBigDecimal(left_dec) :
+            context.getCurrentLocalContext().getBigDecimal(left_dec);
         String rightValue = right_is_global ?
             context.getGlobalContext().getString(right_string) :
             context.getCurrentLocalContext().getString(right_string);
@@ -38,10 +42,10 @@ public class BinaryExpressionBoolString implements Instruction {
 
         switch (operator) {
             case PLUS:
-                result = leftValue + rightValue;
+                result = leftValue.toString() + rightValue;
                 break;
             default:
-                throw new IllegalStateException("Unexpected operator for boolean-string: " + operator);
+                throw new IllegalStateException("Unexpected operator for decimal-string: " + operator);
         }
 
         if (target_is_global) {
@@ -52,13 +56,18 @@ public class BinaryExpressionBoolString implements Instruction {
     }
 
     @Override
-    public int[] result() {
+    public int[] getResults() {
         return new int[]{target};
     }
 
     @Override
-    public Types[] getResultType() {
+    public Types[] getResultTypes() {
         return new Types[]{Types.STRING};
+    }
+
+    @Override
+    public boolean isGlobal() {
+        return false;
     }
     
 }
