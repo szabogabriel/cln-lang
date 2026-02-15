@@ -1,10 +1,8 @@
 package org.clnlang.ast.visitor.compiler;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.clnlang.ast.BlockNode;
@@ -41,45 +39,11 @@ import org.clnlang.compiled.types.Types;
 
 public class TypecheckCompilerVisitor implements ASTVisitor {
 
-    private static enum Variable { INT, DEC, BOOL, STRING, STRUCT, UNION; };
-
-    private String packageName = null;
-
-    private Set<String> imports = new HashSet<>();
-    
-    private List<String> structNames = new ArrayList<>();
-    private List<String> unionNames = new ArrayList<>();
-    private List<String> functionNames = new ArrayList<>();
-    private List<String> globalVariableNames = new ArrayList<>();
-    
-    // Compiled functions
+        // Compiled functions
     private List<CFunction> compiledFunctions = new ArrayList<>();
     
-    // Current function being compiled
-    private List<Instruction> currentFunctionInstructions = new ArrayList<>();
 
-    // Global variable tracking
-    private Map<String, Variable> globalVariableTypes = new HashMap<>();
-    private Map<String, Integer> globalVariableAddresses = new HashMap<>();
-    private int globalVarAddrCounterInt = 0;
-    private int globalVarAddrCounterDec = 0;
-    private int globalVarAddrCounterBool = 0;
-    private int globalVarAddrCounterString = 0;
-    private int globalVarAddrCounterStruct = 0;
-    private int globalVarAddrCounterUnion = 0;
-
-    // Local variable tracking (reset per function)
-    private Map<String, Variable> localVariableTypes = new HashMap<>();
-    private Map<String, Integer> localVariableAddresses = new HashMap<>();
-    private int localVarAddrCounterInt = 0;
-    private int localVarAddrCounterDec = 0;
-    private int localVarAddrCounterBool = 0;
-    private int localVarAddrCounterString = 0;
-    private int localVarAddrCounterStruct = 0;
-    private int localVarAddrCounterUnion = 0;
-
-    // Track if we're currently in a function (for scoping)
-    private boolean inFunction = false;
+    private CompilerContext compilerContext = new CompilerContext();
 
     @Override
     public void visit(ProgramNode node) {
@@ -107,48 +71,33 @@ public class TypecheckCompilerVisitor implements ASTVisitor {
 
     @Override
     public void visit(PackageDeclNode node) {
-        this.packageName = node.getPackageName();
+        compilerContext.setPackageName(node.getPackageName());
     }
 
     @Override
     public void visit(ImportDeclNode node) {
-        imports.add(node.getImportPath());
+        compilerContext.addImport(node.getImportPath());
     }
 
     @Override
     public void visit(StructDeclNode node) {
-        structNames.add(node.getName());
+        compilerContext.addStructName(node.getName());
         // TODO: Process struct fields
     }
 
     @Override
     public void visit(UnionDeclNode node) {
-        unionNames.add(node.getName());
+        compilerContext.addUnionName(node.getName());
         // TODO: Process union members
-    }
-
-    /**
-     * Reset local variable context when entering a new function.
-     */
-    private void resetLocalContext() {
-        localVariableTypes.clear();
-        localVariableAddresses.clear();
-        localVarAddrCounterInt = 0;
-        localVarAddrCounterDec = 0;
-        localVarAddrCounterBool = 0;
-        localVarAddrCounterString = 0;
-        localVarAddrCounterStruct = 0;
-        localVarAddrCounterUnion = 0;
-        currentFunctionInstructions.clear();
     }
 
     @Override
     public void visit(FunctionDeclNode node) {
-        functionNames.add(node.getName());
+        compilerContext.addFunctionName(node.getName());
 
         // Reset local context for this function
-        resetLocalContext();
-        inFunction = true;
+        compilerContext.newLocalContext();
+        compilerContext.setInFunction(true);
 
         List<FunctionDeclNode.Parameter> parameters = node.getParameters();
         List<ReturnVar> returnVars = node.getReturnVars();
@@ -165,8 +114,8 @@ public class TypecheckCompilerVisitor implements ASTVisitor {
             mappedParameterTypes[i] = type;
             
             // Register parameter in local context and get its address
-            registerVariable(paramName, paramType, true);
-            mappedParameters[i] = localVariableAddresses.get(paramName);
+            compilerContext.getCurrentLocalContext().registerVariable(paramName, type);
+            mappedParameters[i] = compilerContext.getCurrentLocalContext().getVariableAddress(paramName);
         }
         
         // Process return types
@@ -181,8 +130,8 @@ public class TypecheckCompilerVisitor implements ASTVisitor {
             mappedReturnTypes[i] = type;
             
             // Register return variable in local context and get its address
-            registerVariable(retName, retType, true);
-            mappedReturns[i] = localVariableAddresses.get(retName);
+            compilerContext.getCurrentLocalContext().registerVariable(retName, type);
+            mappedReturns[i] = compilerContext.getCurrentLocalContext().getVariableAddress(retName);
         }
         
         // Visit function body to compile instructions
@@ -191,7 +140,7 @@ public class TypecheckCompilerVisitor implements ASTVisitor {
         }
         
         // Create CFunction instance with compiled data
-        Instruction[] instructions = currentFunctionInstructions.toArray(new Instruction[0]);
+        Instruction[] instructions = compilerContext.getCurrentLocalContext().getCurrentFunctionInstructions().toArray(new Instruction[0]);
         CFunction cFunction = new CFunction(
             node.getName(),
             mappedParameters,
@@ -203,7 +152,7 @@ public class TypecheckCompilerVisitor implements ASTVisitor {
         
         compiledFunctions.add(cFunction);
         
-        inFunction = false;
+        compilerContext.setInFunction(false);
     }
 
     @Override
@@ -274,84 +223,10 @@ public class TypecheckCompilerVisitor implements ASTVisitor {
      * Register a variable (global or local) with its type and address.
      */
     private void registerVariable(String name, String type, boolean isLocal) {
-        Variable varType = mapTypeToVariable(type);
-        
         if (isLocal) {
-            localVariableTypes.put(name, varType);
-            int address = getNextLocalAddress(varType);
-            localVariableAddresses.put(name, address);
+            compilerContext.getCurrentLocalContext().registerVariable(name, Types.fromString(type));
         } else {
-            globalVariableTypes.put(name, varType);
-            globalVariableNames.add(name);
-            int address = getNextGlobalAddress(varType);
-            globalVariableAddresses.put(name, address);
-        }
-    }
-    
-    /**
-     * Map type string to Variable enum.
-     */
-    private Variable mapTypeToVariable(String type) {
-        Types parsedType = Types.fromString(type);
-        switch (parsedType) {
-            case INT:
-                return Variable.INT;
-            case DEC:
-                return Variable.DEC;
-            case BOOL:
-                return Variable.BOOL;
-            case STRING:
-                return Variable.STRING;
-            case STRUCT:
-                return Variable.STRUCT;
-            case UNION:
-                return Variable.UNION;
-            default:
-                throw new IllegalArgumentException("Unknown type: " + type);
-        }
-    }
-    
-    /**
-     * Get next local variable address for the given type.
-     */
-    private int getNextLocalAddress(Variable varType) {
-        switch (varType) {
-            case INT:
-                return localVarAddrCounterInt++;
-            case DEC:
-                return localVarAddrCounterDec++;
-            case BOOL:
-                return localVarAddrCounterBool++;
-            case STRING:
-                return localVarAddrCounterString++;
-            case STRUCT:
-                return localVarAddrCounterStruct++;
-            case UNION:
-                return localVarAddrCounterUnion++;
-            default:
-                throw new IllegalArgumentException("Unknown variable type: " + varType);
-        }
-    }
-    
-    /**
-     * Get next global variable address for the given type.
-     */
-    private int getNextGlobalAddress(Variable varType) {
-        switch (varType) {
-            case INT:
-                return globalVarAddrCounterInt++;
-            case DEC:
-                return globalVarAddrCounterDec++;
-            case BOOL:
-                return globalVarAddrCounterBool++;
-            case STRING:
-                return globalVarAddrCounterString++;
-            case STRUCT:
-                return globalVarAddrCounterStruct++;
-            case UNION:
-                return globalVarAddrCounterUnion++;
-            default:
-                throw new IllegalArgumentException("Unknown variable type: " + varType);
+            compilerContext.getGlobalContext().registerVariable(name, Types.fromString(type));
         }
     }
 
@@ -363,7 +238,7 @@ public class TypecheckCompilerVisitor implements ASTVisitor {
         System.out.println("Processing variable declaration: " + name + " of type " + type);
         
         // Register variable in the appropriate scope
-        registerVariable(name, type, inFunction);
+        registerVariable(name, type, compilerContext.isInFunction());
         
         // TODO: Visit initializer expression if present
         // if (node.getInitializer() != null) {
@@ -442,28 +317,14 @@ public class TypecheckCompilerVisitor implements ASTVisitor {
      * Get the package name.
      */
     public String getPackageName() {
-        return packageName;
+        return compilerContext.getPackageName();
     }
     
     /**
      * Get the imported packages.
      */
     public Set<String> getImports() {
-        return imports;
-    }
-    
-    /**
-     * Get global variable addresses.
-     */
-    public Map<String, Integer> getGlobalVariableAddresses() {
-        return globalVariableAddresses;
-    }
-    
-    /**
-     * Get global variable types.
-     */
-    public Map<String, Variable> getGlobalVariableTypes() {
-        return globalVariableTypes;
+        return compilerContext.getImports();
     }
     
 }
