@@ -2,7 +2,6 @@ package org.clnlang.compiled.expressions.binary;
 
 import org.clnlang.compiled.Instruction;
 import org.clnlang.compiled.context.ExecutionContext;
-import org.clnlang.compiled.context.LocalContext;
 import org.clnlang.compiled.types.Types;
 
 public class BinaryExpressionIntString implements Instruction {
