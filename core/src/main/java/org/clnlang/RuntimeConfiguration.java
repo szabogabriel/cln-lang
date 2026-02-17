@@ -168,6 +168,18 @@ public class RuntimeConfiguration {
     public List<String> getSourceFiles() {
         return new ArrayList<>(sourceFiles);
     }
+
+    /**
+     * Returns the list of source files as File objects.
+     * @return
+     */
+    public List<File> getSourceFilesAsFiles() {
+        List<File> files = new ArrayList<>();
+        for (String source : sourceFiles) {
+            files.add(new File(source));
+        }
+        return files;
+    }
     
     /**
      * Returns the first source file or package definition, or null if none specified.
@@ -289,6 +301,29 @@ public class RuntimeConfiguration {
         }
         
         return packageFiles;
+    }
+
+    /**
+     * Loads all source files from the CLN paths and returns them as a flat list.
+     * This method calls loadAllSourceFiles() and flattens all the files from all packages into a single list.
+     * 
+     * @return List of all .cln files found across all CLN paths
+     * @throws IOException if an I/O error occurs while walking the directory tree
+     * @throws IllegalStateException if the same package is found in multiple source folders
+     */
+    public List<File> loadAllSourceFilesAsFiles() throws IOException {
+        Map<String, List<File>> packageFiles = loadAllSourceFiles();
+        List<File> allFiles = new ArrayList<>();
+        
+        for (List<File> files : packageFiles.values()) {
+            allFiles.addAll(files);
+        }
+        
+        return allFiles;
+    }
+
+    public boolean isSourceFileExecution() {
+        return sourceFiles.size() > 0;
     }
     
     /**
