@@ -3,6 +3,7 @@ package org.clnlang;
 import java.io.File;
 
 import org.clnlang.exception.ClnException;
+import org.clnlang.interpreted.ClnRuntime;
 
 public class Main {
     public static void main(String[] args) {

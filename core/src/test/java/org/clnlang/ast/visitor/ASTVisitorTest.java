@@ -25,7 +25,7 @@ import org.clnlang.ast.statement.SwitchStmt;
 import org.clnlang.ast.statement.TupleAssignStmt;
 import org.clnlang.ast.statement.VarDeclStmt;
 import org.clnlang.ast.statement.WhileStmt;
-import org.clnlang.parser.ClnASTBuilder;
+import org.clnlang.interpreted.parser.ClnASTBuilder;
 import org.clnlang.parser.clnLexer;
 import org.clnlang.parser.clnParser;
 import org.junit.jupiter.api.Test;
