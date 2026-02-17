@@ -27,6 +27,7 @@ import org.clnlang.ast.statement.AssignStmt;
 import org.clnlang.ast.statement.IfStmt;
 import org.clnlang.ast.statement.ReturnStmt;
 import org.clnlang.ast.statement.VarDeclStmt;
+import org.clnlang.parser.ClnASTBuilder;
 import org.clnlang.parser.clnLexer;
 import org.clnlang.parser.clnParser;
 import org.junit.jupiter.api.Test;

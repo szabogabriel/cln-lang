@@ -5,8 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.clnlang.compiled.CExecutable;
-import org.clnlang.compiled.Types;
+import org.clnlang.compiled.binary.CExecutable;
+import org.clnlang.compiled.binary.Types;
 
 public class CompilerContextPart {
 
