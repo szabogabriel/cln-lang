@@ -53,4 +53,20 @@ public class GlobalRegistry {
         }
         unions.put(signature, file);
     }
+
+    public Map<FunctionSignature, File> getFunctions() {
+        return functions;
+    }
+
+    public Map<VariableSignature, File> getVariables() {
+        return variables;
+    }
+
+    public Map<StructSignature, File> getStructs() {
+        return structs;
+    }
+
+    public Map<UnionSignature, File> getUnions() {
+        return unions;
+    }
 }

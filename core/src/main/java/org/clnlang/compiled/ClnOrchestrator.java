@@ -20,11 +20,12 @@ public class ClnOrchestrator {
 
     private RuntimeConfiguration config;
 
-    private GlobalRegistry globalRegistry;
+    //Package private for testing purposes
+    GlobalRegistry globalRegistry;
 
-    private NativeLibraryManager nativeLibraryManager;
+    NativeLibraryManager nativeLibraryManager;
 
-    private List<File> sourceFilesToLoad = new ArrayList<>();
+    List<File> sourceFilesToLoad = new ArrayList<>();
 
     public ClnOrchestrator(RuntimeConfiguration config) {
         this.config = config;
