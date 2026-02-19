@@ -1,5 +1,6 @@
 package org.clnlang.ast.visitor.compiled;
 
+import java.io.File;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -60,16 +61,61 @@ import org.clnlang.compiled.binary.expressions.literal.CBoolLiteralExpression;
 import org.clnlang.compiled.binary.expressions.literal.CDecLiteralExpression;
 import org.clnlang.compiled.binary.expressions.literal.CIntLiteralExpression;
 import org.clnlang.compiled.binary.expressions.literal.CStringLiteralExpression;
+import org.clnlang.compiled.register.GlobalRegistry;
+import org.clnlang.exception.ClnException;
 import org.clnlang.exception.IncompatibleTypesException;
 import org.clnlang.exception.VariableNotDeclaredException;
+import org.clnlang.parser.ClnASTBuilder;
+import org.clnlang.parser.clnParser;
 
 public class TypecheckCompilerVisitor implements ASTVisitor {
 
-        // Compiled functions
+    // Compiled functions
     private List<CFunction> compiledFunctions = new ArrayList<>();
     
-
+    private GlobalRegistry globalRegistry;
+    private ClnASTBuilder astBuilder;
     private CompilerContext compilerContext = new CompilerContext();
+    
+    private File currentFile;
+
+    /**
+     * Creates a TypecheckCompilerVisitor with a GlobalRegistry.
+     * The GlobalRegistry is used to resolve function and structure signatures.
+     */
+    public TypecheckCompilerVisitor(GlobalRegistry globalRegistry) {
+        this.globalRegistry = globalRegistry;
+        this.astBuilder = new ClnASTBuilder();
+    }
+
+    /**
+     * Compiles a program from the parser context.
+     * This method processes the parsed program and generates compiled functions.
+     * 
+     * @param ctx The parser context for the program
+     * @param currentFile The source file being compiled
+     */
+    public void compileProgram(clnParser.ProgramContext ctx, File currentFile) {
+        this.currentFile = currentFile;
+        
+        try {
+            ProgramNode programNode = (ProgramNode) astBuilder.visitProgram(ctx);
+            visit(programNode);
+        } catch (Exception e) {
+            throw new ClnException("Failed to compile file: " + currentFile.getName() + " due to: " + e.getMessage());
+        }
+        
+        this.currentFile = null;
+    }
+
+    /**
+     * Returns the list of compiled functions.
+     * 
+     * @return List of compiled CFunction objects
+     */
+    public List<CFunction> getCompiledFunctions() {
+        return new ArrayList<>(compiledFunctions);
+    }
 
     @Override
     public void visit(ProgramNode node) {
@@ -186,6 +232,7 @@ public class TypecheckCompilerVisitor implements ASTVisitor {
         compiledFunctions.add(cFunction);
         
         compilerContext.setInFunction(false);
+        compilerContext.popLocalContext();
     }
 
     @Override

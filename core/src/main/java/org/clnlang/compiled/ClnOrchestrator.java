@@ -9,7 +9,9 @@ import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.clnlang.RuntimeConfiguration;
+import org.clnlang.ast.visitor.compiled.TypecheckCompilerVisitor;
 import org.clnlang.ast.visitor.compiled.register.GlobalMemberRegistratorVisitor;
+import org.clnlang.compiled.binary.CFunction;
 import org.clnlang.compiled.library.NativeLibraryManager;
 import org.clnlang.compiled.register.GlobalRegistry;
 import org.clnlang.exception.ClnException;
@@ -26,6 +28,8 @@ public class ClnOrchestrator {
     NativeLibraryManager nativeLibraryManager;
 
     List<File> sourceFilesToLoad = new ArrayList<>();
+    
+    List<CFunction> compiledFunctions = new ArrayList<>();
 
     public ClnOrchestrator(RuntimeConfiguration config) {
         this.config = config;
@@ -71,11 +75,39 @@ public class ClnOrchestrator {
     }
 
     private void compileRuntimeLibs() {
-
+        // Only compile if we have source files to execute
+        if (!config.isSourceFileExecution()) {
+            return;
+        }
+        
+        for (File sourceFile : sourceFilesToLoad) {
+            try {
+                compileFile(sourceFile);
+            } catch (Exception e) {
+                throw new ClnException("Failed to compile file: " + sourceFile.getName() + " due to: " + e.getMessage());
+            }
+        }
+    }
+    
+    private void compileFile(File file) throws Exception {
+        CharStream input = CharStreams.fromFileName(file.getAbsolutePath());
+        clnLexer lexer = new clnLexer(input);
+        CommonTokenStream tokens = new CommonTokenStream(lexer);
+        clnParser parser = new clnParser(tokens);
+        clnParser.ProgramContext programContext = parser.program();
+        
+        if (parser.getNumberOfSyntaxErrors() > 0) {
+            throw new ClnException("Parsing failed for " + file.getName() + 
+                " with " + parser.getNumberOfSyntaxErrors() + " errors.");
+        }
+        
+        TypecheckCompilerVisitor compiler = new TypecheckCompilerVisitor(globalRegistry);
+        compiler.compileProgram(programContext, file);
+        compiledFunctions.addAll(compiler.getCompiledFunctions());
     }
 
     private void executeMainFunction() {
-
+        //TODO
     }
 
     private void registerFile(File file) throws Exception {
