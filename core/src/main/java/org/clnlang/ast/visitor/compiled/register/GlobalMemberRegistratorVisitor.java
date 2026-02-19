@@ -57,7 +57,17 @@ public class GlobalMemberRegistratorVisitor implements ASTVisitor {
 
     public void compileProgram(clnParser.ProgramContext ctx, File currentFile) {
         this.currentFile = currentFile;
-        // First pass: collect all type definitions
+        
+        // First, find the package declaration
+        currentPackage = "";
+        for (clnParser.TopLevelDeclContext topLevel : ctx.topLevelDecl()) {
+            if (topLevel.packageDecl() != null) {
+                currentPackage = topLevel.packageDecl().qualifiedName().getText();
+                break;
+            }
+        }
+
+        // Second pass: collect all type definitions
         for (clnParser.TopLevelDeclContext topLevel : ctx.topLevelDecl()) {
             if (topLevel.decl() != null) {
                 clnParser.DeclContext decl = topLevel.decl();
@@ -89,7 +99,7 @@ public class GlobalMemberRegistratorVisitor implements ASTVisitor {
 
     @Override
     public void visit(PackageDeclNode node) {
-        currentPackage = node.getPackageName();
+        return;
     }
 
     @Override
