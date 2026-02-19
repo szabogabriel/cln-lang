@@ -1,6 +1,6 @@
 import std.console.writeLine;
 
-(var int ret = 0) main() {
+int main() {
     writeLine("Hello, World!");
-    return;
+    return 0;
 }

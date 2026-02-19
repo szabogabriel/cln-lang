@@ -1,8 +1,24 @@
-# CLN Standard Library Documentation
+# CLN Documentation
 
-This directory contains comprehensive documentation for all CLN standard library packages.
+This directory contains comprehensive documentation for CLN standard library packages and internal architecture.
 
-## Available Libraries
+## Architecture & Internals
+
+### [Execution Context System](EXECUTION_CONTEXT.md)
+Deep dive into the runtime execution architecture, including how variables are stored, function calls are managed, and scope resolution works.
+
+**Topics Covered:**
+- ExecutionContext, GlobalContext, LocalContext, CallFrame architecture
+- Zero-boxing optimization for primitive types
+- Index-based variable access for performance
+- Call stack management and function invocation
+- Compilation to runtime integration
+
+---
+
+## Standard Libraries
+
+The following standard library packages are available for use in CLN programs:
 
 ### [std.console](STD_CONSOLE.md) - Console I/O
 Input and output operations for console interaction.
