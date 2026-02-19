@@ -1,5 +1,7 @@
 package org.clnlang.compiled.binary;
 
-public class CStatement {
+public abstract class CStatement implements CExecutable {
+
+
     
 }

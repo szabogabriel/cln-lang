@@ -180,7 +180,23 @@ public class TypecheckCompilerVisitor implements ASTVisitor {
             if (simpleReturnType != null && !"".equals(simpleReturnType.trim())) {
                 returnVars.add(new ReturnVar(simpleReturnType, "__ret__"));
             }
-        }   
+        }
+
+        // Process return types
+        int[] mappedReturns = new int[returnVars.size()];
+        Types[] mappedReturnTypes = new Types[returnVars.size()];
+        
+        for (int i = 0; i < returnVars.size(); i++) {
+            ReturnVar retVar = returnVars.get(i);
+            String retName = retVar.getName();
+            String retType = retVar.getType();
+            Types type = Types.fromString(retType);
+            mappedReturnTypes[i] = type;
+            
+            // Register return variable in local context and get its address
+            compilerContext.getCurrentLocalContext().registerVariable(retName, type);
+            mappedReturns[i] = compilerContext.getCurrentLocalContext().getVariableAddress(retName);
+        }
 
         int[] mappedParameters = new int[parameters.size()];
         Types[] mappedParameterTypes = new Types[parameters.size()];
@@ -198,22 +214,6 @@ public class TypecheckCompilerVisitor implements ASTVisitor {
             mappedParameters[i] = compilerContext.getCurrentLocalContext().getVariableAddress(paramName);
         }
         
-        // Process return types
-        int[] mappedReturns = new int[returnVars.size()];
-        Types[] mappedReturnTypes = new Types[returnVars.size()];
-        
-        for (int i = 0; i < returnVars.size(); i++) {
-            ReturnVar retVar = returnVars.get(i);
-            String retName = retVar.getName();
-            String retType = retVar.getType();
-            Types type = Types.fromString(retType);
-            mappedReturnTypes[i] = type;
-            
-            // Register return variable in local context and get its address
-            compilerContext.getCurrentLocalContext().registerVariable(retName, type);
-            mappedReturns[i] = compilerContext.getCurrentLocalContext().getVariableAddress(retName);
-        }
-        
         // Visit function body to compile instructions
         if (node.getBlock() != null) {
             node.getBlock().accept(this);
@@ -222,7 +222,6 @@ public class TypecheckCompilerVisitor implements ASTVisitor {
         // Create CFunction instance with compiled data
         CExecutable[] instructions = compilerContext.getCurrentLocalContext().getCurrentFunctionInstructions().toArray(new CExecutable[0]);
         MemoryAllocatorDescription memoryAllocatorDescription = compilerContext.getCurrentLocalContext().createMemoryAllocatorDescription();
-        //TODO: make sure the context already contains the return values and the function arguments at the beginning of the memory.
         CFunction cFunction = new CFunction(
             node.getName(),
             mappedParameters,
@@ -378,7 +377,14 @@ public class TypecheckCompilerVisitor implements ASTVisitor {
 
     @Override
     public void visit(CallExpr node) {
-        // TODO: Process function call
+        List<Expr> arguments = node.getArguments();
+
+        List<CExpression> compiledArguments = new ArrayList<>();
+        for (Expr arg : arguments) {
+            compiledArguments.add(compileExpression(arg));
+        }
+
+        Expr function = node.getFunction();
     }
 
     @Override

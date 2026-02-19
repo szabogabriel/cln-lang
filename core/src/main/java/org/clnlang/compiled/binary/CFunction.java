@@ -26,23 +26,11 @@ public class CFunction implements CExecutable {
 
     @Override
     public void execute(ExecutionContext context) {
-        createNewLocalContext(context);
-        executeInstructions(context);
-        popCurrentLocalContext(context);
-    }
-
-    private void executeInstructions(ExecutionContext context) {
+        // Note: Context management is handled by CCallStatement (push) and CReturnStatement (pop)
+        // This just executes the instructions in the current context
         for (CExecutable instr : instructions) {
             instr.execute(context);
         }
-    }
-
-    private void createNewLocalContext(ExecutionContext context) {
-        context.pushLocalContext(memoryAllocatorDescription);
-    }
-
-    private void popCurrentLocalContext(ExecutionContext context) {
-        context.popLocalContext();
     }
 
     @Override
@@ -62,6 +50,30 @@ public class CFunction implements CExecutable {
     
     public String getName() {
         return name;
+    }
+
+    public int[] getParameters() {
+        return parameters;
+    }
+
+    public Types[] getParameterTypes() {
+        return parameterTypes;
+    }
+
+    public int[] getReturns() {
+        return returns;
+    }
+
+    public Types[] getReturnTypes() {
+        return returnTypes;
+    }
+
+    public CExecutable[] getInstructions() {
+        return instructions;
+    }
+
+    public MemoryAllocatorDescription getMemoryAllocatorDescription() {
+        return memoryAllocatorDescription;
     }
     
 }

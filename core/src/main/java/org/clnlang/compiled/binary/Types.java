@@ -8,6 +8,7 @@ public enum Types {
     STRING,
     STRUCT,
     UNION,
+    ARRAY,
     ;
 
     public static Types fromString(String typeStr) {
@@ -24,6 +25,8 @@ public enum Types {
                 return STRUCT;
             case "union":
                 return UNION;
+            case "array":
+                return ARRAY;
             default:
                 throw new IllegalArgumentException("Unknown type: " + typeStr);
         }

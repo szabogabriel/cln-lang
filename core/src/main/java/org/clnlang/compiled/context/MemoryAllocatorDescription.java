@@ -8,14 +8,16 @@ public class MemoryAllocatorDescription {
     private int stringSize;
     private int structSize;
     private int unionSize;
+    private int arraySize;
 
-    public MemoryAllocatorDescription(int intSize, int decSize, int boolSize, int stringSize, int structSize, int unionSize) {
+    public MemoryAllocatorDescription(int intSize, int decSize, int boolSize, int stringSize, int structSize, int unionSize, int arraySize) {
         this.intSize = intSize;
         this.decSize = decSize;
         this.boolSize = boolSize;
         this.stringSize = stringSize;
         this.structSize = structSize;
         this.unionSize = unionSize; 
+        this.arraySize = arraySize;
     }
 
     public int getIntSize() {
@@ -40,5 +42,9 @@ public class MemoryAllocatorDescription {
 
     public int getUnionSize() {
         return unionSize;
+    }
+
+    public int getArraySize() {
+        return arraySize;
     }
 }

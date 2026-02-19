@@ -10,6 +10,7 @@ public class Memory {
     private String [] stringStorage;
     private Object [] structStorage;
     private Object [] unionStorage;
+    private Object [] arrayStorage;
 
     public Memory(MemoryAllocatorDescription description) {
         this.longStorage = new long[description.getIntSize()];
@@ -18,6 +19,7 @@ public class Memory {
         this.stringStorage = new String[description.getStringSize()];
         this.structStorage = new Object[description.getStructSize()];
         this.unionStorage = new Object[description.getUnionSize()];
+        this.arrayStorage = new Object[description.getArraySize()];
     }
     
 }

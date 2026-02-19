@@ -21,6 +21,7 @@ public class CompilerContextPart {
     private int varAddrCounterString = 0;
     private int varAddrCounterStruct = 0;
     private int varAddrCounterUnion = 0;
+    private int varAddrCounterArray = 0;
 
     // Current function being compiled
     private List<CExecutable> currentFunctionInstructions = new ArrayList<>();
@@ -49,6 +50,8 @@ public class CompilerContextPart {
                 return varAddrCounterStruct++;
             case UNION:
                 return varAddrCounterUnion++;
+            case ARRAY:
+                return varAddrCounterArray++;
             default:
                 throw new IllegalStateException("Unexpected variable type: " + type);
         }
@@ -89,6 +92,6 @@ public class CompilerContextPart {
     }
 
     public MemoryAllocatorDescription createMemoryAllocatorDescription() {
-        return new MemoryAllocatorDescription(varAddrCounterInt, varAddrCounterDec, varAddrCounterBool, varAddrCounterString, varAddrCounterStruct, varAddrCounterUnion);
+        return new MemoryAllocatorDescription(varAddrCounterInt, varAddrCounterDec, varAddrCounterBool, varAddrCounterString, varAddrCounterStruct, varAddrCounterUnion, varAddrCounterArray);
     }
 }
