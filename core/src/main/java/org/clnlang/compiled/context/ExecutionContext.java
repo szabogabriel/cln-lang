@@ -8,8 +8,8 @@ public class ExecutionContext {
 
     private Stack<LocalContext> localContexts = new Stack<>();
 
-    public void pushLocalContext() {
-        LocalContext localContext = new LocalContext();
+    public void pushLocalContext(MemoryAllocatorDescription memoryAllocatorDescription) {
+        LocalContext localContext = new LocalContext(memoryAllocatorDescription);
         localContexts.push(localContext);
     }
 

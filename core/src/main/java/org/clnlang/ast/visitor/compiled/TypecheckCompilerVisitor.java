@@ -61,6 +61,7 @@ import org.clnlang.compiled.binary.expressions.literal.CBoolLiteralExpression;
 import org.clnlang.compiled.binary.expressions.literal.CDecLiteralExpression;
 import org.clnlang.compiled.binary.expressions.literal.CIntLiteralExpression;
 import org.clnlang.compiled.binary.expressions.literal.CStringLiteralExpression;
+import org.clnlang.compiled.context.MemoryAllocatorDescription;
 import org.clnlang.compiled.register.GlobalRegistry;
 import org.clnlang.exception.ClnException;
 import org.clnlang.exception.IncompatibleTypesException;
@@ -220,13 +221,16 @@ public class TypecheckCompilerVisitor implements ASTVisitor {
         
         // Create CFunction instance with compiled data
         CExecutable[] instructions = compilerContext.getCurrentLocalContext().getCurrentFunctionInstructions().toArray(new CExecutable[0]);
+        MemoryAllocatorDescription memoryAllocatorDescription = compilerContext.getCurrentLocalContext().createMemoryAllocatorDescription();
+        //TODO: make sure the context already contains the return values and the function arguments at the beginning of the memory.
         CFunction cFunction = new CFunction(
             node.getName(),
             mappedParameters,
             mappedParameterTypes,
             mappedReturns,
             mappedReturnTypes,
-            instructions
+            instructions,
+            memoryAllocatorDescription
         );
         
         compiledFunctions.add(cFunction);

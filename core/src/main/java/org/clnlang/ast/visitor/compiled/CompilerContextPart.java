@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.clnlang.compiled.binary.CExecutable;
 import org.clnlang.compiled.binary.Types;
+import org.clnlang.compiled.context.MemoryAllocatorDescription;
 
 public class CompilerContextPart {
 
@@ -85,5 +86,9 @@ public class CompilerContextPart {
 
     public CompilerContextPart getParent() {
         return parent;
+    }
+
+    public MemoryAllocatorDescription createMemoryAllocatorDescription() {
+        return new MemoryAllocatorDescription(varAddrCounterInt, varAddrCounterDec, varAddrCounterBool, varAddrCounterString, varAddrCounterStruct, varAddrCounterUnion);
     }
 }

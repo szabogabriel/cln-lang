@@ -12,6 +12,7 @@ import org.clnlang.RuntimeConfiguration;
 import org.clnlang.ast.visitor.compiled.TypecheckCompilerVisitor;
 import org.clnlang.ast.visitor.compiled.register.GlobalMemberRegistratorVisitor;
 import org.clnlang.compiled.binary.CFunction;
+import org.clnlang.compiled.context.ExecutionContext;
 import org.clnlang.compiled.library.NativeLibraryManager;
 import org.clnlang.compiled.register.GlobalRegistry;
 import org.clnlang.exception.ClnException;
@@ -107,7 +108,27 @@ public class ClnOrchestrator {
     }
 
     private void executeMainFunction() {
-        //TODO
+        // Only execute if we have source files to execute
+        if (!config.isSourceFileExecution()) {
+            return;
+        }
+        
+        // Find the main function from compiled functions
+        CFunction mainFunction = null;
+        for (CFunction function : compiledFunctions) {
+            if ("main".equals(function.getName())) {
+                mainFunction = function;
+                break;
+            }
+        }
+        
+        if (mainFunction == null) {
+            throw new ClnException("Main function not found in the compiled sources");
+        }
+        
+        // Create execution context and execute main function
+        ExecutionContext executionContext = new ExecutionContext();
+        mainFunction.execute(executionContext);
     }
 
     private void registerFile(File file) throws Exception {

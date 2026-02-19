@@ -1,6 +1,7 @@
 package org.clnlang.compiled.binary;
 
 import org.clnlang.compiled.context.ExecutionContext;
+import org.clnlang.compiled.context.MemoryAllocatorDescription;
 
 public class CFunction implements CExecutable {
 
@@ -11,14 +12,16 @@ public class CFunction implements CExecutable {
     private int[] returns;
     private Types[] returnTypes;
     private CExecutable[] instructions;
+    private MemoryAllocatorDescription memoryAllocatorDescription;
 
-    public CFunction(String name, int[] parameters, Types[] parameterTypes, int[] returns, Types[] returnTypes, CExecutable[] instructions) {
+    public CFunction(String name, int[] parameters, Types[] parameterTypes, int[] returns, Types[] returnTypes, CExecutable[] instructions, MemoryAllocatorDescription memoryAllocatorDescription) {
         this.name = name;
         this.parameters = parameters;
         this.parameterTypes = parameterTypes;
         this.returns = returns;
         this.returnTypes = returnTypes;
         this.instructions = instructions;
+        this.memoryAllocatorDescription = memoryAllocatorDescription;
     }
 
     @Override
@@ -35,7 +38,7 @@ public class CFunction implements CExecutable {
     }
 
     private void createNewLocalContext(ExecutionContext context) {
-        context.pushLocalContext();
+        context.pushLocalContext(memoryAllocatorDescription);
     }
 
     private void popCurrentLocalContext(ExecutionContext context) {
@@ -55,6 +58,10 @@ public class CFunction implements CExecutable {
     @Override
     public boolean isGlobal() {
         return false;
+    }
+    
+    public String getName() {
+        return name;
     }
     
 }
