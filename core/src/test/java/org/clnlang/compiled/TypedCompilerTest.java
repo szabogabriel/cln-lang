@@ -7,6 +7,7 @@ import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.clnlang.ast.declaration.ProgramNode;
 import org.clnlang.ast.visitor.compiled.TypecheckCompilerVisitor;
+import org.clnlang.compiled.register.GlobalRegistry;
 import org.clnlang.parser.ClnASTBuilder;
 import org.clnlang.parser.clnLexer;
 import org.clnlang.parser.clnParser;
@@ -43,7 +44,8 @@ public class TypedCompilerTest {
         assertNotNull(program, "Parsed program should not be null");
         
         // Run the compiler visitor
-        TypecheckCompilerVisitor visitor = new TypecheckCompilerVisitor();
+        GlobalRegistry globalRegistry = new GlobalRegistry();
+        TypecheckCompilerVisitor visitor = new TypecheckCompilerVisitor(globalRegistry);
         program.accept(visitor);
         
         // TODO: Add assertions once visitor implementation is complete
