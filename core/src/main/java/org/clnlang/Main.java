@@ -1,10 +1,19 @@
 package org.clnlang;
 
+import java.io.File;
+
 import org.clnlang.exception.ClnException;
+import org.clnlang.interpreted.ClnRuntime;
 
 public class Main {
+
+    private static final boolean RUN_INTERPRETED = true;
+
     public static void main(String[] args) {
         try {
+            //int exitCode = run(args);
+            File f = new File(".");
+            System.out.println(f.getAbsolutePath());
             int exitCode = run(args);
             System.exit(exitCode);
         } catch (ClnException e) {
@@ -31,7 +40,10 @@ public class Main {
             RuntimeConfiguration.printUsage();
             throw new ClnException("Invalid command line arguments: " + e.getMessage());
         }
-        
-        return ClnRuntime.execute(config, null, true, System.out::println);
+        if (RUN_INTERPRETED) {
+            return ClnRuntime.execute(config, null, true, System.out::println);
+        } else {
+            return 0;
+        }
     }
 }

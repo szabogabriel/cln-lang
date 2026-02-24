@@ -83,10 +83,20 @@ public class ClnASTBuilder extends clnBaseVisitor<ASTNode> {
             return visitUnionDecl(ctx.unionDecl(), isExposed);
         } else if (ctx.functionDecl() != null) {
             return visitFunctionDecl(ctx.functionDecl(), isExposed);
+        } else if (ctx.globalVarDecl() != null) {
+            return visitGlobalVarDecl(ctx.globalVarDecl());
         }
-        // TODO: Handle globalVarDecl
         
         return null;
+    }
+    
+    public ASTNode visitGlobalVarDecl(clnParser.GlobalVarDeclContext ctx) {
+        clnParser.VarBindingContext binding = ctx.varBinding();
+        boolean isVar = binding.VAR() != null;
+        String type = getTypeString(binding.type());
+        String name = binding.ID().getText();
+        Expr initializer = visitExpr(binding.expr());
+        return new VarDeclStmt(isVar, type, name, initializer);
     }
     
     public ASTNode visitStructDecl(clnParser.StructDeclContext ctx, boolean isExposed) {

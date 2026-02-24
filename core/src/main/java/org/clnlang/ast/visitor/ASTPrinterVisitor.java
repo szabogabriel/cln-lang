@@ -180,6 +180,11 @@ public class ASTPrinterVisitor implements ASTVisitor {
     }
 
     @Override
+    public void visit(DecLiteralExpr node) {
+        println("DecLiteral: " + node.getValue());
+    }
+
+    @Override
     public void visit(CallExpr node) {
         println("Call: " + node.getFunction() + "(" + node.getArguments() + ")");
     }
