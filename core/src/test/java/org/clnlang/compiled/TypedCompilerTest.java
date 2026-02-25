@@ -1,12 +1,15 @@
 package org.clnlang.compiled;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.clnlang.ast.visitor.compiled.CompilerContext;
 import org.clnlang.ast.visitor.compiled.TypecheckCompilerVisitor;
+import org.clnlang.compiled.binary.CFunction;
 import org.clnlang.compiled.binary.Types;
 import org.clnlang.compiled.register.GlobalRegistry;
 import org.clnlang.compiled.register.elements.FunctionSignature;
@@ -52,7 +55,24 @@ public class TypedCompilerTest {
         
         CompilerContext context = visitor.getCompilerContext();
         assertNotNull(context);
-        // TODO: Add assertions once visitor implementation is complete
+
+        assertTrue(context.getFunctionNames().size() == 1);
+        assertEquals(context.getFunctionNames().get(0), "add");
+        assertEquals(context.getPackageName(), "main");
+        
+        assertTrue(visitor.getCompiledFunctions().size() == 1);
+
+        CFunction compiledFunction = visitor.getCompiledFunctions().get(0);
+        assertEquals(compiledFunction.getName(), "add");
+
+        assertEquals(compiledFunction.getReturnTypes().length, 1);
+        assertEquals(compiledFunction.getReturnTypes()[0], Types.INT);
+
+        assertEquals(compiledFunction.getParameterTypes().length, 2);
+        assertEquals(compiledFunction.getParameterTypes()[0], Types.INT);
+        assertEquals(compiledFunction.getParameterTypes()[1], Types.INT);
+
+        assertEquals(compiledFunction.getInstructions().length, 1);
     }
     
 }
