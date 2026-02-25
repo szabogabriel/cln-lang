@@ -78,15 +78,22 @@ public class TypecheckCompilerVisitor implements ASTVisitor {
     private ClnASTBuilder astBuilder;
     private CompilerContext compilerContext = new CompilerContext();
     
-    private File currentFile;
-
     /**
      * Creates a TypecheckCompilerVisitor with a GlobalRegistry.
      * The GlobalRegistry is used to resolve function and structure signatures.
      */
     public TypecheckCompilerVisitor(GlobalRegistry globalRegistry) {
+        this(globalRegistry, new CompilerContext());
+    }
+
+    public TypecheckCompilerVisitor(GlobalRegistry globalRegistry, CompilerContext compilerContext) {
         this.globalRegistry = globalRegistry;
         this.astBuilder = new ClnASTBuilder();
+        this.compilerContext = compilerContext;        
+    }
+
+    public CompilerContext getCompilerContext() {
+        return compilerContext;
     }
 
     /**
@@ -97,16 +104,12 @@ public class TypecheckCompilerVisitor implements ASTVisitor {
      * @param currentFile The source file being compiled
      */
     public void compileProgram(clnParser.ProgramContext ctx, File currentFile) {
-        this.currentFile = currentFile;
-        
         try {
             ProgramNode programNode = (ProgramNode) astBuilder.visitProgram(ctx);
             visit(programNode);
         } catch (Exception e) {
             throw new ClnException("Failed to compile file: " + currentFile.getName() + " due to: " + e.getMessage());
         }
-        
-        this.currentFile = null;
     }
 
     /**

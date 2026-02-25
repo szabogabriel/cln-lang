@@ -9,6 +9,7 @@ import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.clnlang.RuntimeConfiguration;
+import org.clnlang.ast.visitor.compiled.CompilerContext;
 import org.clnlang.ast.visitor.compiled.TypecheckCompilerVisitor;
 import org.clnlang.ast.visitor.compiled.register.GlobalMemberRegistratorVisitor;
 import org.clnlang.compiled.binary.CFunction;
@@ -27,6 +28,8 @@ public class ClnOrchestrator {
     GlobalRegistry globalRegistry;
 
     NativeLibraryManager nativeLibraryManager;
+
+    CompilerContext compilerContext;
 
     List<File> sourceFilesToLoad = new ArrayList<>();
     
@@ -81,16 +84,18 @@ public class ClnOrchestrator {
             return;
         }
         
+        compilerContext = new CompilerContext();
+
         for (File sourceFile : sourceFilesToLoad) {
             try {
-                compileFile(sourceFile);
+                compilerContext = compileFile(sourceFile, compilerContext);
             } catch (Exception e) {
                 throw new ClnException("Failed to compile file: " + sourceFile.getName() + " due to: " + e.getMessage());
             }
         }
     }
     
-    private void compileFile(File file) throws Exception {
+    private CompilerContext compileFile(File file, CompilerContext compilerContext) throws Exception {
         CharStream input = CharStreams.fromFileName(file.getAbsolutePath());
         clnLexer lexer = new clnLexer(input);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
@@ -102,9 +107,10 @@ public class ClnOrchestrator {
                 " with " + parser.getNumberOfSyntaxErrors() + " errors.");
         }
         
-        TypecheckCompilerVisitor compiler = new TypecheckCompilerVisitor(globalRegistry);
+        TypecheckCompilerVisitor compiler = new TypecheckCompilerVisitor(globalRegistry, compilerContext);
         compiler.compileProgram(programContext, file);
         compiledFunctions.addAll(compiler.getCompiledFunctions());
+        return compiler.getCompilerContext();
     }
 
     private void executeMainFunction() {
