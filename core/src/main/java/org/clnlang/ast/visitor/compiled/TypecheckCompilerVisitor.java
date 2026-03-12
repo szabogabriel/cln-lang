@@ -272,8 +272,78 @@ public class TypecheckCompilerVisitor implements ASTVisitor {
 
     @Override
     public void visit(AssignStmt node) {
-        // TODO: Process assignment
-        // Visit lvalue and value expressions
+        // Get the lvalue (target) - for now, only support simple identifiers
+        Expr lvalueExpr = node.getLvalue();
+        if (!(lvalueExpr instanceof IdentifierExpr)) {
+            throw new RuntimeException("Only simple identifier assignment is currently supported");
+        }
+        
+        String variableName = ((IdentifierExpr) lvalueExpr).getName();
+        
+        // Determine if variable is local or global
+        boolean isLocal = compilerContext.getCurrentLocalContext().hasVariable(variableName);
+        boolean isGlobal = compilerContext.getGlobalContext().hasVariable(variableName);
+        
+        if (!isLocal && !isGlobal) {
+            throw new VariableNotDeclaredException("Variable '" + variableName + "' not declared");
+        }
+        
+        // Get variable info
+        int targetAddress;
+        Types targetType;
+        boolean targetIsGlobal;
+        
+        if (isLocal) {
+            targetAddress = compilerContext.getCurrentLocalContext().getVariableAddress(variableName);
+            targetType = compilerContext.getCurrentLocalContext().getVariableType(variableName);
+            targetIsGlobal = false;
+        } else {
+            targetAddress = compilerContext.getGlobalContext().getVariableAddress(variableName);
+            targetType = compilerContext.getGlobalContext().getVariableType(variableName);
+            targetIsGlobal = true;
+        }
+        
+        // Compile the rvalue (source) expression
+        Expr rvalueExpr = node.getValue();
+        CExpression compiledRvalue = compileExpression(rvalueExpr);
+        
+        // Handle literals vs computed expressions
+        if (compiledRvalue.getResults() == null) {
+            // It's a literal - create assignment with constant value
+            Object constantValue = null;
+            switch (targetType) {
+                case INT:
+                    constantValue = compiledRvalue.getIntValue();
+                    break;
+                case DEC:
+                    constantValue = compiledRvalue.getDecValue();
+                    break;
+                case BOOL:
+                    constantValue = compiledRvalue.getBoolValue();
+                    break;
+                case STRING:
+                    constantValue = compiledRvalue.getStringValue();
+                    break;
+                default:
+                    throw new RuntimeException("Unsupported variable type: " + targetType);
+            }
+            
+            CAssignStatement assignStmt = new CAssignStatement(constantValue, targetAddress, targetType, targetIsGlobal);
+            compilerContext.getCurrentLocalContext().addInstruction(assignStmt);
+        } else {
+            // It's a computed expression with a result register
+            int sourceAddress = compiledRvalue.getResults()[0];
+            boolean sourceIsGlobal = compiledRvalue.isGlobal();
+            
+            // If the expression is executable (like binary expression), add it first
+            if (compiledRvalue instanceof CExecutable) {
+                compilerContext.getCurrentLocalContext().addInstruction((CExecutable) compiledRvalue);
+            }
+            
+            // Create assignment from source register to target register
+            CAssignStatement assignStmt = new CAssignStatement(sourceAddress, targetAddress, targetType, sourceIsGlobal, targetIsGlobal);
+            compilerContext.getCurrentLocalContext().addInstruction(assignStmt);
+        }
     }
 
     @Override
@@ -410,15 +480,65 @@ public class TypecheckCompilerVisitor implements ASTVisitor {
         String name = node.getName();
         String type = node.getType();
         
-        System.out.println("Processing variable declaration: " + name + " of type " + type);
-        
         // Register variable in the appropriate scope
         registerVariable(name, type, compilerContext.isInFunction());
         
-        // TODO: Visit initializer expression if present
-        // if (node.getInitializer() != null) {
-        //     node.getInitializer().accept(this);
-        // }
+        // Handle initializer if present
+        if (node.getInitializer() != null) {
+            Types varType = Types.fromString(type);
+            int varAddress;
+            boolean isGlobal;
+            
+            // Get variable address based on scope
+            if (compilerContext.isInFunction()) {
+                varAddress = compilerContext.getCurrentLocalContext().getVariableAddress(name);
+                isGlobal = false;
+            } else {
+                varAddress = compilerContext.getGlobalContext().getVariableAddress(name);
+                isGlobal = true;
+            }
+            
+            // Compile the initializer expression
+            CExpression compiledInitializer = compileExpression(node.getInitializer());
+            
+            // Handle literals vs computed expressions
+            if (compiledInitializer.getResults() == null) {
+                // It's a literal - create assignment with constant value
+                Object constantValue = null;
+                switch (varType) {
+                    case INT:
+                        constantValue = compiledInitializer.getIntValue();
+                        break;
+                    case DEC:
+                        constantValue = compiledInitializer.getDecValue();
+                        break;
+                    case BOOL:
+                        constantValue = compiledInitializer.getBoolValue();
+                        break;
+                    case STRING:
+                        constantValue = compiledInitializer.getStringValue();
+                        break;
+                    default:
+                        throw new RuntimeException("Unsupported variable type: " + varType);
+                }
+                
+                CAssignStatement assignStmt = new CAssignStatement(constantValue, varAddress, varType, isGlobal);
+                compilerContext.getCurrentLocalContext().addInstruction(assignStmt);
+            } else {
+                // It's a computed expression with a result register
+                int sourceAddress = compiledInitializer.getResults()[0];
+                boolean sourceIsGlobal = compiledInitializer.isGlobal();
+                
+                // If the expression is executable (like binary expression), add it first
+                if (compiledInitializer instanceof CExecutable) {
+                    compilerContext.getCurrentLocalContext().addInstruction((CExecutable) compiledInitializer);
+                }
+                
+                // Create assignment from source register to target register
+                CAssignStatement assignStmt = new CAssignStatement(sourceAddress, varAddress, varType, sourceIsGlobal, isGlobal);
+                compilerContext.getCurrentLocalContext().addInstruction(assignStmt);
+            }
+        }
     }
 
     @Override
