@@ -1,11 +1,15 @@
 package org.clnlang.ast.visitor.compiled;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+
+import org.clnlang.compiled.binary.CFunction;
 
 public class CompilerContext {
 
@@ -22,6 +26,9 @@ public class CompilerContext {
     private List<String> structNames = new ArrayList<>();
     private List<String> unionNames = new ArrayList<>();
     private List<String> functionNames = new ArrayList<>();
+
+    // Compiled functions registry
+    private Map<String, CFunction> compiledFunctionsMap = new HashMap<>();
 
     // Track if we're currently in a function (for scoping)
     private boolean inFunction = false;
@@ -98,5 +105,26 @@ public class CompilerContext {
 
     public void setInFunction(boolean inFunction) {
         this.inFunction = inFunction;
+    }
+
+    /**
+     * Registers a compiled function for later lookup during function calls.
+     */
+    public void registerCompiledFunction(String name, CFunction function) {
+        compiledFunctionsMap.put(name, function);
+    }
+
+    /**
+     * Retrieves a compiled function by name.
+     */
+    public CFunction getCompiledFunction(String name) {
+        return compiledFunctionsMap.get(name);
+    }
+
+    /**
+     * Checks if a function has been compiled.
+     */
+    public boolean hasCompiledFunction(String name) {
+        return compiledFunctionsMap.containsKey(name);
     }
 }

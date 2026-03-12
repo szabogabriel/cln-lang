@@ -26,6 +26,10 @@ public class CompilerContextPart {
     // Current function being compiled
     private List<CExecutable> currentFunctionInstructions = new ArrayList<>();
 
+    // Return variable information for current function
+    private int[] returnVariableAddresses;
+    private Types[] returnVariableTypes;
+
     public int registerVariable(String name, Types type) {
         if (variableTypes.containsKey(name)) {
             throw new IllegalStateException("Variable already registered: " + name);
@@ -93,5 +97,18 @@ public class CompilerContextPart {
 
     public MemoryAllocatorDescription createMemoryAllocatorDescription() {
         return new MemoryAllocatorDescription(varAddrCounterInt, varAddrCounterDec, varAddrCounterBool, varAddrCounterString, varAddrCounterStruct, varAddrCounterUnion, varAddrCounterArray);
+    }
+
+    public void setReturnVariableInfo(int[] returnAddresses, Types[] returnTypes) {
+        this.returnVariableAddresses = returnAddresses;
+        this.returnVariableTypes = returnTypes;
+    }
+
+    public int[] getReturnVariableAddresses() {
+        return returnVariableAddresses;
+    }
+
+    public Types[] getReturnVariableTypes() {
+        return returnVariableTypes;
     }
 }

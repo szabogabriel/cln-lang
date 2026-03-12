@@ -61,6 +61,9 @@ import org.clnlang.compiled.binary.expressions.literal.CBoolLiteralExpression;
 import org.clnlang.compiled.binary.expressions.literal.CDecLiteralExpression;
 import org.clnlang.compiled.binary.expressions.literal.CIntLiteralExpression;
 import org.clnlang.compiled.binary.expressions.literal.CStringLiteralExpression;
+import org.clnlang.compiled.binary.statements.CAssignStatement;
+import org.clnlang.compiled.binary.statements.CCallStatement;
+import org.clnlang.compiled.binary.statements.CReturnStatement;
 import org.clnlang.compiled.context.MemoryAllocatorDescription;
 import org.clnlang.compiled.register.GlobalRegistry;
 import org.clnlang.exception.ClnException;
@@ -217,6 +220,9 @@ public class TypecheckCompilerVisitor implements ASTVisitor {
             mappedParameters[i] = compilerContext.getCurrentLocalContext().getVariableAddress(paramName);
         }
         
+        // Store return variable info in context for return statement processing
+        compilerContext.getCurrentLocalContext().setReturnVariableInfo(mappedReturns, mappedReturnTypes);
+        
         // Visit function body to compile instructions
         if (node.getBlock() != null) {
             node.getBlock().accept(this);
@@ -236,6 +242,7 @@ public class TypecheckCompilerVisitor implements ASTVisitor {
         );
         
         compiledFunctions.add(cFunction);
+        compilerContext.registerCompiledFunction(node.getName(), cFunction);
         
         compilerContext.setInFunction(false);
         compilerContext.popLocalContext();
@@ -311,14 +318,70 @@ public class TypecheckCompilerVisitor implements ASTVisitor {
 
     @Override
     public void visit(ReturnStmt node) {
-        System.out.println("Processing return statement");
-        List<Expr> expresions = node.getReturnValues();
-        List<CExpression> compiledReturnValues = new ArrayList<>();
-        for (Expr expr : expresions) {
-            compiledReturnValues.add(compileExpression(expr));
+        List<Expr> expressions = node.getReturnValues();
+        
+        // Get return variable info from context
+        int[] returnVariableAddresses = compilerContext.getCurrentLocalContext().getReturnVariableAddresses();
+        Types[] returnVariableTypes = compilerContext.getCurrentLocalContext().getReturnVariableTypes();
+        
+        if (expressions.size() != returnVariableAddresses.length) {
+            throw new RuntimeException("Return value count mismatch: expected " + returnVariableAddresses.length + ", got " + expressions.size());
         }
-
-        //TODO: handle compiled return values, e.g. generate instructions to set return variables and jump to function epilogue
+        
+        // Compile each return expression and prepare source registers
+        int[] sourceRegisters = new int[expressions.size()];
+        Types[] sourceTypes = new Types[expressions.size()];
+        
+        for (int i = 0; i < expressions.size(); i++) {
+            CExpression compiledExpr = compileExpression(expressions.get(i));
+            Types expectedType = returnVariableTypes[i];
+            
+            // Check if expression is a literal (no result register)
+            if (compiledExpr.getResults() == null) {
+                // Allocate a temporary register for the literal
+                String tempVarName = "__return_temp_" + i + "_" + System.nanoTime();
+                compilerContext.getCurrentLocalContext().registerVariable(tempVarName, expectedType);
+                int tempRegister = compilerContext.getCurrentLocalContext().getVariableAddress(tempVarName);
+                
+                // Create assignment statement to load literal into temporary
+                Object constantValue = null;
+                switch (expectedType) {
+                    case INT:
+                        constantValue = compiledExpr.getIntValue();
+                        break;
+                    case DEC:
+                        constantValue = compiledExpr.getDecValue();
+                        break;
+                    case BOOL:
+                        constantValue = compiledExpr.getBoolValue();
+                        break;
+                    case STRING:
+                        constantValue = compiledExpr.getStringValue();
+                        break;
+                    default:
+                        throw new RuntimeException("Unsupported return type: " + expectedType);
+                }
+                
+                CAssignStatement assignStmt = new CAssignStatement(constantValue, tempRegister, expectedType, false);
+                compilerContext.getCurrentLocalContext().addInstruction(assignStmt);
+                
+                sourceRegisters[i] = tempRegister;
+                sourceTypes[i] = expectedType;
+            } else {
+                // Expression has a result register, use it directly
+                sourceRegisters[i] = compiledExpr.getResults()[0];
+                sourceTypes[i] = compiledExpr.getResultTypes()[0];
+                
+                // If the expression is an executable (like binary expression), add it as an instruction
+                if (compiledExpr instanceof CExecutable) {
+                    compilerContext.getCurrentLocalContext().addInstruction((CExecutable) compiledExpr);
+                }
+            }
+        }
+        
+        // Create and add CReturnStatement
+        CReturnStatement returnStmt = new CReturnStatement(sourceRegisters, sourceTypes, returnVariableAddresses);
+        compilerContext.getCurrentLocalContext().addInstruction(returnStmt);
     }
 
     @Override
@@ -380,14 +443,8 @@ public class TypecheckCompilerVisitor implements ASTVisitor {
 
     @Override
     public void visit(CallExpr node) {
-        List<Expr> arguments = node.getArguments();
-
-        List<CExpression> compiledArguments = new ArrayList<>();
-        for (Expr arg : arguments) {
-            compiledArguments.add(compileExpression(arg));
-        }
-
-        Expr function = node.getFunction();
+        // Compile the call expression and add it as a statement
+        compileCallExpression(node);
     }
 
     @Override
@@ -436,7 +493,7 @@ public class TypecheckCompilerVisitor implements ASTVisitor {
         } else if (expr instanceof BoolLiteralExpr) {
             ret = new CBoolLiteralExpression(((BoolLiteralExpr) expr).getValue());
         } else if (expr instanceof CallExpr) {
-            //TODO
+            ret = compileCallExpression((CallExpr) expr);
         } else if (expr instanceof DecLiteralExpr) {
             ret = new CDecLiteralExpression(((DecLiteralExpr) expr).getDecimalValue());
         } else if (expr instanceof IdentifierExpr) {
@@ -884,6 +941,139 @@ public class TypecheckCompilerVisitor implements ASTVisitor {
         }
 
         return ret;
+    }
+
+    /**
+     * Compiles a function call expression.
+     * Generates a CCallStatement and returns a CExpression representing the return value(s).
+     */
+    private CExpression compileCallExpression(CallExpr callExpr) {
+        // Extract function name
+        Expr functionExpr = callExpr.getFunction();
+        if (!(functionExpr instanceof IdentifierExpr)) {
+            throw new RuntimeException("Function calls must use a simple function name (identifier)");
+        }
+        
+        String functionName = ((IdentifierExpr) functionExpr).getName();
+        
+        // Look up the function
+        CFunction targetFunction = compilerContext.getCompiledFunction(functionName);
+        if (targetFunction == null) {
+            throw new RuntimeException("Function not found: " + functionName);
+        }
+        
+        // Get current function (we need it for CCallStatement)
+        // For now, we'll pass null as fromFunction since it's not strictly needed
+        CFunction currentFunction = null;
+        
+        // Compile arguments
+        List<Expr> argumentExprs = callExpr.getArguments();
+        int[] argumentRegisters = new int[argumentExprs.size()];
+        Types[] argumentTypes = new Types[argumentExprs.size()];
+        
+        for (int i = 0; i < argumentExprs.size(); i++) {
+            CExpression compiledArg = compileExpression(argumentExprs.get(i));
+            Types expectedType = targetFunction.getParameterTypes()[i];
+            
+            // Handle literals - need to assign them to temporaries first
+            if (compiledArg.getResults() == null) {
+                String tempVarName = "__call_arg_" + i + "_" + System.nanoTime();
+                compilerContext.getCurrentLocalContext().registerVariable(tempVarName, expectedType);
+                int tempRegister = compilerContext.getCurrentLocalContext().getVariableAddress(tempVarName);
+                
+                // Create assignment statement to load literal into temporary
+                Object constantValue = null;
+                switch (expectedType) {
+                    case INT:
+                        constantValue = compiledArg.getIntValue();
+                        break;
+                    case DEC:
+                        constantValue = compiledArg.getDecValue();
+                        break;
+                    case BOOL:
+                        constantValue = compiledArg.getBoolValue();
+                        break;
+                    case STRING:
+                        constantValue = compiledArg.getStringValue();
+                        break;
+                    default:
+                        throw new RuntimeException("Unsupported argument type: " + expectedType);
+                }
+                
+                CAssignStatement assignStmt = new CAssignStatement(constantValue, tempRegister, expectedType, false);
+                compilerContext.getCurrentLocalContext().addInstruction(assignStmt);
+                
+                argumentRegisters[i] = tempRegister;
+                argumentTypes[i] = expectedType;
+            } else {
+                // Expression has a result register
+                argumentRegisters[i] = compiledArg.getResults()[0];
+                argumentTypes[i] = compiledArg.getResultTypes()[0];
+                
+                // If the expression is executable, add it as an instruction
+                if (compiledArg instanceof CExecutable) {
+                    compilerContext.getCurrentLocalContext().addInstruction((CExecutable) compiledArg);
+                }
+            }
+        }
+        
+        // Allocate registers for return values
+        Types[] returnTypes = targetFunction.getReturnTypes();
+        int[] returnRegisters = new int[returnTypes.length];
+        
+        for (int i = 0; i < returnTypes.length; i++) {
+            String returnVarName = "__call_return_" + i + "_" + System.nanoTime();
+            compilerContext.getCurrentLocalContext().registerVariable(returnVarName, returnTypes[i]);
+            returnRegisters[i] = compilerContext.getCurrentLocalContext().getVariableAddress(returnVarName);
+        }
+        
+        // Create and add CCallStatement
+        CCallStatement callStmt = new CCallStatement(
+            currentFunction,
+            targetFunction,
+            argumentRegisters,
+            argumentTypes,
+            returnRegisters,
+            returnTypes
+        );
+        compilerContext.getCurrentLocalContext().addInstruction(callStmt);
+        
+        // Return a CExpression that wraps the return register
+        // For simplicity, if there's one return value, return an identifier expression for it
+        if (returnRegisters.length == 1) {
+            Types returnType = returnTypes[0];
+            switch (returnType) {
+                case INT:
+                    return new CIdentifierExpressionInt(returnRegisters[0], false);
+                case DEC:
+                    return new CIdentifierExpressionDec(returnRegisters[0], false);
+                case BOOL:
+                    return new CIdentifierExpressionBool(returnRegisters[0], false);
+                case STRING:
+                    return new CIdentifierExpressionString(returnRegisters[0], false);
+                default:
+                    throw new RuntimeException("Unsupported return type: " + returnType);
+            }
+        } else if (returnRegisters.length == 0) {
+            // No return value - return a dummy expression
+            return new CIntLiteralExpression(0);
+        } else {
+            // Multiple return values - for now, just return the first one
+            // TODO: Handle multiple return values properly
+            Types returnType = returnTypes[0];
+            switch (returnType) {
+                case INT:
+                    return new CIdentifierExpressionInt(returnRegisters[0], false);
+                case DEC:
+                    return new CIdentifierExpressionDec(returnRegisters[0], false);
+                case BOOL:
+                    return new CIdentifierExpressionBool(returnRegisters[0], false);
+                case STRING:
+                    return new CIdentifierExpressionString(returnRegisters[0], false);
+                default:
+                    throw new RuntimeException("Unsupported return type: " + returnType);
+            }
+        }
     }
 
 }
