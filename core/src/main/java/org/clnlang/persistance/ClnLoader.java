@@ -26,11 +26,11 @@ public interface ClnLoader {
     StartupMode getSupportedStartupMode();
     
     /**
-     * Returns the list of source files or package definitions.
+     * Returns the list of source files or packages.
      * 
-     * @return List of source files/packages
+     * @return List of ClnSourceFile objects
      */
-    List<String> getSourceFiles();
+    List<ClnSourceFile> getSourceFiles();
     
     /**
      * Factory method to create a ClnLoader from environment and command line arguments.

@@ -1,6 +1,7 @@
 package org.clnlang.startup;
 
-import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +19,7 @@ import org.clnlang.linker.Linker;
 import org.clnlang.parser.clnLexer;
 import org.clnlang.parser.clnParser;
 import org.clnlang.persistance.ClnLoader;
+import org.clnlang.persistance.ClnSourceFile;
 import org.clnlang.runtime.context.ExecutionContext;
 import org.clnlang.runtime.execution.Registry;
 
@@ -35,7 +37,7 @@ public class StartupContext {
     
     // Startup mode
     private ClnLoader.StartupMode mode;
-    private List<File> targetFiles;
+    private List<ClnSourceFile> targetFiles;
     private String targetPackage;
     
     public enum StartupMode {
@@ -73,7 +75,7 @@ public class StartupContext {
      */
     private void determineStartupMode() throws Exception {
         ClnLoader loader = config.getClnLoader();
-        List<String> sourceFiles = loader.getSourceFiles();
+        List<ClnSourceFile> sourceFiles = loader.getSourceFiles();
         
         if (sourceFiles.isEmpty()) {
             throw new ClnException("No source files or package specified");
@@ -86,15 +88,11 @@ public class StartupContext {
             // File-based startup
             targetFiles = new ArrayList<>();
             
-            for (String sourceFile : sourceFiles) {
-                if (!sourceFile.endsWith(".cln")) {
+            for (ClnSourceFile sourceFile : sourceFiles) {
+                if (!sourceFile.isSourceFile()) {
                     throw new ClnException("Mixed file and package arguments not supported");
                 }
-                File file = new File(sourceFile);
-                if (!file.exists()) {
-                    throw new ClnException("File not found: " + sourceFile);
-                }
-                targetFiles.add(file);
+                targetFiles.add(sourceFile);
             }
             
             log("Startup mode: FILES (" + targetFiles.size() + " files)");
@@ -104,7 +102,12 @@ public class StartupContext {
                 throw new ClnException("Only one package can be specified for startup");
             }
             
-            targetPackage = sourceFiles.get(0);
+            ClnSourceFile packageSource = sourceFiles.get(0);
+            if (!packageSource.isPackage()) {
+                throw new ClnException("Expected package but got file: " + packageSource.getName());
+            }
+            
+            targetPackage = packageSource.getPath();
             
             // Validate that the package exists in the registry
             if (!registry.hasPackage(targetPackage)) {
@@ -143,13 +146,13 @@ public class StartupContext {
         log("Preparing for file-based startup...");
         
         // All files must be in the default package (no package declaration)
-        for (File file : targetFiles) {
-            ProgramImpl program = registry.getProgram(file);
+        for (ClnSourceFile sourceFile : targetFiles) {
+            ProgramImpl program = registry.getProgram(sourceFile.getPath());
             
             // If file not in registry, compile and add it
             if (program == null) {
-                log("File not in registry, compiling: " + file.getName());
-                program = compileFile(file);
+                log("File not in registry, compiling: " + sourceFile.getName());
+                program = compileSource(sourceFile);
                 
                 String declaredPackage = "default";
                 if (program.getPackageDecl() != null && 
@@ -158,7 +161,7 @@ public class StartupContext {
                     declaredPackage = program.getPackageDecl().getPackageName();
                 }
                 
-                registry.addProgram(file, program, declaredPackage);
+                registry.addProgram(sourceFile.getPath(), program, declaredPackage);
                 registerProgramSymbols(program, declaredPackage);
             }
             
@@ -166,7 +169,7 @@ public class StartupContext {
                 !program.getPackageDecl().getPackageName().isEmpty()) {
                 throw new ClnException(
                     "File-based startup requires files in default package (no package declaration). " +
-                    "File " + file.getName() + " declares package: " + 
+                    "File " + sourceFile.getName() + " declares package: " + 
                     program.getPackageDecl().getPackageName());
             }
             
@@ -184,7 +187,7 @@ public class StartupContext {
         log("Preparing for package-based startup...");
         
         // Load all programs from the target package
-        Map<File, ProgramImpl> packagePrograms = registry.getPackagePrograms(targetPackage);
+        Map<String, ProgramImpl> packagePrograms = registry.getPackagePrograms(targetPackage);
         
         for (ProgramImpl program : packagePrograms.values()) {
             program.populateContext(executionContext);
@@ -247,23 +250,35 @@ public class StartupContext {
     }
     
     /**
-     * Compile a single .cln file into a ProgramImpl.
-     * Used for on-demand compilation of files not in the configured paths.
+     * Compile a ClnSourceFile into a ProgramImpl.
+     * Uses the abstracted getInputStream() to support any storage mechanism.
+     * 
+     * @param source The source file to compile
+     * @return The compiled program
+     * @throws Exception If compilation fails
      */
-    private ProgramImpl compileFile(File file) throws Exception {
-        CharStream input = CharStreams.fromFileName(file.getAbsolutePath());
-        clnLexer lexer = new clnLexer(input);
-        CommonTokenStream tokens = new CommonTokenStream(lexer);
-        clnParser parser = new clnParser(tokens);
-        clnParser.ProgramContext programContext = parser.program();
-        
-        if (parser.getNumberOfSyntaxErrors() > 0) {
-            throw new ClnException("Parsing failed for " + file.getName() + 
-                " with " + parser.getNumberOfSyntaxErrors() + " errors.");
+    private ProgramImpl compileSource(ClnSourceFile source) throws Exception {
+        if (!source.isSourceFile()) {
+            throw new ClnException("Cannot compile a package: " + source.getName());
         }
         
-        CompilerVisitor compiler = new CompilerVisitor();
-        return compiler.compileProgram(programContext);
+        try (InputStream inputStream = source.getInputStream()) {
+            CharStream input = CharStreams.fromStream(inputStream);
+            clnLexer lexer = new clnLexer(input);
+            CommonTokenStream tokens = new CommonTokenStream(lexer);
+            clnParser parser = new clnParser(tokens);
+            clnParser.ProgramContext programContext = parser.program();
+            
+            if (parser.getNumberOfSyntaxErrors() > 0) {
+                throw new ClnException("Parsing failed for " + source.getName() + 
+                    " with " + parser.getNumberOfSyntaxErrors() + " errors.");
+            }
+            
+            CompilerVisitor compiler = new CompilerVisitor();
+            return compiler.compileProgram(programContext);
+        } catch (IOException e) {
+            throw new ClnException("Failed to read source: " + source.getName() + " - " + e.getMessage());
+        }
     }
     
     /**

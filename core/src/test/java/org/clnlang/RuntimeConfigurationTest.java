@@ -12,6 +12,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
+import org.clnlang.persistance.ClnSourceFile;
+
 /**
  * Test class for RuntimeConfiguration parsing.
  */
@@ -113,11 +115,11 @@ public class RuntimeConfigurationTest {
         config.parse(new String[]{files});
         
         assertTrue(config.hasSourceFiles());
-        List<String> sources = config.getClnLoader().getSourceFiles();
+        List<ClnSourceFile> sources = config.getClnLoader().getSourceFiles();
         assertEquals(3, sources.size());
-        assertEquals("file1.cln", sources.get(0));
-        assertEquals("file2.cln", sources.get(1));
-        assertEquals("file3.cln", sources.get(2));
+        assertTrue(sources.get(0).getName().equals("file1.cln"));
+        assertTrue(sources.get(1).getName().equals("file2.cln"));
+        assertTrue(sources.get(2).getName().equals("file3.cln"));
     }
     
     @Test

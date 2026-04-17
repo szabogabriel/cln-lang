@@ -4,7 +4,6 @@ import org.clnlang.runtime.types.FullyQualifiedName;
 import org.clnlang.runtime.types.StructDefinition;
 import org.clnlang.runtime.types.UnionDefinition;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -34,8 +33,9 @@ public class Registry {
 
     private final Map<FullyQualifiedName, UnionDefinition> registeredUnionTypes = new HashMap<>();
     
-    // Map of package name to list of compiled programs in that package
-    private final Map<String, Map<File, ProgramImpl>> packagePrograms = new HashMap<>();
+    // Map of package name to map of source path to compiled programs in that package
+    // Source path is the canonical/absolute path to the source file
+    private final Map<String, Map<String, ProgramImpl>> packagePrograms = new HashMap<>();
     
     // ===== Registration Methods =====
     
@@ -217,59 +217,37 @@ public class Registry {
     /**
      * Add a compiled program to the registry.
      * 
-     * @param sourceFile The source file
+     * @param sourcePath The canonical/absolute path to the source file
      * @param program The compiled program
      * @param packageName The package name (empty string for default package)
      */
-    public void addProgram(File sourceFile, ProgramImpl program, String packageName) {
-        try {
-            // Normalize to canonical path for consistent lookups
-            File canonicalFile = sourceFile.getCanonicalFile();
-            packagePrograms
-                .computeIfAbsent(packageName, k -> new HashMap<>())
-                .put(canonicalFile, program);
-        } catch (java.io.IOException e) {
-            // Fallback to absolute path if canonical fails
-            packagePrograms
-                .computeIfAbsent(packageName, k -> new HashMap<>())
-                .put(sourceFile.getAbsoluteFile(), program);
-        }
+    public void addProgram(String sourcePath, ProgramImpl program, String packageName) {
+        packagePrograms
+            .computeIfAbsent(packageName, k -> new HashMap<>())
+            .put(sourcePath, program);
     }
     
     /**
      * Get all programs in a specific package.
      * 
      * @param packageName The package name (empty string for default package)
-     * @return Map of source files to programs, or empty map if package not found
+     * @return Map of source paths to programs, or empty map if package not found
      */
-    public Map<File, ProgramImpl> getPackagePrograms(String packageName) {
+    public Map<String, ProgramImpl> getPackagePrograms(String packageName) {
         return packagePrograms.getOrDefault(packageName, new HashMap<>());
     }
     
     /**
-     * Get a specific program by its source file.
+     * Get a specific program by its source path.
      * 
-     * @param sourceFile The source file
+     * @param sourcePath The canonical/absolute path to the source file
      * @return The compiled program, or null if not found
      */
-    public ProgramImpl getProgram(File sourceFile) {
-        try {
-            // Normalize to canonical path for consistent lookups
-            File canonicalFile = sourceFile.getCanonicalFile();
-            for (Map<File, ProgramImpl> programs : packagePrograms.values()) {
-                ProgramImpl program = programs.get(canonicalFile);
-                if (program != null) {
-                    return program;
-                }
-            }
-        } catch (java.io.IOException e) {
-            // Fallback to absolute path if canonical fails
-            File absoluteFile = sourceFile.getAbsoluteFile();
-            for (Map<File, ProgramImpl> programs : packagePrograms.values()) {
-                ProgramImpl program = programs.get(absoluteFile);
-                if (program != null) {
-                    return program;
-                }
+    public ProgramImpl getProgram(String sourcePath) {
+        for (Map<String, ProgramImpl> programs : packagePrograms.values()) {
+            ProgramImpl program = programs.get(sourcePath);
+            if (program != null) {
+                return program;
             }
         }
         return null;
@@ -297,11 +275,11 @@ public class Registry {
     /**
      * Get all programs across all packages.
      * 
-     * @return Map of all programs indexed by source file
+     * @return Map of all programs indexed by source path
      */
-    public Map<File, ProgramImpl> getAllPrograms() {
-        Map<File, ProgramImpl> allPrograms = new HashMap<>();
-        for (Map<File, ProgramImpl> programs : packagePrograms.values()) {
+    public Map<String, ProgramImpl> getAllPrograms() {
+        Map<String, ProgramImpl> allPrograms = new HashMap<>();
+        for (Map<String, ProgramImpl> programs : packagePrograms.values()) {
             allPrograms.putAll(programs);
         }
         return allPrograms;

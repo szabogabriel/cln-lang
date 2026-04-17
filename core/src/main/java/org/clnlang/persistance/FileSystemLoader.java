@@ -61,7 +61,7 @@ public class FileSystemLoader implements ClnLoader {
         for (File file : files) {
             if (file.isDirectory()) {
                 count += loadClnFilesRecursively(file, registry);
-            } else if (file.getName().endsWith(".cln")) {
+            } else if (isClnFile(file.getName())) {
                 try {
                     ProgramImpl program = compileFile(file);
                     String declaredPackage = "default";
@@ -71,7 +71,15 @@ public class FileSystemLoader implements ClnLoader {
                         declaredPackage = program.getPackageDecl().getPackageName();
                     }
                     
-                    registry.addProgram(file, program, declaredPackage);
+                    // Use canonical path for consistent lookups
+                    String sourcePath;
+                    try {
+                        sourcePath = file.getCanonicalPath();
+                    } catch (java.io.IOException e) {
+                        sourcePath = file.getAbsolutePath();
+                    }
+                    
+                    registry.addProgram(sourcePath, program, declaredPackage);
                     
                     // Also register all functions, types, and variables from this program
                     registerProgramSymbols(program, declaredPackage, registry);
@@ -154,16 +162,16 @@ public class FileSystemLoader implements ClnLoader {
 
     @Override
     public StartupMode getSupportedStartupMode() {
-        List<String> sourceFiles = getSourceFiles();
+        List<ClnSourceFile> sourceFiles = getSourceFiles();
         
         if (sourceFiles.isEmpty()) {
             throw new RuntimeException("No source files or package specified");
         }
         
-        // Check if first argument is a package name or a file
-        String first = sourceFiles.get(0);
+        // Check if first source is a file or package
+        ClnSourceFile first = sourceFiles.get(0);
         
-        if (first.endsWith(".cln")) {
+        if (first.isSourceFile()) {
             return StartupMode.FILES;
         } else {
             return StartupMode.PACKAGE;
@@ -171,8 +179,8 @@ public class FileSystemLoader implements ClnLoader {
     }
 
     @Override
-    public List<String> getSourceFiles() {
-        List<String> result = new ArrayList<>();
+    public List<ClnSourceFile> getSourceFiles() {
+        List<ClnSourceFile> result = new ArrayList<>();
         for (String sourceArg : sourceArgs) {
             // Check if this contains multiple files separated by path separator
             if (sourceArg.contains(File.pathSeparator)) {
@@ -180,15 +188,43 @@ public class FileSystemLoader implements ClnLoader {
                 for (String file : files) {
                     String trimmed = file.trim();
                     if (!trimmed.isEmpty()) {
-                        result.add(trimmed);
+                        result.add(createSourceFile(trimmed));
                     }
                 }
             } else {
                 // Single file or package definition
-                result.add(sourceArg);
+                result.add(createSourceFile(sourceArg));
             }
         }
         return result;
+    }
+    
+    /**
+     * Create a ClnSourceFile from a string path or package name.
+     * Determines whether it's a file or package based on the .cln extension.
+     */
+    private ClnSourceFile createSourceFile(String source) {
+        if (isClnFile(source)) {
+            File file = new File(source);
+            try {
+                String canonicalPath = file.getCanonicalPath();
+                return ClnSourceFile.fromFilePath(canonicalPath, file.getName());
+            } catch (java.io.IOException e) {
+                // Fallback to absolute path
+                return ClnSourceFile.fromFilePath(file.getAbsolutePath(), file.getName());
+            }
+        } else {
+            // It's a package name
+            return ClnSourceFile.fromPackage(source);
+        }
+    }
+    
+    /**
+     * Check if a path represents a CLN source file.
+     * Package-private to allow access from other loader utilities.
+     */
+    boolean isClnFile(String path) {
+        return path != null && path.endsWith(".cln");
     }
 
     private void log(String message) {
