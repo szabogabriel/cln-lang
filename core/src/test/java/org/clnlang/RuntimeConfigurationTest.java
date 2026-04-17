@@ -68,7 +68,7 @@ public class RuntimeConfigurationTest {
         
         assertTrue(config.hasSourceFiles());
         assertEquals(1, config.getClnLoader().getSourceFiles().size());
-        assertEquals("hello.cln", config.getClnLoader().getSourceFiles().get(0));
+        assertEquals("hello.cln", config.getClnLoader().getSourceFiles().get(0).getName());
     }
     
     @Test
@@ -77,7 +77,7 @@ public class RuntimeConfigurationTest {
         config.parse(new String[]{"myapp.main"});
         
         assertTrue(config.hasSourceFiles());
-        assertEquals("myapp.main", config.getClnLoader().getSourceFiles().get(0));
+        assertEquals("myapp.main", config.getClnLoader().getSourceFiles().get(0).getName());
     }
     
     @Test
@@ -131,7 +131,7 @@ public class RuntimeConfigurationTest {
         assertTrue(config.isVerbose());
         assertNotNull(config.getClnLoader());
         assertTrue(config.hasSourceFiles());
-        assertEquals("app.cln", config.getClnLoader().getSourceFiles().get(0));
+        assertEquals("app.cln", config.getClnLoader().getSourceFiles().get(0).getName());
     }
     
     @Test

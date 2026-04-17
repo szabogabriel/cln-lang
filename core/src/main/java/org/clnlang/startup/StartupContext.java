@@ -92,6 +92,16 @@ public class StartupContext {
                 if (!sourceFile.isSourceFile()) {
                     throw new ClnException("Mixed file and package arguments not supported");
                 }
+                
+                // Validate that the source is accessible
+                try {
+                    sourceFile.getInputStream().close();
+                } catch (java.io.FileNotFoundException e) {
+                    throw new ClnException("File not found: " + sourceFile.getName());
+                } catch (java.io.IOException e) {
+                    throw new ClnException("Cannot access source: " + sourceFile.getName() + " - " + e.getMessage());
+                }
+                
                 targetFiles.add(sourceFile);
             }
             
