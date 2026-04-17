@@ -15,6 +15,7 @@ import org.clnlang.RuntimeConfiguration;
 import org.clnlang.compile.declaration.FunctionDeclImpl;
 import org.clnlang.exception.ClnException;
 import org.clnlang.lib.StandardLibrary;
+import org.clnlang.persistance.ClnLoader;
 import org.clnlang.runtime.execution.Registry;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -95,10 +96,9 @@ class FileBasedStartupTest {
         // Create a file with main function in default package
         Path file1 = createDefaultPackageFile(tempDir, "test.cln", "result = 42;");
         
-        // Setup configuration
+        // Setup configuration with -cp argument
         RuntimeConfiguration config = new RuntimeConfiguration();
-        config.addClnPath(tempDir.toString());
-        config.parse(new String[]{file1.toString()});
+        config.parse(new String[]{"-cp", tempDir.toString(), file1.toString()});
         
         Registry registry = new Registry();
         new StandardLibrary().registerAll(registry);
@@ -108,7 +108,7 @@ class FileBasedStartupTest {
         startupContext.initialize();
         
         // Verify mode
-        assertEquals(StartupContext.StartupMode.FILES, startupContext.getMode());
+        assertEquals(ClnLoader.StartupMode.FILES, startupContext.getMode());
         
         // Prepare execution context
         startupContext.prepareExecutionContext();
@@ -124,10 +124,9 @@ class FileBasedStartupTest {
         Path file1 = createDefaultPackageFile(tempDir, "main.cln", "result = 42;");
         Path file2 = createHelperFile(tempDir, "helper.cln");
         
-        // Setup configuration
+        // Setup configuration with -cp argument
         RuntimeConfiguration config = new RuntimeConfiguration();
-        config.addClnPath(tempDir.toString());
-        config.parse(new String[]{file1.toString(), file2.toString()});
+        config.parse(new String[]{"-cp", tempDir.toString(), file1.toString(), file2.toString()});
         
         Registry registry = new Registry();
         new StandardLibrary().registerAll(registry);
@@ -137,7 +136,7 @@ class FileBasedStartupTest {
         startupContext.initialize();
         
         // Verify mode
-        assertEquals(StartupContext.StartupMode.FILES, startupContext.getMode());
+        assertEquals(ClnLoader.StartupMode.FILES, startupContext.getMode());
         
         // Prepare execution context
         startupContext.prepareExecutionContext();
@@ -152,10 +151,9 @@ class FileBasedStartupTest {
         // Create a file with package declaration
         Path file1 = createPackagedFile(tempDir, "test.cln", "mypackage");
         
-        // Setup configuration
+        // Setup configuration with -cp argument
         RuntimeConfiguration config = new RuntimeConfiguration();
-        config.addClnPath(tempDir.toString());
-        config.parse(new String[]{file1.toString()});
+        config.parse(new String[]{"-cp", tempDir.toString(), file1.toString()});
         
         Registry registry = new Registry();
         new StandardLibrary().registerAll(registry);
@@ -179,10 +177,9 @@ class FileBasedStartupTest {
         Path file1 = createHelperFile(tempDir, "helper1.cln");
         Path file2 = createHelperFile(tempDir, "helper2.cln");
         
-        // Setup configuration
+        // Setup configuration with -cp argument
         RuntimeConfiguration config = new RuntimeConfiguration();
-        config.addClnPath(tempDir.toString());
-        config.parse(new String[]{file1.toString(), file2.toString()});
+        config.parse(new String[]{"-cp", tempDir.toString(), file1.toString(), file2.toString()});
         
         Registry registry = new Registry();
         new StandardLibrary().registerAll(registry);
@@ -206,10 +203,9 @@ class FileBasedStartupTest {
         Path file1 = createDefaultPackageFile(tempDir, "main1.cln", "result = 42;");
         Path file2 = createDefaultPackageFile(tempDir, "main2.cln", "result = 100;");
         
-        // Setup configuration
+        // Setup configuration with -cp argument
         RuntimeConfiguration config = new RuntimeConfiguration();
-        config.addClnPath(tempDir.toString());
-        config.parse(new String[]{file1.toString(), file2.toString()});
+        config.parse(new String[]{"-cp", tempDir.toString(), file1.toString(), file2.toString()});
         
         Registry registry = new Registry();
         new StandardLibrary().registerAll(registry);
@@ -231,7 +227,7 @@ class FileBasedStartupTest {
     void testFileNotFound(@TempDir Path tempDir) {
         // Setup configuration with non-existent file
         RuntimeConfiguration config = new RuntimeConfiguration();
-        config.addClnPath(tempDir.toString());
+        config.parse(new String[]{"-cp", tempDir.toString()});
         
         ClnException exception = assertThrows(ClnException.class, () -> {
             config.parse(new String[]{tempDir.resolve("nonexistent.cln").toString()});

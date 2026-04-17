@@ -12,6 +12,7 @@ import org.clnlang.RuntimeConfiguration;
 import org.clnlang.compile.declaration.FunctionDeclImpl;
 import org.clnlang.exception.ClnException;
 import org.clnlang.lib.StandardLibrary;
+import org.clnlang.persistance.ClnLoader;
 import org.clnlang.runtime.execution.Registry;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -78,7 +79,7 @@ class PackageBasedStartupTest {
         
         // Setup configuration
         RuntimeConfiguration config = new RuntimeConfiguration();
-        config.addClnPath(tempDir.toString());
+        config.parse(new String[]{"-cp", tempDir.toString()});
         config.parse(new String[]{"myapp"});
         
         Registry registry = new Registry();
@@ -89,7 +90,7 @@ class PackageBasedStartupTest {
         startupContext.initialize();
         
         // Verify mode
-        assertEquals(StartupContext.StartupMode.PACKAGE, startupContext.getMode());
+        assertEquals(ClnLoader.StartupMode.PACKAGE, startupContext.getMode());
         
         // Prepare execution context
         startupContext.prepareExecutionContext();
@@ -108,7 +109,7 @@ class PackageBasedStartupTest {
         
         // Setup configuration
         RuntimeConfiguration config = new RuntimeConfiguration();
-        config.addClnPath(tempDir.toString());
+        config.parse(new String[]{"-cp", tempDir.toString()});
         config.parse(new String[]{"com.example.app"});
         
         Registry registry = new Registry();
@@ -119,7 +120,7 @@ class PackageBasedStartupTest {
         startupContext.initialize();
         
         // Verify mode
-        assertEquals(StartupContext.StartupMode.PACKAGE, startupContext.getMode());
+        assertEquals(ClnLoader.StartupMode.PACKAGE, startupContext.getMode());
         
         // Prepare execution context
         startupContext.prepareExecutionContext();
@@ -136,7 +137,7 @@ class PackageBasedStartupTest {
         
         // Setup configuration with wrong package name
         RuntimeConfiguration config = new RuntimeConfiguration();
-        config.addClnPath(tempDir.toString());
+        config.parse(new String[]{"-cp", tempDir.toString()});
         config.parse(new String[]{"nonexistent"});
         
         Registry registry = new Registry();
@@ -160,7 +161,7 @@ class PackageBasedStartupTest {
         
         // Setup configuration
         RuntimeConfiguration config = new RuntimeConfiguration();
-        config.addClnPath(tempDir.toString());
+        config.parse(new String[]{"-cp", tempDir.toString()});
         config.parse(new String[]{"myapp"});
         
         Registry registry = new Registry();
@@ -188,7 +189,7 @@ class PackageBasedStartupTest {
         
         // Setup configuration
         RuntimeConfiguration config = new RuntimeConfiguration();
-        config.addClnPath(tempDir.toString());
+        config.parse(new String[]{"-cp", tempDir.toString()});
         config.parse(new String[]{"myapp"});
         
         Registry registry = new Registry();
@@ -215,7 +216,7 @@ class PackageBasedStartupTest {
         
         // Setup configuration with multiple packages
         RuntimeConfiguration config = new RuntimeConfiguration();
-        config.addClnPath(tempDir.toString());
+        config.parse(new String[]{"-cp", tempDir.toString()});
         config.parse(new String[]{"app1", "app2"});
         
         Registry registry = new Registry();
@@ -240,7 +241,7 @@ class PackageBasedStartupTest {
         
         // Setup configuration with mixed arguments
         RuntimeConfiguration config = new RuntimeConfiguration();
-        config.addClnPath(tempDir.toString());
+        config.parse(new String[]{"-cp", tempDir.toString()});
         
         ClnException exception = assertThrows(ClnException.class, () -> {
             config.parse(new String[]{file.toString(), "myapp"});

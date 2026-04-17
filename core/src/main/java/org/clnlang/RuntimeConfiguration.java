@@ -1,14 +1,10 @@
 package org.clnlang;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Stream;
+
+import org.clnlang.persistance.ClnLoader;
 
 /**
  * Runtime configuration class for parsing command line arguments.
@@ -22,36 +18,20 @@ import java.util.stream.Stream;
  */
 public class RuntimeConfiguration {
     private boolean verbose;
-    private List<String> clnPaths;
-    private List<String> sourceFiles;
     private String clnHome;
+    private String cpArg; // Raw -cp argument
+    private List<String> sourceArgs; // Raw source file/package arguments
+    private ClnLoader clnLoader; // Cached loader instance
     
     /**
      * Creates a new RuntimeConfiguration with default values.
-     * Reads CLN_HOME and CLN_PATH environment variables and initializes paths.
+     * Reads CLN_HOME environment variable.
      */
     public RuntimeConfiguration() {
         this.verbose = false;
-        this.clnPaths = new ArrayList<>();
-        this.sourceFiles = new ArrayList<>();
-        
-        // Read CLN_HOME environment variable
+        this.sourceArgs = new ArrayList<>();
         this.clnHome = System.getenv("CLN_HOME");
-        
-        // Load CLN_HOME/lib if available
-        if (clnHome != null && !clnHome.trim().isEmpty()) {
-            String libPath = clnHome + File.separator + "lib";
-            File libDir = new File(libPath);
-            if (libDir.exists() && libDir.isDirectory()) {
-                this.clnPaths.add(libPath);
-            }
-        }
-        
-        // Load CLN_PATH if available
-        String clnPathEnv = System.getenv("CLN_PATH");
-        if (clnPathEnv != null && !clnPathEnv.trim().isEmpty()) {
-            parseClnPaths(clnPathEnv);
-        }
+        this.cpArg = null;
     }
     
     /**
@@ -72,53 +52,15 @@ public class RuntimeConfiguration {
                     throw new IllegalArgumentException("Option " + arg + " requires a path argument");
                 }
                 i++; // Move to next argument
-                String pathArg = args[i];
-                parseClnPaths(pathArg);
+                this.cpArg = args[i];
+                // Invalidate cached loader since paths changed
+                this.clnLoader = null;
             } else if (!arg.startsWith("-")) {
                 // This is a source file or package definition
-                parseSourceFiles(arg);
+                this.sourceArgs.add(arg);
             } else {
                 throw new IllegalArgumentException("Unknown option: " + arg);
             }
-        }
-    }
-    
-    /**
-     * Parses CLN paths separated by the OS file separator.
-     * 
-     * @param pathArg Path string containing one or more paths separated by File.pathSeparator
-     */
-    private void parseClnPaths(String pathArg) {
-        String[] paths = pathArg.split(File.pathSeparator);
-        for (String path : paths) {
-            String trimmed = path.trim();
-            if (!trimmed.isEmpty()) {
-                this.clnPaths.add(trimmed);
-            }
-        }
-    }
-    
-    /**
-     * Parses source files which can be:
-     * - A single .cln file
-     * - A package definition (e.g., myapp.main)
-     * - Multiple .cln files separated by File.pathSeparator
-     * 
-     * @param sourceArg Source file(s) or package definition
-     */
-    private void parseSourceFiles(String sourceArg) {
-        // Check if this contains multiple files separated by path separator
-        if (sourceArg.contains(File.pathSeparator)) {
-            String[] files = sourceArg.split(File.pathSeparator);
-            for (String file : files) {
-                String trimmed = file.trim();
-                if (!trimmed.isEmpty()) {
-                    this.sourceFiles.add(trimmed);
-                }
-            }
-        } else {
-            // Single file or package definition
-            this.sourceFiles.add(sourceArg);
         }
     }
     
@@ -141,59 +83,12 @@ public class RuntimeConfiguration {
     }
     
     /**
-     * Returns the list of CLN paths for source files and libraries.
-     * 
-     * @return List of CLN paths
-     */
-    public List<String> getClnPaths() {
-        return new ArrayList<>(clnPaths);
-    }
-    
-    /**
-     * Adds a CLN path to the configuration.
-     * 
-     * @param path Path to add
-     */
-    public void addClnPath(String path) {
-        if (path != null && !path.trim().isEmpty()) {
-            this.clnPaths.add(path.trim());
-        }
-    }
-    
-    /**
-     * Returns the list of source files or package definitions.
-     * 
-     * @return List of source files
-     */
-    public List<String> getSourceFiles() {
-        return new ArrayList<>(sourceFiles);
-    }
-    
-    /**
-     * Returns the first source file or package definition, or null if none specified.
-     * 
-     * @return First source file or null
-     */
-    public String getFirstSourceFile() {
-        return sourceFiles.isEmpty() ? null : sourceFiles.get(0);
-    }
-    
-    /**
      * Checks if any source files were specified.
      * 
      * @return true if at least one source file is specified, false otherwise
      */
     public boolean hasSourceFiles() {
-        return !sourceFiles.isEmpty();
-    }
-    
-    /**
-     * Checks if any CLN paths were specified.
-     * 
-     * @return true if at least one CLN path is specified, false otherwise
-     */
-    public boolean hasClnPaths() {
-        return !clnPaths.isEmpty();
+        return !sourceArgs.isEmpty();
     }
     
     /**
@@ -244,53 +139,20 @@ public class RuntimeConfiguration {
     }
     
     /**
-     * Loads all source files from the CLN paths.
-     * Scans all directories in clnPaths and organizes .cln files by package (relative directory path).
+     * Creates and returns a ClnLoader instance configured with environment and command line paths.
+     * Uses the factory method in ClnLoader to parse and configure paths and source files.
+     * The loader is cached and reused unless paths are modified.
      * 
-     * @return Map where keys are package names (relative paths) and values are lists of .cln files in that package
-     * @throws IOException if an I/O error occurs while walking the directory tree
-     * @throws IllegalStateException if the same package is found in multiple source folders
+     * @return A ClnLoader instance for loading source files
      */
-    public Map<String, List<File>> loadAllSourceFiles() throws IOException {
-        Map<String, List<File>> packageFiles = new HashMap<>();
-        
-        for (String clnPath : clnPaths) {
-            File rootDir = new File(clnPath);
-            if (!rootDir.exists() || !rootDir.isDirectory()) {
-                continue; // Skip invalid paths
-            }
-            
-            // First collect all files from this source folder, grouped by package
-            Map<String, List<File>> thisRootPackages = new HashMap<>();
-            
-            try (Stream<Path> paths = Files.walk(rootDir.toPath())) {
-                paths.filter(Files::isRegularFile)
-                    .filter(path -> path.toString().endsWith(".cln"))
-                    .forEach(path -> {
-                        File clnFile = path.toFile();
-                        File parent = clnFile.getParentFile();
-                        
-                        // Get relative path from root (this is the package)
-                        String packageName = rootDir.toPath().relativize(parent.toPath()).toString();
-                        
-                        // Add to this root's packages
-                        thisRootPackages.computeIfAbsent(packageName, k -> new ArrayList<>()).add(clnFile);
-                    });
-            }
-            
-            // Now check for conflicts and add to main map
-            for (Map.Entry<String, List<File>> entry : thisRootPackages.entrySet()) {
-                String packageName = entry.getKey();
-                if (packageFiles.containsKey(packageName)) {
-                    throw new IllegalStateException("Package '" + packageName + "' is defined in multiple source folders");
-                }
-                packageFiles.put(packageName, entry.getValue());
-            }
+    public ClnLoader getClnLoader() {
+        if (clnLoader == null) {
+            String clnPathEnv = System.getenv("CLN_PATH");
+            clnLoader = ClnLoader.fromEnvironment(clnHome, clnPathEnv, cpArg, sourceArgs, verbose);
         }
-        
-        return packageFiles;
+        return clnLoader;
     }
-    
+       
     /**
      * Returns a string representation of the configuration for debugging.
      * 
@@ -300,8 +162,8 @@ public class RuntimeConfiguration {
     public String toString() {
         return "RuntimeConfiguration{" +
                 "verbose=" + verbose +
-                ", clnPaths=" + clnPaths +
-                ", sourceFiles=" + sourceFiles +
+                ", cpArg='" + cpArg + '\'' +
+                ", sourceArgs=" + sourceArgs +
                 ", clnHome='" + clnHome + '\'' +
                 '}';
     }

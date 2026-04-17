@@ -1,0 +1,16 @@
+import std.console.*;
+import std.str.*;
+import std.sys.*;
+
+int main() {
+  int limit = 10000000;
+  var int i = 0;
+  writeLine("start");
+  int startTime = currentTimeMillis();
+  while (i < limit) {
+    i++;
+  }
+  int stopTime = currentTimeMillis();
+  writeLine("Done in " + intToStr(stopTime - startTime) + "ms.");
+  return 0;
+}

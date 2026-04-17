@@ -1,0 +1,90 @@
+import std.console.*;
+
+// Mandelbrot benchmark for cln
+// Tune these to hit ~15–30 seconds on your machine/runtime.
+var int WIDTH    = 1200;
+var int HEIGHT   = 800;
+var int MAX_ITER = 2000;
+var int REPS     = 6;      // increase this first to extend runtime
+
+// Map pixel (x,y) into complex plane
+// Typical view: Re in [-2.0, 1.0], Im in [-1.2, 1.2]
+dec mapRe(int x, int w) {
+    // -2.0 + x * (3.0 / w)
+    return -2.0 + (x * 1.0) * (3.0 / (w * 1.0));
+}
+
+dec mapIm(int y, int h) {
+    // -1.2 + y * (2.4 / h)
+    return -1.2 + (y * 1.0) * (2.4 / (h * 1.0));
+}
+
+// Returns a checksum (int) so results can be validated and not optimized away.
+int mandelbrotChecksum(int w, int h, int maxIter, int reps) {
+    var int rep = 0;
+    var int checksum = 0;
+
+    while (rep < reps) {
+        var int y = 0;
+        while (y < h) {
+            var int x = 0;
+            while (x < w) {
+                var dec cr = mapRe(x, w);
+                var dec ci = mapIm(y, h);
+
+                var dec zr = 0.0;
+                var dec zi = 0.0;
+
+                var int iter = 0;
+
+                // iterate z = z^2 + c while |z|^2 <= 4 and iter < maxIter
+                while (iter < maxIter) {
+                    // |z|^2 = zr*zr + zi*zi
+                    var dec zr2 = zr * zr;
+                    var dec zi2 = zi * zi;
+
+                    if ((zr2 + zi2) > 4.0) {
+                        // escaped
+                        iter = maxIter; // break without a 'break' keyword
+                    } else {
+                        // z^2 + c : (zr + i*zi)^2 = (zr^2 - zi^2) + i*(2*zr*zi)
+                        var dec newZr = (zr2 - zi2) + cr;
+                        var dec newZi = (2.0 * zr * zi) + ci;
+
+                        zr = newZr;
+                        zi = newZi;
+
+                        iter = iter + 1;
+                    }
+                }
+
+                // Mix in x/y so checksum differs even if iteration counts collide.
+                // (Keeps it simple since grammar has no bit-ops/mod.)
+                checksum = checksum + (x + 1) * (y + 1);
+
+                x = x + 1;
+            }
+            y = y + 1;
+        }
+
+        // Another mix per repetition
+        checksum = checksum + rep * 1000003;
+        rep = rep + 1;
+    }
+
+    return checksum;
+}
+
+int main() {
+    // Warmup: do a smaller run once to reduce startup/JIT noise on JVM-based execution
+    // (If you interpret without JIT, this is still fine.)
+    var int warm = mandelbrotChecksum(300, 200, 500, 1);
+
+    //var int sum = mandelbrotChecksum(WIDTH, HEIGHT, MAX_ITER, REPS);
+
+    // print once (avoid I/O in the hot loop)
+    print(warm);
+
+    return 0;
+}
+

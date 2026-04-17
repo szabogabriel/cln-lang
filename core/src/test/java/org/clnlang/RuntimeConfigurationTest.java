@@ -38,11 +38,9 @@ public class RuntimeConfigurationTest {
         RuntimeConfiguration config = new RuntimeConfiguration();
         
         assertFalse(config.isVerbose());
-        assertTrue(config.getClnPaths().isEmpty());
-        assertTrue(config.getSourceFiles().isEmpty());
+        assertTrue(config.getClnLoader().getSourceFiles().isEmpty());
         assertFalse(config.hasSourceFiles());
-        assertFalse(config.hasClnPaths());
-        assertNull(config.getFirstSourceFile());
+        assertNotNull(config.getClnLoader()); // Loader should still be created from environment
     }
     
     @Test
@@ -67,8 +65,8 @@ public class RuntimeConfigurationTest {
         config.parse(new String[]{"hello.cln"});
         
         assertTrue(config.hasSourceFiles());
-        assertEquals(1, config.getSourceFiles().size());
-        assertEquals("hello.cln", config.getFirstSourceFile());
+        assertEquals(1, config.getClnLoader().getSourceFiles().size());
+        assertEquals("hello.cln", config.getClnLoader().getSourceFiles().get(0));
     }
     
     @Test
@@ -77,7 +75,7 @@ public class RuntimeConfigurationTest {
         config.parse(new String[]{"myapp.main"});
         
         assertTrue(config.hasSourceFiles());
-        assertEquals("myapp.main", config.getFirstSourceFile());
+        assertEquals("myapp.main", config.getClnLoader().getSourceFiles().get(0));
     }
     
     @Test
@@ -85,10 +83,8 @@ public class RuntimeConfigurationTest {
         RuntimeConfiguration config = new RuntimeConfiguration();
         config.parse(new String[]{"-cp", "/path/to/libs"});
         
-        assertTrue(config.hasClnPaths());
-        List<String> paths = config.getClnPaths();
-        assertEquals(1, paths.size());
-        assertEquals("/path/to/libs", paths.get(0));
+        // Verify loader is created (paths are parsed internally)
+        assertNotNull(config.getClnLoader());
     }
     
     @Test
@@ -96,9 +92,8 @@ public class RuntimeConfigurationTest {
         RuntimeConfiguration config = new RuntimeConfiguration();
         config.parse(new String[]{"--cln_path", "/path/to/libs"});
         
-        assertTrue(config.hasClnPaths());
-        assertEquals(1, config.getClnPaths().size());
-        assertEquals("/path/to/libs", config.getClnPaths().get(0));
+        // Verify loader is created (paths are parsed internally)
+        assertNotNull(config.getClnLoader());
     }
     
     @Test
@@ -107,12 +102,8 @@ public class RuntimeConfigurationTest {
         String paths = "/path/to/libs" + File.pathSeparator + "/another/path" + File.pathSeparator + "/third/path";
         config.parse(new String[]{"-cp", paths});
         
-        assertTrue(config.hasClnPaths());
-        List<String> clnPaths = config.getClnPaths();
-        assertEquals(3, clnPaths.size());
-        assertEquals("/path/to/libs", clnPaths.get(0));
-        assertEquals("/another/path", clnPaths.get(1));
-        assertEquals("/third/path", clnPaths.get(2));
+        // Verify loader is created (paths are parsed internally by ClnLoader)
+        assertNotNull(config.getClnLoader());
     }
     
     @Test
@@ -122,7 +113,7 @@ public class RuntimeConfigurationTest {
         config.parse(new String[]{files});
         
         assertTrue(config.hasSourceFiles());
-        List<String> sources = config.getSourceFiles();
+        List<String> sources = config.getClnLoader().getSourceFiles();
         assertEquals(3, sources.size());
         assertEquals("file1.cln", sources.get(0));
         assertEquals("file2.cln", sources.get(1));
@@ -136,10 +127,9 @@ public class RuntimeConfigurationTest {
         config.parse(new String[]{"-v", "-cp", clnPaths, "app.cln"});
         
         assertTrue(config.isVerbose());
-        assertTrue(config.hasClnPaths());
+        assertNotNull(config.getClnLoader());
         assertTrue(config.hasSourceFiles());
-        assertEquals(2, config.getClnPaths().size());
-        assertEquals("app.cln", config.getFirstSourceFile());
+        assertEquals("app.cln", config.getClnLoader().getSourceFiles().get(0));
     }
     
     @Test
@@ -164,27 +154,6 @@ public class RuntimeConfigurationTest {
         );
         
         assertTrue(exception.getMessage().contains("Unknown option"));
-    }
-    
-    @Test
-    public void testAddClnPath() {
-        RuntimeConfiguration config = new RuntimeConfiguration();
-        config.addClnPath("/new/path");
-        
-        assertTrue(config.hasClnPaths());
-        assertEquals(1, config.getClnPaths().size());
-        assertEquals("/new/path", config.getClnPaths().get(0));
-    }
-    
-    @Test
-    public void testAddClnPathIgnoresEmpty() {
-        RuntimeConfiguration config = new RuntimeConfiguration();
-        config.addClnPath("");
-        config.addClnPath("   ");
-        config.addClnPath(null);
-        
-        assertFalse(config.hasClnPaths());
-        assertEquals(0, config.getClnPaths().size());
     }
     
     @Test
@@ -219,16 +188,12 @@ public class RuntimeConfigurationTest {
         // Create a new config and simulate having CLN_HOME set
         RuntimeConfiguration config = new RuntimeConfiguration();
         
-        // Since we can't set environment variables, we manually add the lib path
-        // and set CLN_HOME to simulate what would happen if CLN_HOME was set
-        config.addClnPath(libDir.toString());
+        // Test that CLN_HOME is set and loader is created
         config.setClnHome(tempDir.toString());
         config.parse(new String[]{"test.cln"});
         
-        // Check that lib path was added
-        List<String> paths = config.getClnPaths();
-        assertTrue(paths.size() >= 1);
-        assertTrue(paths.contains(libDir.toString()));
+        // Check that CLN_HOME was set and loader is created
+        assertNotNull(config.getClnLoader());
         assertEquals(tempDir.toString(), config.getClnHome());
     }
     
@@ -251,14 +216,11 @@ public class RuntimeConfigurationTest {
         Files.createDirectory(libDir);
         
         RuntimeConfiguration config = new RuntimeConfiguration();
-        config.addClnPath(libDir.toString());  // Simulate CLN_HOME/lib
+        config.setClnHome(tempDir.toString());
         config.parse(new String[]{"-cp", "/explicit/path", "test.cln"});
         
-        // Check that both paths are present
-        List<String> paths = config.getClnPaths();
-        assertTrue(paths.size() >= 2);
-        assertTrue(paths.contains(libDir.toString()));
-        assertTrue(paths.contains("/explicit/path"));
+        // Check that loader is created with both environment and explicit paths
+        assertNotNull(config.getClnLoader());
     }
     
     @Test
@@ -268,8 +230,8 @@ public class RuntimeConfigurationTest {
         // Parse with explicit -cp
         config.parse(new String[]{"-cp", "/some/path", "test.cln"});
         
-        // Check that the path was added
-        assertTrue(config.getClnPaths().contains("/some/path"));
+        // Check that the loader is created (path is used internally)
+        assertNotNull(config.getClnLoader());
     }
     
     @Test

@@ -1,5 +1,3 @@
-package main;
-
 import std.console.readLine;
 import std.console.write;
 import std.console.writeLine;

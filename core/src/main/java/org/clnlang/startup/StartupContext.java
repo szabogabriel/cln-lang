@@ -17,6 +17,7 @@ import org.clnlang.exception.ClnException;
 import org.clnlang.linker.Linker;
 import org.clnlang.parser.clnLexer;
 import org.clnlang.parser.clnParser;
+import org.clnlang.persistance.ClnLoader;
 import org.clnlang.runtime.context.ExecutionContext;
 import org.clnlang.runtime.execution.Registry;
 
@@ -33,7 +34,7 @@ public class StartupContext {
     private final boolean verbose;
     
     // Startup mode
-    private StartupMode mode;
+    private ClnLoader.StartupMode mode;
     private List<File> targetFiles;
     private String targetPackage;
     
@@ -58,8 +59,8 @@ public class StartupContext {
     public void initialize() throws Exception {
         log("Initializing startup context...");
         
-        // Step 1: Load ALL .cln files from source paths
-        loadAllClnFilesIntoRegistry();
+        // Step 1: Load ALL .cln files from source paths using the loader
+        config.getClnLoader().loadSources(registry);
         
         // Step 2: Determine startup mode
         determineStartupMode();
@@ -68,148 +69,21 @@ public class StartupContext {
     }
     
     /**
-     * Load all .cln files from configured source paths into the registry.
-     */
-    private void loadAllClnFilesIntoRegistry() throws Exception {
-        log("Loading all .cln files from source paths...");
-        int totalFiles = 0;
-        
-        for (String clnPath : config.getClnPaths()) {
-            File rootDir = new File(clnPath);
-            if (!rootDir.exists() || !rootDir.isDirectory()) {
-                log("Warning: Source path does not exist or is not a directory: " + clnPath);
-                continue;
-            }
-            
-            int filesLoaded = loadClnFilesRecursively(rootDir);
-            totalFiles += filesLoaded;
-            log("Loaded " + filesLoaded + " file(s) from " + clnPath);
-        }
-        
-        log("Total files loaded: " + totalFiles);
-    }
-    
-    /**
-     * Recursively load all .cln files from a directory.
-     */
-    private int loadClnFilesRecursively(File directory) throws Exception {
-        int count = 0;
-        File[] files = directory.listFiles();
-        
-        if (files == null) {
-            return 0;
-        }
-        
-        for (File file : files) {
-            if (file.isDirectory()) {
-                count += loadClnFilesRecursively(file);
-            } else if (file.getName().endsWith(".cln")) {
-                try {
-                    ProgramImpl program = compileFile(file);
-                    String declaredPackage = "default";
-                    
-                    if (program.getPackageDecl() != null && 
-                        program.getPackageDecl().getPackageName() != null) {
-                        declaredPackage = program.getPackageDecl().getPackageName();
-                    }
-                    
-                    registry.addProgram(file, program, declaredPackage);
-                    
-                    // Also register all functions, types, and variables from this program
-                    registerProgramSymbols(program, declaredPackage);
-                    
-                    count++;
-                    log("  Loading: " + file.getName() + " (package=" + declaredPackage + ")");
-                } catch (Exception e) {
-                    log("Warning: Failed to compile " + file.getName() + ": " + e.getMessage());
-                }
-            }
-        }
-        
-        return count;
-    }
-    
-    /**
-     * Register all symbols (functions, types, variables) from a program into the registry.
-     * This makes them available for import resolution.
-     */
-    private void registerProgramSymbols(ProgramImpl program, String packageName) {
-        for (var decl : program.getDeclarations()) {
-            if (decl instanceof FunctionDeclImpl) {
-                FunctionDeclImpl funcDecl = (FunctionDeclImpl) decl;
-                funcDecl.setPackageName(packageName);
-                registry.registerFunction(
-                    new org.clnlang.runtime.types.FullyQualifiedName(packageName, funcDecl.getName()),
-                    funcDecl
-                );
-            } else if (decl instanceof org.clnlang.compile.declaration.StructDeclImpl) {
-                org.clnlang.compile.declaration.StructDeclImpl structDecl = 
-                    (org.clnlang.compile.declaration.StructDeclImpl) decl;
-                registry.registerStructType(
-                    new org.clnlang.runtime.types.FullyQualifiedName(packageName, structDecl.getName()),
-                    structDecl.toStructDefinition(packageName)
-                );
-            } else if (decl instanceof org.clnlang.compile.declaration.UnionDeclImpl) {
-                org.clnlang.compile.declaration.UnionDeclImpl unionDecl = 
-                    (org.clnlang.compile.declaration.UnionDeclImpl) decl;
-                registry.registerUnionType(
-                    new org.clnlang.runtime.types.FullyQualifiedName(packageName, unionDecl.getName()),
-                    unionDecl.toUnionDefinition(packageName)
-                );
-            } else if (decl instanceof org.clnlang.compile.declaration.GlobalVarDeclImpl) {
-                org.clnlang.compile.declaration.GlobalVarDeclImpl varDecl = 
-                    (org.clnlang.compile.declaration.GlobalVarDeclImpl) decl;
-                varDecl.setPackageName(packageName);
-                if (varDecl.isMutable()) {
-                    registry.registerGlobalVariable(
-                        new org.clnlang.runtime.types.FullyQualifiedName(packageName, varDecl.getName()),
-                        varDecl
-                    );
-                } else {
-                    registry.registerGlobalConstant(
-                        new org.clnlang.runtime.types.FullyQualifiedName(packageName, varDecl.getName()),
-                        varDecl
-                    );
-                }
-            }
-        }
-    }
-
-    /**
-     * Compile a single .cln file into a ProgramImpl.
-     */
-    private ProgramImpl compileFile(File file) throws Exception {
-        CharStream input = CharStreams.fromFileName(file.getAbsolutePath());
-        clnLexer lexer = new clnLexer(input);
-        CommonTokenStream tokens = new CommonTokenStream(lexer);
-        clnParser parser = new clnParser(tokens);
-        clnParser.ProgramContext programContext = parser.program();
-        
-        if (parser.getNumberOfSyntaxErrors() > 0) {
-            throw new ClnException("Parsing failed for " + file.getName() + 
-                " with " + parser.getNumberOfSyntaxErrors() + " errors.");
-        }
-        
-        CompilerVisitor compiler = new CompilerVisitor();
-        return compiler.compileProgram(programContext);
-    }
-    
-    /**
      * Determine the startup mode based on runtime configuration.
      */
     private void determineStartupMode() throws Exception {
-        List<String> sourceFiles = config.getSourceFiles();
+        ClnLoader loader = config.getClnLoader();
+        List<String> sourceFiles = loader.getSourceFiles();
         
         if (sourceFiles.isEmpty()) {
             throw new ClnException("No source files or package specified");
         }
         
-        // Check if first argument is a package name or a file
-        String first = sourceFiles.get(0);
+        // Get the mode from the loader
+        mode = loader.getSupportedStartupMode();
         
-        if (first.endsWith(".cln")) {
+        if (mode == ClnLoader.StartupMode.FILES) {
             // File-based startup
-            mode = StartupMode.FILES;
             targetFiles = new ArrayList<>();
             
             for (String sourceFile : sourceFiles) {
@@ -230,8 +104,7 @@ public class StartupContext {
                 throw new ClnException("Only one package can be specified for startup");
             }
             
-            mode = StartupMode.PACKAGE;
-            targetPackage = first;
+            targetPackage = sourceFiles.get(0);
             
             // Validate that the package exists in the registry
             if (!registry.hasPackage(targetPackage)) {
@@ -251,7 +124,7 @@ public class StartupContext {
     public void prepareExecutionContext() throws Exception {
         log("Preparing execution context...");
         
-        if (mode == StartupMode.FILES) {
+        if (mode == ClnLoader.StartupMode.FILES) {
             prepareForFileStartup();
         } else {
             prepareForPackageStartup();
@@ -339,7 +212,7 @@ public class StartupContext {
             .collect(Collectors.toList());
         
         if (mainFunctions.isEmpty()) {
-            String errorMsg = mode == StartupMode.FILES 
+            String errorMsg = mode == ClnLoader.StartupMode.FILES 
                 ? "No 'main' function found in the specified files."
                 : "No 'main' function found in package: " + targetPackage;
             throw new ClnException(errorMsg);
@@ -365,12 +238,78 @@ public class StartupContext {
         return executionContext;
     }
     
-    public StartupMode getMode() {
+    public ClnLoader.StartupMode getMode() {
         return mode;
     }
     
     public Registry getRegistry() {
         return registry;
+    }
+    
+    /**
+     * Compile a single .cln file into a ProgramImpl.
+     * Used for on-demand compilation of files not in the configured paths.
+     */
+    private ProgramImpl compileFile(File file) throws Exception {
+        CharStream input = CharStreams.fromFileName(file.getAbsolutePath());
+        clnLexer lexer = new clnLexer(input);
+        CommonTokenStream tokens = new CommonTokenStream(lexer);
+        clnParser parser = new clnParser(tokens);
+        clnParser.ProgramContext programContext = parser.program();
+        
+        if (parser.getNumberOfSyntaxErrors() > 0) {
+            throw new ClnException("Parsing failed for " + file.getName() + 
+                " with " + parser.getNumberOfSyntaxErrors() + " errors.");
+        }
+        
+        CompilerVisitor compiler = new CompilerVisitor();
+        return compiler.compileProgram(programContext);
+    }
+    
+    /**
+     * Register all symbols (functions, types, variables) from a program into the registry.
+     * Used for on-demand registration of files not in the configured paths.
+     */
+    private void registerProgramSymbols(ProgramImpl program, String packageName) {
+        for (var decl : program.getDeclarations()) {
+            if (decl instanceof FunctionDeclImpl) {
+                FunctionDeclImpl funcDecl = (FunctionDeclImpl) decl;
+                funcDecl.setPackageName(packageName);
+                registry.registerFunction(
+                    new org.clnlang.runtime.types.FullyQualifiedName(packageName, funcDecl.getName()),
+                    funcDecl
+                );
+            } else if (decl instanceof org.clnlang.compile.declaration.StructDeclImpl) {
+                org.clnlang.compile.declaration.StructDeclImpl structDecl = 
+                    (org.clnlang.compile.declaration.StructDeclImpl) decl;
+                registry.registerStructType(
+                    new org.clnlang.runtime.types.FullyQualifiedName(packageName, structDecl.getName()),
+                    structDecl.toStructDefinition(packageName)
+                );
+            } else if (decl instanceof org.clnlang.compile.declaration.UnionDeclImpl) {
+                org.clnlang.compile.declaration.UnionDeclImpl unionDecl = 
+                    (org.clnlang.compile.declaration.UnionDeclImpl) decl;
+                registry.registerUnionType(
+                    new org.clnlang.runtime.types.FullyQualifiedName(packageName, unionDecl.getName()),
+                    unionDecl.toUnionDefinition(packageName)
+                );
+            } else if (decl instanceof org.clnlang.compile.declaration.GlobalVarDeclImpl) {
+                org.clnlang.compile.declaration.GlobalVarDeclImpl varDecl = 
+                    (org.clnlang.compile.declaration.GlobalVarDeclImpl) decl;
+                varDecl.setPackageName(packageName);
+                if (varDecl.isMutable()) {
+                    registry.registerGlobalVariable(
+                        new org.clnlang.runtime.types.FullyQualifiedName(packageName, varDecl.getName()),
+                        varDecl
+                    );
+                } else {
+                    registry.registerGlobalConstant(
+                        new org.clnlang.runtime.types.FullyQualifiedName(packageName, varDecl.getName()),
+                        varDecl
+                    );
+                }
+            }
+        }
     }
     
     private void log(String message) {
