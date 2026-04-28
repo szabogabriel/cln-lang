@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.clnlang.persistance.ClnLoader;
+import org.clnlang.persistance.ClnLoaderFactory;
 
 /**
  * Runtime configuration class for parsing command line arguments.
@@ -148,7 +149,7 @@ public class RuntimeConfiguration {
     public ClnLoader getClnLoader() {
         if (clnLoader == null) {
             String clnPathEnv = System.getenv("CLN_PATH");
-            clnLoader = ClnLoader.fromEnvironment(clnHome, clnPathEnv, cpArg, sourceArgs, verbose);
+            clnLoader = ClnLoaderFactory.fromEnvironment(clnHome, clnPathEnv, cpArg, sourceArgs, verbose);
         }
         return clnLoader;
     }

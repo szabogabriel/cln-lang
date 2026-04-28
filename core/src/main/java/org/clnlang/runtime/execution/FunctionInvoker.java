@@ -36,20 +36,21 @@ public class FunctionInvoker {
         context.pushCallFrame(funcDecl.getName());
         
         try {
-            // Map arguments to parameters in the new frame's local context
-            for (int i = 0; i < parameters.size(); i++) {
-                String paramName = parameters.get(i).getName();
-                Object argValue = argValues.get(i);
-                context.getLocalContext().setConstant(paramName, argValue);
-            }
-            
-            // Initialize return variables in the local context
+            // Initialize return variables first (must match compile-time scope registration order,
+            // which registers return vars before parameters)
             List<FunctionDeclImpl.ReturnVar> returnVars = funcDecl.getReturnVars();
             for (FunctionDeclImpl.ReturnVar retVar : returnVars) {
                 String retVarName = retVar.getName();
                 Object defaultValue = getDefaultValue(retVar.getType());
                 // Return variables are mutable, so use setVariable
                 context.getLocalContext().setVariable(retVarName, defaultValue);
+            }
+
+            // Map arguments to parameters in the new frame's local context
+            for (int i = 0; i < parameters.size(); i++) {
+                String paramName = parameters.get(i).getName();
+                Object argValue = argValues.get(i);
+                context.getLocalContext().setConstant(paramName, argValue);
             }
             
             // Execute the function block

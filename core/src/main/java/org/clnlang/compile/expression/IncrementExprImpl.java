@@ -69,12 +69,19 @@ public class IncrementExprImpl implements CompiledExpr {
             throw new RuntimeException("Unknown increment/decrement operator: " + operator);
         }
         
-        // Update the variable
-        boolean updated = context.getLocalContext().updateVariable(varName, newValue);
-        if (!updated) {
-            updated = context.getGlobalContext().updateGlobalVariable(varName, newValue);
+        // Update the variable - prefer index-based access for variables stored by index
+        if (id.getIndex() >= 0 && "int".equals(id.getType())) {
+            boolean updated = context.getLocalContext().updateLongByIndex(id.getIndex(), newValue);
             if (!updated) {
                 throw new RuntimeException("Cannot increment/decrement undefined or constant variable: " + varName);
+            }
+        } else {
+            boolean updated = context.getLocalContext().updateVariable(varName, newValue);
+            if (!updated) {
+                updated = context.getGlobalContext().updateGlobalVariable(varName, newValue);
+                if (!updated) {
+                    throw new RuntimeException("Cannot increment/decrement undefined or constant variable: " + varName);
+                }
             }
         }
         
