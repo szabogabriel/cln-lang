@@ -21,6 +21,7 @@ public class RuntimeConfiguration {
     private boolean verbose;
     private String clnHome;
     private String cpArg; // Raw -cp argument
+    private String dbDriverArg; // Raw -cdd argument
     private List<String> sourceArgs; // Raw source file/package arguments
     private ClnLoader clnLoader; // Cached loader instance
     
@@ -33,6 +34,7 @@ public class RuntimeConfiguration {
         this.sourceArgs = new ArrayList<>();
         this.clnHome = System.getenv("CLN_HOME");
         this.cpArg = null;
+        this.dbDriverArg = null;
     }
     
     /**
@@ -55,6 +57,14 @@ public class RuntimeConfiguration {
                 i++; // Move to next argument
                 this.cpArg = args[i];
                 // Invalidate cached loader since paths changed
+                this.clnLoader = null;
+            } else if (arg.equals("-cdd") || arg.equals("--cln-db-driver")) {
+                if (i + 1 >= args.length) {
+                    throw new IllegalArgumentException("Option " + arg + " requires a driver class argument");
+                }
+                i++;
+                this.dbDriverArg = args[i];
+                // Invalidate cached loader since driver changed
                 this.clnLoader = null;
             } else if (!arg.startsWith("-")) {
                 // This is a source file or package definition
@@ -118,8 +128,10 @@ public class RuntimeConfiguration {
         System.err.println();
         System.err.println("Options:");
         System.err.println("  -v, --verbose              Enable verbose output");
-        System.err.println("  -cp, --cln_path <paths>    Set path(s) for source files and libraries");
-        System.err.println("                             Multiple paths separated by '" + File.pathSeparator + "'");
+        System.err.println("  -cp, --cln_path <path>     Set path(s) for source files/libraries, or a JDBC URL");
+        System.err.println("                             Multiple file-system paths separated by '" + File.pathSeparator + "'");
+        System.err.println("  -cdd, --cln-db-driver <class>  JDBC driver class to load (database mode)");
+        System.err.println("                             Overrides CLN_DB_DRIVER environment variable");
         System.err.println();
         System.err.println("Source:");
         System.err.println("  file.cln                   A CLN source file");
@@ -129,8 +141,9 @@ public class RuntimeConfiguration {
         System.err.println("Environment Variables:");
         System.err.println("  CLN_HOME                   Home folder for out-of-the-box libraries");
         System.err.println("                             Automatically adds ${CLN_HOME}/lib to search path");
-        System.err.println("  CLN_PATH                   Default library paths (used when -cp is not specified)");
-        System.err.println("                             Multiple paths separated by '" + File.pathSeparator + "'");
+        System.err.println("  CLN_PATH                   Default library paths or JDBC URL (used when -cp is not specified)");
+        System.err.println("                             Multiple file-system paths separated by '" + File.pathSeparator + "'");
+        System.err.println("  CLN_DB_DRIVER              JDBC driver class for database mode (default: org.h2.Driver)");
         System.err.println();
         System.err.println("Examples:");
         System.err.println("  java -jar cln.jar hello.cln");
@@ -149,7 +162,9 @@ public class RuntimeConfiguration {
     public ClnLoader getClnLoader() {
         if (clnLoader == null) {
             String clnPathEnv = System.getenv("CLN_PATH");
-            clnLoader = ClnLoaderFactory.fromEnvironment(clnHome, clnPathEnv, cpArg, sourceArgs, verbose);
+            String dbDriverEnv = System.getenv("CLN_DB_DRIVER");
+            String effectiveDbDriver = (dbDriverArg != null) ? dbDriverArg : dbDriverEnv;
+            clnLoader = ClnLoaderFactory.fromEnvironment(clnHome, clnPathEnv, cpArg, sourceArgs, verbose, effectiveDbDriver);
         }
         return clnLoader;
     }
@@ -164,6 +179,7 @@ public class RuntimeConfiguration {
         return "RuntimeConfiguration{" +
                 "verbose=" + verbose +
                 ", cpArg='" + cpArg + '\'' +
+                ", dbDriverArg='" + dbDriverArg + '\'' +
                 ", sourceArgs=" + sourceArgs +
                 ", clnHome='" + clnHome + '\'' +
                 '}';
