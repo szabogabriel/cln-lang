@@ -2,9 +2,12 @@ package org.clnlang.persistance;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
@@ -143,6 +146,17 @@ public class JdbcLoader implements ClnLoader {
             ")");
     }
 
+    /**
+     * Returns the vendor-specific DDL for creating the {@code CLN_SOURCE} table.
+     * Falls back to the H2 dialect for unrecognised vendors.
+     *
+     * @param vendor the target database vendor
+     * @return the {@code CREATE TABLE} statement appropriate for that vendor
+     */
+    static String getDdlForVendor(DbVendors vendor) {
+        return DDL_BY_VENDOR.getOrDefault(vendor, DDL_BY_VENDOR.get(DbVendors.H2));
+    }
+
     private final String jdbcUrl;
     private final String driverClass;
     private final List<String> sourceArgs;
@@ -175,10 +189,11 @@ public class JdbcLoader implements ClnLoader {
             ensureSchema(conn);
             try (Statement stmt = conn.createStatement();
                  ResultSet rs = stmt.executeQuery(
-                         "SELECT package, source FROM CLN_SOURCE ORDER BY id")) {
+                         "SELECT id, package, source, createdAt, updatedAt, version FROM CLN_SOURCE ORDER BY id")) {
                 while (rs.next()) {
-                    String pkg = rs.getString("package");
-                    String src = rs.getString("source");
+                    ClnSource row = mapRow(rs);
+                    String pkg = row.getPackageName();
+                    String src = row.getSource();
                     try {
                         ProgramImpl program = compileSource(pkg, src);
                         String declaredPkg = pkg;
@@ -249,7 +264,7 @@ public class JdbcLoader implements ClnLoader {
 
     private void ensureSchema(Connection conn) throws SQLException {
         DbVendors vendor = DbVendors.fromJdbc(jdbcUrl).orElse(DbVendors.H2);
-        String ddl = DDL_BY_VENDOR.getOrDefault(vendor, DDL_BY_VENDOR.get(DbVendors.H2));
+        String ddl = getDdlForVendor(vendor);
         try (Statement stmt = conn.createStatement()) {
             stmt.execute(ddl);
         } catch (SQLException e) {
@@ -312,5 +327,18 @@ public class JdbcLoader implements ClnLoader {
         if (verbose) {
             System.out.println(message);
         }
+    }
+
+    private static ClnSource mapRow(ResultSet rs) throws SQLException {
+        Timestamp createdAt = rs.getTimestamp("createdAt");
+        Timestamp updatedAt = rs.getTimestamp("updatedAt");
+        return ClnSource.builder()
+                .id(rs.getLong("id"))
+                .packageName(rs.getString("package"))
+                .source(rs.getString("source"))
+                .createdAt(createdAt != null ? createdAt.toLocalDateTime() : null)
+                .updatedAt(updatedAt != null ? updatedAt.toLocalDateTime() : null)
+                .version(rs.getInt("version"))
+                .build();
     }
 }
