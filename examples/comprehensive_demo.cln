@@ -3,7 +3,7 @@
 // This file demonstrates all available language features in the CLN language
 // ============================================================================
 
-package main;
+// package main;
 
 // Import statements - both wildcard and specific
 import std.console.*;
