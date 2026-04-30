@@ -17,7 +17,7 @@ public class ClnLoaderFactory {
      * treated as a JDBC URL and an {@link H2Loader} is returned instead of the default
      * {@link FileSystemLoader}.  The {@code dbDriver} parameter (or the
      * {@code CLN_DB_DRIVER} environment variable) supplies the driver class to load;
-     * when both are absent the H2 default ({@value H2Loader#DEFAULT_DRIVER}) is used.
+     * when both are absent the H2 default ({@value JdbcLoader#DEFAULT_DRIVER}) is used.
      *
      * @param clnHome    CLN_HOME environment variable value (can be null)
      * @param clnPathEnv CLN_PATH environment variable value (can be null)
@@ -40,7 +40,7 @@ public class ClnLoaderFactory {
         }
 
         if (jdbcUrl != null) {
-            return new H2Loader(jdbcUrl, dbDriver, sourceArgs, verbose);
+            return new JdbcLoader(jdbcUrl, dbDriver, sourceArgs, verbose);
         }
 
         // Fall through to file-system loader

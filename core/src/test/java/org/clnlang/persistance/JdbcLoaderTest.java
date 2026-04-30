@@ -17,7 +17,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class H2LoaderTest {
+class JdbcLoaderTest {
 
     // Each test gets an isolated in-memory DB via a unique name + DB_CLOSE_DELAY=-1
     private static final String JDBC_URL = "jdbc:h2:mem:h2loadertest;DB_CLOSE_DELAY=-1";
@@ -47,7 +47,7 @@ class H2LoaderTest {
 
     @Test
     void schemaIsCreatedOnFirstLoadSources() throws Exception {
-        H2Loader loader = new H2Loader(JDBC_URL, DRIVER, List.of("myapp"), false);
+        JdbcLoader loader = new JdbcLoader(JDBC_URL, DRIVER, List.of("myapp"), false);
         loader.loadSources(new Registry());
 
         try (Connection conn = DriverManager.getConnection(JDBC_URL);
@@ -60,7 +60,7 @@ class H2LoaderTest {
 
     @Test
     void schemaCreationIsIdempotent() throws Exception {
-        H2Loader loader = new H2Loader(JDBC_URL, DRIVER, List.of("myapp"), false);
+        JdbcLoader loader = new JdbcLoader(JDBC_URL, DRIVER, List.of("myapp"), false);
         // Two calls must not throw
         assertDoesNotThrow(() -> {
             loader.loadSources(new Registry());
@@ -74,7 +74,7 @@ class H2LoaderTest {
 
     @Test
     void loadSourcesReturnsZeroForEmptyDatabase() throws Exception {
-        H2Loader loader = new H2Loader(JDBC_URL, DRIVER, List.of("myapp"), false);
+        JdbcLoader loader = new JdbcLoader(JDBC_URL, DRIVER, List.of("myapp"), false);
         int count = loader.loadSources(new Registry());
         assertEquals(0, count);
     }
@@ -91,7 +91,7 @@ class H2LoaderTest {
                 """;
         insertSource("myapp", clnSource);
 
-        H2Loader loader = new H2Loader(JDBC_URL, DRIVER, List.of("myapp"), false);
+        JdbcLoader loader = new JdbcLoader(JDBC_URL, DRIVER, List.of("myapp"), false);
         Registry registry = new Registry();
         int count = loader.loadSources(registry);
 
@@ -106,7 +106,7 @@ class H2LoaderTest {
         insertSource("pkg1", src1);
         insertSource("pkg2", src2);
 
-        H2Loader loader = new H2Loader(JDBC_URL, DRIVER, List.of("pkg1"), false);
+        JdbcLoader loader = new JdbcLoader(JDBC_URL, DRIVER, List.of("pkg1"), false);
         Registry registry = new Registry();
         int count = loader.loadSources(registry);
 
@@ -119,7 +119,7 @@ class H2LoaderTest {
     void loadSourcesSkipsInvalidSourceWithoutThrowing() throws Exception {
         insertSource("broken", "this is @@ not valid CLN source");
 
-        H2Loader loader = new H2Loader(JDBC_URL, DRIVER, List.of("broken"), false);
+        JdbcLoader loader = new JdbcLoader(JDBC_URL, DRIVER, List.of("broken"), false);
         Registry registry = new Registry();
         int count = loader.loadSources(registry);
 
@@ -131,7 +131,7 @@ class H2LoaderTest {
         insertSource("broken", "not valid @@@@");
         insertSource("myapp", "package myapp;\nhelper() { return; }\n");
 
-        H2Loader loader = new H2Loader(JDBC_URL, DRIVER, List.of("myapp"), false);
+        JdbcLoader loader = new JdbcLoader(JDBC_URL, DRIVER, List.of("myapp"), false);
         Registry registry = new Registry();
         int count = loader.loadSources(registry);
 
@@ -145,7 +145,7 @@ class H2LoaderTest {
 
     @Test
     void getSourceFilesReturnsPackageReferencesForEachArg() {
-        H2Loader loader = new H2Loader(JDBC_URL, DRIVER, List.of("myapp", "util.helper"), false);
+        JdbcLoader loader = new JdbcLoader(JDBC_URL, DRIVER, List.of("myapp", "util.helper"), false);
         List<ClnSourceFile> files = loader.getSourceFiles();
 
         assertEquals(2, files.size());
@@ -157,7 +157,7 @@ class H2LoaderTest {
 
     @Test
     void getSourceFilesStripsClnExtension() {
-        H2Loader loader = new H2Loader(JDBC_URL, DRIVER, List.of("hello.cln"), false);
+        JdbcLoader loader = new JdbcLoader(JDBC_URL, DRIVER, List.of("hello.cln"), false);
         List<ClnSourceFile> files = loader.getSourceFiles();
 
         assertEquals(1, files.size());
@@ -167,13 +167,13 @@ class H2LoaderTest {
 
     @Test
     void startupModeIsPackageForPackageArg() {
-        H2Loader loader = new H2Loader(JDBC_URL, DRIVER, List.of("myapp"), false);
+        JdbcLoader loader = new JdbcLoader(JDBC_URL, DRIVER, List.of("myapp"), false);
         assertEquals(StartupMode.PACKAGE, loader.getSupportedStartupMode());
     }
 
     @Test
     void startupModeThrowsWhenNoSourceArgsProvided() {
-        H2Loader loader = new H2Loader(JDBC_URL, DRIVER, List.of(), false);
+        JdbcLoader loader = new JdbcLoader(JDBC_URL, DRIVER, List.of(), false);
         assertThrows(RuntimeException.class, loader::getSupportedStartupMode);
     }
 
@@ -183,20 +183,20 @@ class H2LoaderTest {
 
     @Test
     void nullDriverFallsBackToH2DefaultAndLoadsSuccessfully() throws Exception {
-        // null driver → H2Loader uses DEFAULT_DRIVER (org.h2.Driver) which is on classpath
-        H2Loader loader = new H2Loader(JDBC_URL, null, List.of("myapp"), false);
+        // null driver → JdbcLoader uses DEFAULT_DRIVER (org.h2.Driver) which is on classpath
+        JdbcLoader loader = new JdbcLoader(JDBC_URL, null, List.of("myapp"), false);
         assertDoesNotThrow(() -> loader.loadSources(new Registry()));
     }
 
     @Test
     void blankDriverFallsBackToH2Default() throws Exception {
-        H2Loader loader = new H2Loader(JDBC_URL, "  ", List.of("myapp"), false);
+        JdbcLoader loader = new JdbcLoader(JDBC_URL, "  ", List.of("myapp"), false);
         assertDoesNotThrow(() -> loader.loadSources(new Registry()));
     }
 
     @Test
     void unknownDriverClassThrowsDescriptiveException() {
-        H2Loader loader = new H2Loader(JDBC_URL, "com.nonexistent.Driver", List.of("myapp"), false);
+        JdbcLoader loader = new JdbcLoader(JDBC_URL, "com.nonexistent.Driver", List.of("myapp"), false);
         RuntimeException ex = assertThrows(RuntimeException.class, () -> loader.loadSources(new Registry()));
         assertTrue(ex.getMessage().contains("com.nonexistent.Driver"));
     }
@@ -206,24 +206,24 @@ class H2LoaderTest {
     // -------------------------------------------------------------------------
 
     @Test
-    void factoryCreatesH2LoaderWhenClnPathEnvIsJdbcUrl() {
+    void factoryCreatesJdbcLoaderWhenClnPathEnvIsJdbcUrl() {
         ClnLoader loader = ClnLoaderFactory.fromEnvironment(null, JDBC_URL, null,
                 List.of("myapp"), false, DRIVER);
-        assertInstanceOf(H2Loader.class, loader);
+        assertInstanceOf(JdbcLoader.class, loader);
     }
 
     @Test
-    void factoryCreatesH2LoaderWhenCpArgIsJdbcUrl() {
+    void factoryCreatesJdbcLoaderWhenCpArgIsJdbcUrl() {
         ClnLoader loader = ClnLoaderFactory.fromEnvironment(null, null, JDBC_URL,
                 List.of("myapp"), false, DRIVER);
-        assertInstanceOf(H2Loader.class, loader);
+        assertInstanceOf(JdbcLoader.class, loader);
     }
 
     @Test
     void factoryPrefersClnPathEnvOverCpArgForJdbcDetection() {
         ClnLoader loader = ClnLoaderFactory.fromEnvironment(null, JDBC_URL, "/some/path",
                 List.of("myapp"), false, DRIVER);
-        assertInstanceOf(H2Loader.class, loader);
+        assertInstanceOf(JdbcLoader.class, loader);
     }
 
     @Test
@@ -238,19 +238,19 @@ class H2LoaderTest {
     // -------------------------------------------------------------------------
 
     @Test
-    void runtimeConfigParsesDbDriverArgAndCreatesH2Loader() {
+    void runtimeConfigParsesDbDriverArgAndCreatesJdbcLoader() {
         RuntimeConfiguration config = new RuntimeConfiguration();
         config.parse(new String[]{"-cdd", DRIVER, "-cp", JDBC_URL, "myapp"});
 
-        assertInstanceOf(H2Loader.class, config.getClnLoader());
+        assertInstanceOf(JdbcLoader.class, config.getClnLoader());
     }
 
     @Test
-    void runtimeConfigLongDbDriverArgCreatesH2Loader() {
+    void runtimeConfigLongDbDriverArgCreatesJdbcLoader() {
         RuntimeConfiguration config = new RuntimeConfiguration();
         config.parse(new String[]{"--cln-db-driver", DRIVER, "-cp", JDBC_URL, "myapp"});
 
-        assertInstanceOf(H2Loader.class, config.getClnLoader());
+        assertInstanceOf(JdbcLoader.class, config.getClnLoader());
     }
 
     @Test
@@ -292,7 +292,7 @@ class H2LoaderTest {
      */
     private void insertSource(String pkg, String source) throws Exception {
         // Ensure table exists
-        new H2Loader(JDBC_URL, DRIVER, List.of(), false).loadSources(new Registry());
+        new JdbcLoader(JDBC_URL, DRIVER, List.of(), false).loadSources(new Registry());
 
         try (Connection conn = DriverManager.getConnection(JDBC_URL);
              PreparedStatement ps = conn.prepareStatement(
