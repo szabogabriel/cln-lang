@@ -1,0 +1,17 @@
+{
+  "frontendFolder": "/home/gszabo/Projects/Else/clean/web-ui/frontend",
+  "themeFolder": "themes",
+  "themeResourceFolder": "/home/gszabo/Projects/Else/clean/web-ui/frontend/generated/jar-resources",
+  "staticOutput": "/home/gszabo/Projects/Else/clean/web-ui/target/classes/META-INF/VAADIN/webapp/VAADIN/static",
+  "generatedFolder": "generated",
+  "statsOutput": "/home/gszabo/Projects/Else/clean/web-ui/target/classes/META-INF/VAADIN/config",
+  "frontendBundleOutput": "/home/gszabo/Projects/Else/clean/web-ui/target/classes/META-INF/VAADIN/webapp",
+  "devBundleOutput": "/home/gszabo/Projects/Else/clean/web-ui/target/dev-bundle/webapp",
+  "devBundleStatsOutput": "/home/gszabo/Projects/Else/clean/web-ui/target/dev-bundle/config",
+  "jarResourcesFolder": "/home/gszabo/Projects/Else/clean/web-ui/frontend/generated/jar-resources",
+  "themeName": "",
+  "clientServiceWorkerSource": "/home/gszabo/Projects/Else/clean/web-ui/target/sw.ts",
+  "pwaEnabled": false,
+  "offlineEnabled": false,
+  "offlinePath": "'offline.html'"
+}

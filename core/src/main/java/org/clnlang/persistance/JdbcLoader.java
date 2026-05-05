@@ -2,12 +2,10 @@ package org.clnlang.persistance;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
@@ -280,8 +278,10 @@ public class JdbcLoader implements ClnLoader {
     private ProgramImpl compileSource(String packageId, String source) throws Exception {
         CharStream input = CharStreams.fromString(source, packageId);
         clnLexer lexer = new clnLexer(input);
+        lexer.removeErrorListeners();
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         clnParser parser = new clnParser(tokens);
+        parser.removeErrorListeners();
         clnParser.ProgramContext programContext = parser.program();
 
         if (parser.getNumberOfSyntaxErrors() > 0) {

@@ -1,10 +1,9 @@
 package org.clnlang.runtime.execution;
 
-import org.clnlang.runtime.context.ExecutionContext;
+import java.util.List;
 
 import org.clnlang.compile.declaration.FunctionDeclImpl;
-
-import java.util.List;
+import org.clnlang.runtime.context.ExecutionContext;
 
 /**
  * Runtime utility for invoking functions with proper call frame management.
@@ -95,7 +94,8 @@ public class FunctionInvoker {
             case "int" -> 0L;  // Use Long for consistency with int literals
             case "float" -> 0.0;
             case "bool" -> false;
-            case "String" -> "";
+            case "String", "string" -> "";  // Both spellings used in CLN source
+            case "dec", "decimal" -> java.math.BigDecimal.ZERO;
             default -> null;
         };
     }

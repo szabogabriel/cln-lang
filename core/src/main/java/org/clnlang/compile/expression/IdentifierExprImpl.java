@@ -1,8 +1,9 @@
 package org.clnlang.compile.expression;
 
+import java.math.BigDecimal;
+
 import org.clnlang.compile.CompiledExpr;
 import org.clnlang.runtime.context.ExecutionContext;
-import java.math.BigDecimal;
 
 /**
  * Compiled representation of an identifier expression.
@@ -46,13 +47,17 @@ public class IdentifierExprImpl implements CompiledExpr {
     public Object evaluate(ExecutionContext context) throws Exception {
         // Fast path: index-based access for local variables
         if (index >= 0 && type != null) {
-            String baseType = type.replaceAll("\\[\\]", "");
-            switch (baseType) {
+            // Arrays are always objects, regardless of element type
+            if (type.contains("[]")) {
+                return context.getLocalContext().getObjectByIndex(index);
+            }
+            switch (type) {
                 case "int":
                     return context.getLocalContext().getLongByIndex(index);
                 case "bool":
                     return context.getLocalContext().getBoolByIndex(index);
                 case "dec":
+                case "decimal":
                     return context.getLocalContext().getDecimalByIndex(index);
                 case "string":
                     return context.getLocalContext().getStringByIndex(index);

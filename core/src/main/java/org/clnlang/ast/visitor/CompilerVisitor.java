@@ -1,20 +1,47 @@
 package org.clnlang.ast.visitor;
 
-import org.clnlang.compile.BlockImpl;
-import org.clnlang.compile.CompiledAction;
-import org.clnlang.compile.CompiledExpr;
-import org.clnlang.compile.declaration.*;
-import org.clnlang.compile.expression.*;
-import org.clnlang.compile.statement.*;
-import org.clnlang.compile.types.DecimalTypeInfo;
-import org.clnlang.parser.clnBaseVisitor;
-import org.clnlang.parser.clnParser;
-
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import org.clnlang.compile.BlockImpl;
+import org.clnlang.compile.CompiledAction;
+import org.clnlang.compile.CompiledExpr;
+import org.clnlang.compile.declaration.FunctionDeclImpl;
+import org.clnlang.compile.declaration.GlobalVarDeclImpl;
+import org.clnlang.compile.declaration.ImportDeclImpl;
+import org.clnlang.compile.declaration.PackageDeclImpl;
+import org.clnlang.compile.declaration.ProgramImpl;
+import org.clnlang.compile.declaration.StructDeclImpl;
+import org.clnlang.compile.declaration.UnionDeclImpl;
+import org.clnlang.compile.expression.ArrayLiteralExprImpl;
+import org.clnlang.compile.expression.BinaryExprImpl;
+import org.clnlang.compile.expression.BoolLiteralExprImpl;
+import org.clnlang.compile.expression.CallExprImpl;
+import org.clnlang.compile.expression.DecLiteralExprImpl;
+import org.clnlang.compile.expression.IdentifierExprImpl;
+import org.clnlang.compile.expression.IncrementExprImpl;
+import org.clnlang.compile.expression.IndexAccessExprImpl;
+import org.clnlang.compile.expression.IntLiteralExprImpl;
+import org.clnlang.compile.expression.MemberAccessExprImpl;
+import org.clnlang.compile.expression.Operator;
+import org.clnlang.compile.expression.StringLiteralExprImpl;
+import org.clnlang.compile.expression.StructLiteralExprImpl;
+import org.clnlang.compile.expression.UnaryExprImpl;
+import org.clnlang.compile.statement.AssignStmtImpl;
+import org.clnlang.compile.statement.EmptyStmtImpl;
+import org.clnlang.compile.statement.ExprStmtImpl;
+import org.clnlang.compile.statement.IfStmtImpl;
+import org.clnlang.compile.statement.ReturnStmtImpl;
+import org.clnlang.compile.statement.SwitchStmtImpl;
+import org.clnlang.compile.statement.TupleAssignStmtImpl;
+import org.clnlang.compile.statement.VarDeclStmtImpl;
+import org.clnlang.compile.statement.WhileStmtImpl;
+import org.clnlang.compile.types.DecimalTypeInfo;
+import org.clnlang.parser.clnBaseVisitor;
+import org.clnlang.parser.clnParser;
 
 /**
  * Compiles ANTLR parse tree into executable CompiledAction objects.
@@ -60,10 +87,14 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
          */
         public void registerVariable(String name, String type, DecimalTypeInfo decimalTypeInfo) {
             variableTypes.put(name, type);
-            
-            String baseType = type.replaceAll("\\[\\]", ""); // Strip array brackets
-            
-            switch (baseType) {
+
+            // Arrays are always stored as objects, regardless of element type
+            if (type.contains("[]")) {
+                objectIndices.put(name, nextObjectIndex++);
+                return;
+            }
+
+            switch (type) {
                 case "int":
                     longIndices.put(name, nextLongIndex++);
                     break;
@@ -71,6 +102,7 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
                     boolIndices.put(name, nextBoolIndex++);
                     break;
                 case "dec":
+                case "decimal":
                     decimalIndices.put(name, nextDecimalIndex++);
                     decimalTypeInfos.put(name, decimalTypeInfo);
                     break;
@@ -78,7 +110,7 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
                     stringIndices.put(name, nextStringIndex++);
                     break;
                 default:
-                    // Structs, unions, arrays of non-primitives
+                    // Structs, unions, and other object types
                     objectIndices.put(name, nextObjectIndex++);
                     break;
             }
@@ -99,28 +131,33 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
             // Check current scope
             if (variableTypes.containsKey(name)) {
                 String type = variableTypes.get(name);
-                String baseType = type.replaceAll("\\[\\]", "");
-                
+
                 Integer index = null;
                 DecimalTypeInfo decimalTypeInfo = DecimalTypeInfo.DEFAULT;
-                
-                switch (baseType) {
-                    case "int":
-                        index = longIndices.get(name);
-                        break;
-                    case "bool":
-                        index = boolIndices.get(name);
-                        break;
-                    case "dec":
-                        index = decimalIndices.get(name);
-                        decimalTypeInfo = decimalTypeInfos.getOrDefault(name, DecimalTypeInfo.DEFAULT);
-                        break;
-                    case "string":
-                        index = stringIndices.get(name);
-                        break;
-                    default:
-                        index = objectIndices.get(name);
-                        break;
+
+                // Arrays are always stored as objects
+                if (type.contains("[]")) {
+                    index = objectIndices.get(name);
+                } else {
+                    switch (type) {
+                        case "int":
+                            index = longIndices.get(name);
+                            break;
+                        case "bool":
+                            index = boolIndices.get(name);
+                            break;
+                        case "dec":
+                        case "decimal":
+                            index = decimalIndices.get(name);
+                            decimalTypeInfo = decimalTypeInfos.getOrDefault(name, DecimalTypeInfo.DEFAULT);
+                            break;
+                        case "string":
+                            index = stringIndices.get(name);
+                            break;
+                        default:
+                            index = objectIndices.get(name);
+                            break;
+                    }
                 }
                 
                 if (index != null) {
