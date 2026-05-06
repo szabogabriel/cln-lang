@@ -14,12 +14,13 @@ import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
-import com.vaadin.flow.component.dialog.Dialog;
+import org.clnlang.help.ClnCheatSheet;
+
+import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H3;
-import com.vaadin.flow.component.html.H5;
-import com.vaadin.flow.component.html.Pre;
+import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
@@ -28,7 +29,6 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.splitlayout.SplitLayout;
 import com.vaadin.flow.component.textfield.TextArea;
-import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.data.provider.hierarchy.TreeData;
 import com.vaadin.flow.data.provider.hierarchy.TreeDataProvider;
@@ -60,11 +60,10 @@ public class MainView extends AppLayout {
     private final ClnExecutionService executionService;
 
     // ── UI components ──────────────────────────────────────────────────────
-    private final TreeGrid<TreeNode> treeGrid    = new TreeGrid<>();
-    private final TextArea           editor      = new TextArea();
-    private final TextArea           terminal    = new TextArea();
-    private final Div                helpPanel   = new Div();
-    private final Div                lineNumbers = new Div();
+    private final TreeGrid<TreeNode> treeGrid   = new TreeGrid<>();
+    private final Div                editorHost = new Div();   // CodeMirror mount point
+    private final TextArea           terminal   = new TextArea();
+    private final Div                helpPanel  = new Div();
     private boolean                  helpVisible = false;
 
     // ── State ──────────────────────────────────────────────────────────────
@@ -137,57 +136,78 @@ public class MainView extends AppLayout {
                 .set("overflow", "auto")
                 .set("height", "100%");
 
-        // ── Editor (centre) ────────────────────────────────────────────────
-        editor.setPlaceholder("Select a package from the tree, or create a new one…");
-        editor.setWidthFull();
-        editor.setHeightFull();
-        editor.getStyle()
-                .set("font-family", "monospace")
-                .set("font-size", "var(--lumo-font-size-s)");
-        editor.getElement().setAttribute("spellcheck", "false");
-
-        // ── Line numbers gutter ────────────────────────────────────────────
-        lineNumbers.getStyle()
-                .set("font-family", "monospace")
-                .set("font-size", "var(--lumo-font-size-s)")
-                .set("text-align", "right")
-                .set("padding", "0 0.4em")
-                .set("min-width", "2.8em")
-                .set("background", "var(--lumo-contrast-5pct)")
-                .set("border-right", "1px solid var(--lumo-contrast-10pct)")
-                .set("color", "var(--lumo-secondary-text-color)")
+        // ── Editor (centre) – CodeMirror with cln-lang syntax highlighting ─
+        editorHost.setSizeFull();
+        editorHost.getStyle()
                 .set("overflow", "hidden")
-                .set("user-select", "none")
-                .set("cursor", "default");
-        editor.addAttachListener(event ->
-            event.getUI().getPage().executeJs("""
-                (function(va, gutter) {
-                    function updateGutter(text) {
-                        var count = (text || '').split('\\n').length;
-                        var html = '';
-                        for (var i = 1; i <= count; i++) {
-                            html += '<div>' + i + '</div>';
+                .set("min-height", "0");
+        editorHost.addAttachListener(event ->
+            editorHost.getElement().executeJs("""
+                (function(container) {
+                    if (container._cm) return; // already initialised
+                    var BASE = 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/';
+                    function go() {
+                        if (!window.CodeMirror.modes['cln']) {
+                            CodeMirror.defineSimpleMode('cln', {
+                                start: [
+                                    {regex: /\\/\\/.*/, token: 'comment'},
+                                    {regex: /\\/\\*/, token: 'comment', next: 'comment'},
+                                    {regex: /"[^"]*"/, token: 'string'},
+                                    {regex: /\\d+(?:\\.\\d+)?/, token: 'number'},
+                                    {regex: /[a-zA-Z_][a-zA-Z0-9_]*/, token: function(m) {
+                                        if (/^(?:package|import|expose|struct|union|var|if|else|while|switch|case|default|return)$/.test(m[0])) return 'keyword';
+                                        if (/^(?:int|bool|string|dec)$/.test(m[0])) return 'builtin';
+                                        if (m[0] === 'true' || m[0] === 'false') return 'atom';
+                                        return null;
+                                    }},
+                                    {regex: /[+\\-*\\/=<>!&|]+/, token: 'operator'}
+                                ],
+                                comment: [
+                                    {regex: /.*?\\*\\//, token: 'comment', next: 'start'},
+                                    {regex: /.*/, token: 'comment'}
+                                ],
+                                meta: {lineComment: '//'}
+                            });
                         }
-                        gutter.innerHTML = html;
-                    }
-                    function setup() {
-                        var ta = va.shadowRoot && va.shadowRoot.querySelector('textarea');
-                        if (!ta) { requestAnimationFrame(setup); return; }
-                        var cs = window.getComputedStyle(ta);
-                        gutter.style.lineHeight = cs.lineHeight;
-                        gutter.style.paddingTop = cs.paddingTop;
-                        gutter.style.fontSize = cs.fontSize;
-                        ta.addEventListener('input', function() { updateGutter(ta.value); });
-                        ta.addEventListener('scroll', function() { gutter.scrollTop = ta.scrollTop; });
-                        va.addEventListener('value-changed', function() {
-                            updateGutter(va.value || '');
-                            requestAnimationFrame(function() { gutter.scrollTop = ta.scrollTop; });
+                        if (!document.getElementById('cln-cm-style')) {
+                            var st = document.createElement('style');
+                            st.id = 'cln-cm-style';
+                            st.textContent = '.CodeMirror{height:100%}.CodeMirror-scroll{box-sizing:border-box}';
+                            document.head.appendChild(st);
+                        }
+                        var cm = CodeMirror(container, {
+                            mode: 'cln',
+                            lineNumbers: true,
+                            value: container._pendingValue || '',
+                            indentUnit: 4,
+                            tabSize: 4,
+                            extraKeys: {
+                                'Enter': function(cm) {
+                                    var cursor = cm.getCursor();
+                                    var indent = cm.getLine(cursor.line).match(/^(\\s*)/)[1];
+                                    cm.replaceSelection('\\n' + indent);
+                                }
+                            }
                         });
-                        updateGutter(ta.value || '');
+                        cm.setSize('100%', '100%');
+                        container._cm = cm;
+                        container._pendingValue = undefined;
                     }
-                    setup();
-                })($0, $1);
-                """, editor.getElement(), lineNumbers.getElement())
+                    if (window.CodeMirror && window.CodeMirror.defineSimpleMode) { go(); return; }
+                    var l = document.createElement('link');
+                    l.rel = 'stylesheet'; l.href = BASE + 'codemirror.min.css';
+                    document.head.appendChild(l);
+                    var s = document.createElement('script');
+                    s.src = BASE + 'codemirror.min.js';
+                    s.onload = function() {
+                        var s2 = document.createElement('script');
+                        s2.src = BASE + 'addon/mode/simple.min.js';
+                        s2.onload = go;
+                        document.head.appendChild(s2);
+                    };
+                    document.head.appendChild(s);
+                })(this);
+                """)
         );
 
         // ── Help panel (right, hidden initially) ───────────────────────────
@@ -246,19 +266,12 @@ public class MainView extends AppLayout {
     }
 
     private Component buildCentreAndHelp() {
-        // Wrap editor with line numbers gutter
-        HorizontalLayout editorWithGutter = new HorizontalLayout(lineNumbers, editor);
-        editorWithGutter.setSizeFull();
-        editorWithGutter.setPadding(false);
-        editorWithGutter.setSpacing(false);
-        editorWithGutter.expand(editor);
-
         // Horizontal layout so help slides in on the right of the editor
-        HorizontalLayout centreAndHelp = new HorizontalLayout(editorWithGutter, helpPanel);
+        HorizontalLayout centreAndHelp = new HorizontalLayout(editorHost, helpPanel);
         centreAndHelp.setSizeFull();
         centreAndHelp.setPadding(false);
         centreAndHelp.setSpacing(false);
-        centreAndHelp.expand(editorWithGutter);
+        centreAndHelp.expand(editorHost);
         helpPanel.getStyle().set("width", "300px").set("min-width", "300px");
         return centreAndHelp;
     }
@@ -272,46 +285,13 @@ public class MainView extends AppLayout {
 
         H3 title = new H3("cln-lang Quick Reference");
         title.getStyle().set("margin-top", "0");
-
         helpPanel.add(title);
-        helpPanel.add(section("Package declaration",
-                "package com.example.myapp;"));
-        helpPanel.add(section("Imports",
-                "import std.console.*;\nimport std.str.*;\nimport std.math.*;\nimport std.array.*;"));
-        helpPanel.add(section("Entry point",
-                "int main() {\n    // …\n    return 0;\n}"));
-        helpPanel.add(section("Variables",
-                "var int x = 42;\nvar string s = \"hello\";\nvar bool flag = true;\nvar dec d = 3.14;"));
-        helpPanel.add(section("Structs",
-                "struct Point {\n    var int x;\n    var int y;\n};\nPoint p = Point(x: 1, y: 2);"));
-        helpPanel.add(section("Unions",
-                "union Shape = Circle | Square;\n// switch on union:\nswitch s {\n    case Circle c: …\n    case Square q: …\n}"));
-        helpPanel.add(section("Arrays",
-                "int[] nums = [1, 2, 3];\nint len = nums.length;\nnums[0] = 99;"));
-        helpPanel.add(section("Functions",
-                "int add(int a, int b) {\n    return a + b;\n}\n// named return:\n(var int sum = 0) add(int a, int b) {\n    sum = a + b;\n    return;\n}"));
-        helpPanel.add(section("Console I/O",
-                "writeLine(\"text\");\nwrite(\"no newline\");\nstring s = readLine();"));
-        helpPanel.add(section("While loop",
-                "int i = 0;\nwhile i < 10 {\n    i++;\n}"));
-        helpPanel.add(section("Operators",
-                "+ - * /  == != < <= > >=\n&& ||  !  ++ --"));
-    }
 
-    private Component section(String header, String code) {
-        Div div = new Div();
-        H5 h = new H5(header);
-        h.getStyle().set("margin", "var(--lumo-space-s) 0 2px 0");
-        Pre pre = new Pre(code);
-        pre.getStyle()
-                .set("background", "var(--lumo-contrast-10pct)")
-                .set("padding", "var(--lumo-space-s)")
-                .set("border-radius", "4px")
-                .set("font-size", "var(--lumo-font-size-xs)")
-                .set("overflow-x", "auto")
-                .set("margin", "0");
-        div.add(h, pre);
-        return div;
+        for (ClnCheatSheet.Section s : ClnCheatSheet.getSections()) {
+            Details details = new Details(s.title(), new Html(s.html()));
+            details.setWidthFull();
+            helpPanel.add(details);
+        }
     }
 
     // ── Tree management ───────────────────────────────────────────────────
@@ -341,64 +321,36 @@ public class MainView extends AppLayout {
             return;
         }
         sourceService.findById(node.getSourceId()).ifPresent(entity ->
-                editor.setValue(entity.getSource() == null ? "" : entity.getSource()));
+                setEditorValue(entity.getSource() == null ? "" : entity.getSource()));
     }
 
     private void onNew() {
-        Dialog dlg = new Dialog();
-        dlg.setHeaderTitle("New CLN Source");
-
-        TextField pkgField = new TextField("Package name");
-        pkgField.setPlaceholder("e.g. com.example.myapp");
-        pkgField.setWidthFull();
-
-        TextArea srcField = new TextArea("Source code");
-        srcField.setWidthFull();
-        srcField.setHeight("300px");
-        srcField.getStyle().set("font-family", "monospace");
-        srcField.setValue("""
-                package com.example.newpackage;
-
-                import std.console.*;
-
-                int main() {
-                    writeLine("Hello from new package!");
-                    return 0;
-                }
-                """);
-
-        Button btnCreate = new Button("Create", e -> {
-            String pkg = pkgField.getValue().trim();
-            String src = srcField.getValue();
-            if (pkg.isEmpty()) {
-                Notification.show("Package name is required", 3000, Notification.Position.MIDDLE);
-                return;
-            }
-            sourceService.save(pkg, src);
-            refreshTree();
-            dlg.close();
-            notify("Package '" + pkg + "' created.", NotificationVariant.LUMO_SUCCESS);
-        });
-        btnCreate.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-
-        Button btnCancel = new Button("Cancel", e -> dlg.close());
-
-        dlg.add(new VerticalLayout(pkgField, srcField));
-        dlg.getFooter().add(btnCancel, btnCreate);
-        dlg.setWidth("600px");
-        dlg.open();
+        selectedNode = null;
+        setEditorValue("");
     }
 
     private void onSave() {
-        if (selectedNode == null) {
-            notify("Select a package first.", NotificationVariant.LUMO_CONTRAST);
-            return;
-        }
-        String pkg = selectedNode.getPackageName();
-        String src = editor.getValue();
-        sourceService.save(pkg, src);
-        refreshTree();
-        notify("'" + pkg + "' saved.", NotificationVariant.LUMO_SUCCESS);
+        editorHost.getElement().executeJs("return this._cm ? this._cm.getValue() : ''")
+                .then(String.class, src -> {
+                    if (src == null || src.isBlank()) {
+                        notify("Nothing to save.", NotificationVariant.LUMO_CONTRAST);
+                        return;
+                    }
+                    String pkg = selectedNode != null
+                            ? selectedNode.getPackageName()
+                            : extractPackageName(src);
+                    sourceService.save(pkg, src);
+                    refreshTree();
+                    notify("'" + pkg + "' saved.", NotificationVariant.LUMO_SUCCESS);
+                });
+    }
+
+    /** Extracts the package name from a {@code package foo.bar;} declaration, or returns a default. */
+    private String extractPackageName(String src) {
+        java.util.regex.Matcher m = java.util.regex.Pattern
+                .compile("^\\s*package\\s+([\\w.]+)\\s*;", java.util.regex.Pattern.MULTILINE)
+                .matcher(src);
+        return m.find() ? m.group(1) : "- default -";
     }
 
     private void onDelete() {
@@ -414,7 +366,7 @@ public class MainView extends AppLayout {
         confirm.setConfirmButtonTheme("error primary");
         confirm.addConfirmListener(e -> {
             sourceService.deleteByPackageName(pkg);
-            editor.clear();
+            setEditorValue("");
             selectedNode = null;
             refreshTree();
             notify("'" + pkg + "' deleted.", NotificationVariant.LUMO_ERROR);
@@ -428,30 +380,30 @@ public class MainView extends AppLayout {
             return;
         }
 
-        // Save current editor content before running
         String pkg = selectedNode.getPackageName();
-        String src = editor.getValue();
-        if (src != null && !src.isBlank()) {
-            sourceService.save(pkg, src);
-        }
-
         appendTerminal("▶ Executing package: " + pkg + "\n");
 
-        // Run in background thread so the UI stays responsive
-        UI ui = UI.getCurrent();
-        new Thread(() -> {
-            ClnExecutionService.ExecutionResult result = executionService.execute(pkg, false);
-            ui.access(() -> {
-                String out = result.output();
-                if (out == null || out.isBlank()) {
-                    appendTerminal("(no output)\n");
-                } else {
-                    appendTerminal(out);
-                }
-                appendTerminal("─── Exit code: " + result.exitCode() + " ───\n");
-                refreshTree();
-            });
-        }).start();
+        // Flush editor content, save, then run in background thread
+        editorHost.getElement().executeJs("return this._cm ? this._cm.getValue() : ''")
+                .then(String.class, src -> {
+                    if (src != null && !src.isBlank()) {
+                        sourceService.save(pkg, src);
+                    }
+                    UI ui = UI.getCurrent();
+                    new Thread(() -> {
+                        ClnExecutionService.ExecutionResult result = executionService.execute(pkg, false);
+                        ui.access(() -> {
+                            String out = result.output();
+                            if (out == null || out.isBlank()) {
+                                appendTerminal("(no output)\n");
+                            } else {
+                                appendTerminal(out);
+                            }
+                            appendTerminal("─── Exit code: " + result.exitCode() + " ───\n");
+                            refreshTree();
+                        });
+                    }).start();
+                });
     }
 
     private void toggleHelp() {
@@ -460,6 +412,13 @@ public class MainView extends AppLayout {
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────
+
+    /** Set the CodeMirror editor content from server-side code. */
+    private void setEditorValue(String value) {
+        String v = value == null ? "" : value;
+        editorHost.getElement().executeJs(
+            "if (this._cm) { this._cm.setValue($0); } else { this._pendingValue = $0; }", v);
+    }
 
     private void appendTerminal(String text) {
         String current = terminal.getValue();
