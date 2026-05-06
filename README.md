@@ -186,6 +186,31 @@ java -jar target/core-1.0-SNAPSHOT-fat.jar -v <program.cln>
 java -jar target/core-1.0-SNAPSHOT-fat.jar -v -cp <source_path> <package.name>
 ```
 
+## Web UI Demo
+
+A browser-based demo lets you write, save and execute cln-lang programs against an H2 database without installing anything locally.
+
+### Running with Podman (or Docker)
+
+**Build the image** (from the repository root):
+```bash
+podman build -t cln-lang-demo .
+```
+
+**Run — ephemeral (fresh database each start):**
+```bash
+podman run -p 8080:8080 cln-lang-demo
+```
+
+**Run — persistent (database survives container restarts):**
+```bash
+podman run -p 8080:8080 -v cln-data:/app/data cln-lang-demo
+```
+
+Then open [http://localhost:8080](http://localhost:8080) in your browser.
+
+Replace `podman` with `docker` if you prefer Docker — both work with the provided `Containerfile`.
+
 ## JDBC Database Backend
 
 Instead of storing `.cln` source files on the filesystem, you can keep them in any JDBC-compatible relational database. This is useful when source code lives in a managed store, is deployed as part of a service, or needs versioning and metadata in a structured way.

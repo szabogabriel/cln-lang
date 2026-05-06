@@ -1,2 +1,7 @@
 core/target
 core/dependency-reduced-pom.xml
+web-ui/target
+.bob
+.vscode
+data
+data/*
