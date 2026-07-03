@@ -61,11 +61,14 @@ while (i < numbers.length) {
 
 ### Array Types
 
-Arrays are declared with the element type followed by `[]`:
+Arrays are declared with the element type followed by `[]`. Multiple `[]` suffixes create multi-dimensional arrays:
 - `int[]` - array of integers
 - `string[]` - array of strings
 - `bool[]` - array of booleans
 - `dec[]` - array of decimal numbers
+- `int[][]` - 2D array of integers (array of int arrays)
+- `int[][][]` - 3D array of integers
+- `MyStruct[][]` - 2D array of struct values
 
 ### Runtime Representation
 
@@ -84,6 +87,64 @@ Arrays are implemented as Java `List<Object>`, which provides:
   - `string` → `String`
 
 ## Features
+
+### Multi-dimensional Arrays
+
+CLN supports multi-dimensional arrays natively. An `int[][]` is simply an array whose elements are themselves `int[]` arrays.
+
+#### Literal syntax
+
+```cln
+var int[][] matrix = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
+var int[][][] cube = [[[1, 2], [3, 4]], [[5, 6], [7, 8]]];
+```
+
+#### Access and assignment
+
+```cln
+var int v = matrix[1][2];   // read element at row 1, col 2
+matrix[0][0] = 99;          // write
+cube[1][0][1] = 42;         // 3D write
+```
+
+#### Dynamic allocation
+
+Use `newArray2D` and `newArray3D` from `std.array`:
+
+```cln
+import std.array.*;
+
+var int[][] grid = newArray2D(rows, cols);
+var int[][][] vol = newArray3D(depth, rows, cols);
+```
+
+#### `.length` at every dimension
+
+```cln
+writeLine(intToStr(matrix.length));       // number of rows
+writeLine(intToStr(matrix[0].length));    // number of cols in row 0
+```
+
+#### Passing rows to 1D functions
+
+A row of a 2D array is a plain `int[]` and can be passed anywhere a 1D array is accepted:
+
+```cln
+reverse(matrix[0]);   // reverses the first row in place
+```
+
+#### deepCopy vs copy
+
+`copy` from `std.array` is a **shallow** copy. For multi-dimensional arrays use `deepCopy` to get an independent clone:
+
+```cln
+var int[][] a = [[1, 2], [3, 4]];
+var int[][] b = deepCopy(a);   // completely independent
+b[0][0] = 99;
+// a[0][0] is still 1
+```
+
+---
 
 ### Bounds Checking
 

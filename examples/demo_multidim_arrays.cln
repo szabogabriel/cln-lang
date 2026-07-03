@@ -1,0 +1,134 @@
+import std.console.*;
+import std.str.*;
+import std.array.*;
+
+// Multiply two 2x2 matrices
+int[][] matmul2x2(int[][] a, int[][] b) {
+    var int[][] result = newArray2D(2, 2);
+    var int i = 0;
+    while (i < 2) {
+        var int j = 0;
+        while (j < 2) {
+            var int sum = 0;
+            var int k = 0;
+            while (k < 2) {
+                sum = sum + a[i][k] * b[k][j];
+                k = k + 1;
+            }
+            result[i][j] = sum;
+            j = j + 1;
+        }
+        i = i + 1;
+    }
+    return result;
+}
+
+// Print a 2D integer matrix
+int printMatrix(int[][] m) {
+    var int i = 0;
+    while (i < m.length) {
+        var int j = 0;
+        var string row = "  [";
+        while (j < m[i].length) {
+            if (j > 0) {
+                row = row + ", ";
+            }
+            row = row + intToStr(m[i][j]);
+            j = j + 1;
+        }
+        row = row + "]";
+        writeLine(row);
+        i = i + 1;
+    }
+    return 0;
+}
+
+int main() {
+    writeLine("=== Multi-dimensional Array Demo ===");
+    writeLine("");
+
+    // 1. Literal 2D array
+    writeLine("1. Literal 2D array:");
+    var int[][] matrix = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
+    writeLine("  matrix[1][2] = " + intToStr(matrix[1][2]));
+    writeLine("  matrix.length = " + intToStr(matrix.length));
+    writeLine("  matrix[0].length = " + intToStr(matrix[0].length));
+
+    // 2. Dynamic allocation with newArray2D
+    writeLine("");
+    writeLine("2. Dynamic 2D array via newArray2D(4, 4):");
+    var int[][] grid = newArray2D(4, 4);
+    var int i = 0;
+    while (i < 4) {
+        var int j = 0;
+        while (j < 4) {
+            grid[i][j] = i * 4 + j;
+            j = j + 1;
+        }
+        i = i + 1;
+    }
+    printMatrix(grid);
+
+    // 3. 3D array literal
+    writeLine("");
+    writeLine("3. 3D array literal:");
+    var int[][][] cube = [[[1, 2], [3, 4]], [[5, 6], [7, 8]]];
+    writeLine("  cube[0][0][1] = " + intToStr(cube[0][0][1]));
+    writeLine("  cube[1][1][0] = " + intToStr(cube[1][1][0]));
+
+    // 4. Dynamic 3D allocation with newArray3D
+    writeLine("");
+    writeLine("4. Dynamic 3D array via newArray3D(2, 3, 4):");
+    var int[][][] vol = newArray3D(2, 3, 4);
+    vol[1][2][3] = 42;
+    writeLine("  vol[1][2][3] = " + intToStr(vol[1][2][3]));
+    writeLine("  vol.length = " + intToStr(vol.length));
+    writeLine("  vol[0].length = " + intToStr(vol[0].length));
+    writeLine("  vol[0][0].length = " + intToStr(vol[0][0].length));
+
+    // 5. Deep copy: changes to copy do not affect original
+    writeLine("");
+    writeLine("5. deepCopy vs copy (shallow):");
+    var int[][] srcDeep = [[10, 20], [30, 40]];
+    var int[][] deep = deepCopy(srcDeep);
+    deep[0][0] = 99;
+    writeLine("  After deepCopy and deep[0][0]=99: srcDeep[0][0] = " + intToStr(srcDeep[0][0]) + " (unchanged, expected 10)");
+    writeLine("  deep[0][0] = " + intToStr(deep[0][0]) + " (expected 99)");
+
+    var int[][] srcShallow = [[10, 20], [30, 40]];
+    var int[][] shallow = copy(srcShallow);
+    shallow[0][0] = 77;
+    writeLine("  After shallow copy and shallow[0][0]=77: srcShallow[0][0] = " + intToStr(srcShallow[0][0]) + " (also changed! expected 77)");
+
+    // 6. Matrix multiplication
+    writeLine("");
+    writeLine("6. 2x2 matrix multiplication:");
+    var int[][] a = [[1, 2], [3, 4]];
+    var int[][] b = [[5, 6], [7, 8]];
+    var int[][] product = matmul2x2(a, b);
+    writeLine("  A:");
+    printMatrix(a);
+    writeLine("  B:");
+    printMatrix(b);
+    writeLine("  A * B:");
+    printMatrix(product);
+
+    // 7. Passing a row to a 1D function
+    writeLine("");
+    writeLine("7. Row of 2D array as 1D array parameter:");
+    var int[][] data = [[5, 3, 8, 1], [2, 9, 4, 7]];
+    writeLine("  data[1] reversed:");
+    reverse(data[1]);
+    var int k = 0;
+    var string rowStr = "  [";
+    while (k < data[1].length) {
+        if (k > 0) { rowStr = rowStr + ", "; }
+        rowStr = rowStr + intToStr(data[1][k]);
+        k = k + 1;
+    }
+    writeLine(rowStr + "]");
+
+    writeLine("");
+    writeLine("=== Done ===");
+    return 0;
+}

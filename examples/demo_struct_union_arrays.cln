@@ -1,0 +1,187 @@
+import std.console.*;
+import std.str.*;
+import std.array.*;
+
+// ---- Type definitions ----
+
+struct Point {
+    var int x;
+    var int y;
+};
+
+struct Circle {
+    var int cx;
+    var int cy;
+    int radius;
+};
+
+struct Rectangle {
+    var int x;
+    var int y;
+    var int width;
+    var int height;
+};
+
+union Shape {
+    Circle;
+    Rectangle;
+};
+
+// ---- Helper printers ----
+
+int printPoint(Point p) {
+    writeLine("  (" + intToStr(p.x) + ", " + intToStr(p.y) + ")");
+    return 0;
+}
+
+int printShape(Shape s) {
+    switch (s) {
+        case Circle c:
+            writeLine("  Circle at (" + intToStr(c.cx) + ", " + intToStr(c.cy) + ") r=" + intToStr(c.radius));
+        case Rectangle r:
+            writeLine("  Rect at (" + intToStr(r.x) + ", " + intToStr(r.y) + ") " + intToStr(r.width) + "x" + intToStr(r.height));
+    }
+    return 0;
+}
+
+// ---- Functions using struct/union arrays ----
+
+int totalArea(Shape[] shapes) {
+    var int area = 0;
+    var int i = 0;
+    while (i < shapes.length) {
+        switch (shapes[i]) {
+            case Circle c:    area = area + c.radius * c.radius;
+            case Rectangle r: area = area + r.width * r.height;
+        }
+        i = i + 1;
+    }
+    return area;
+}
+
+Point[] translateAll(Point[] pts, int dx, int dy) {
+    var Point[] result = deepCopy(pts);
+    var int i = 0;
+    while (i < result.length) {
+        result[i].x = result[i].x + dx;
+        result[i].y = result[i].y + dy;
+        i = i + 1;
+    }
+    return result;
+}
+
+int main() {
+    writeLine("=== Struct and Union Array Demo ===");
+    writeLine("");
+
+    // 1. Struct array literal + access
+    writeLine("1. Point array literal:");
+    var Point[] pts = [Point(x: 1, y: 2), Point(x: 3, y: 4), Point(x: 5, y: 6)];
+    var int i = 0;
+    while (i < pts.length) {
+        printPoint(pts[i]);
+        i = i + 1;
+    }
+
+    // 2. Struct array via newArray + fill
+    writeLine("");
+    writeLine("2. Point array via newArray(4), filled in a loop:");
+    var Point[] grid = newArray(4);
+    i = 0;
+    while (i < 4) {
+        grid[i] = Point(x: i * 10, y: i * 10 + 1);
+        i = i + 1;
+    }
+    i = 0;
+    while (i < 4) {
+        printPoint(grid[i]);
+        i = i + 1;
+    }
+
+    // 3. Mutating a struct element in an array
+    writeLine("");
+    writeLine("3. Mutating pts[0].x from 1 to 99:");
+    pts[0].x = 99;
+    writeLine("  pts[0].x = " + intToStr(pts[0].x));
+
+    // 4. Passing struct array to / returning from a function
+    writeLine("");
+    writeLine("4. translateAll(pts, +10, +10):");
+    var Point[] moved = translateAll(pts, 10, 10);
+    i = 0;
+    while (i < moved.length) {
+        printPoint(moved[i]);
+        i = i + 1;
+    }
+    writeLine("  original pts[0] unchanged: (" + intToStr(pts[0].x) + ", " + intToStr(pts[0].y) + ")");
+
+    // 5. Union array
+    writeLine("");
+    writeLine("5. Shape (union) array:");
+    var Shape[] shapes = [
+        Circle(cx: 0, cy: 0, radius: 5),
+        Rectangle(x: 1, y: 1, width: 4, height: 3),
+        Circle(cx: 10, cy: 20, radius: 2)
+    ];
+    i = 0;
+    while (i < shapes.length) {
+        printShape(shapes[i]);
+        i = i + 1;
+    }
+    writeLine("  totalArea (approx r^2 + w*h) = " + intToStr(totalArea(shapes)));
+
+    // 6. Replace a union element
+    writeLine("");
+    writeLine("6. Replace shapes[0] with a Rectangle:");
+    shapes[0] = Rectangle(x: 5, y: 5, width: 10, height: 10);
+    printShape(shapes[0]);
+
+    // 7. 2D struct array
+    writeLine("");
+    writeLine("7. 2D Point array (newArray2D 3x3):");
+    var Point[][] matrix = newArray2D(3, 3);
+    i = 0;
+    while (i < 3) {
+        var int j = 0;
+        while (j < 3) {
+            matrix[i][j] = Point(x: i, y: j);
+            j = j + 1;
+        }
+        i = i + 1;
+    }
+    writeLine("  matrix[2][1]:");
+    printPoint(matrix[2][1]);
+    matrix[2][1].x = 42;
+    writeLine("  after matrix[2][1].x = 42:");
+    printPoint(matrix[2][1]);
+
+    // 8. 2D union array
+    writeLine("");
+    writeLine("8. 2D Shape array (literal):");
+    var Shape[][] scene = [
+        [Circle(cx: 0, cy: 0, radius: 1), Rectangle(x: 0, y: 0, width: 2, height: 2)],
+        [Rectangle(x: 1, y: 1, width: 3, height: 3), Circle(cx: 5, cy: 5, radius: 4)]
+    ];
+    i = 0;
+    while (i < scene.length) {
+        var int j = 0;
+        while (j < scene[i].length) {
+            printShape(scene[i][j]);
+            j = j + 1;
+        }
+        i = i + 1;
+    }
+
+    // 9. deepCopy of struct array
+    writeLine("");
+    writeLine("9. deepCopy of Point array:");
+    var Point[] src = [Point(x: 1, y: 2), Point(x: 3, y: 4)];
+    var Point[] dst = deepCopy(src);
+    dst[0].x = 77;
+    writeLine("  src[0].x after mutating dst[0].x=77: " + intToStr(src[0].x) + " (unchanged, expected 1)");
+    writeLine("  dst[0].x = " + intToStr(dst[0].x) + " (expected 77)");
+
+    writeLine("");
+    writeLine("=== Done ===");
+    return 0;
+}

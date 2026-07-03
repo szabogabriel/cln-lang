@@ -28,8 +28,60 @@ newArray(size: int) -> Array
 
 ---
 
+#### newArray2D
+Creates a new 2D array (array of arrays) with the specified dimensions. Each row is an independent array of `cols` null-initialized elements.
+
+**Signature:**
+```cln
+newArray2D(rows: int, cols: int) -> Array
+```
+
+**Parameters:**
+- `rows` (int): Number of rows (must be non-negative)
+- `cols` (int): Number of columns per row (must be non-negative)
+
+**Returns:**
+- Array: New 2D array of shape `rows × cols`
+
+**Example:**
+```cln
+var int[][] grid = newArray2D(3, 4);
+grid[2][3] = 42;
+writeLine(intToStr(grid.length));       // 3
+writeLine(intToStr(grid[0].length));    // 4
+```
+
+---
+
+#### newArray3D
+Creates a new 3D array (array of arrays of arrays) with the specified dimensions.
+
+**Signature:**
+```cln
+newArray3D(depth: int, rows: int, cols: int) -> Array
+```
+
+**Parameters:**
+- `depth` (int): Number of planes (must be non-negative)
+- `rows` (int): Number of rows per plane (must be non-negative)
+- `cols` (int): Number of columns per row (must be non-negative)
+
+**Returns:**
+- Array: New 3D array of shape `depth × rows × cols`
+
+**Example:**
+```cln
+var int[][][] cube = newArray3D(2, 3, 4);
+cube[1][2][3] = 99;
+writeLine(intToStr(cube.length));           // 2
+writeLine(intToStr(cube[0].length));        // 3
+writeLine(intToStr(cube[0][0].length));     // 4
+```
+
+---
+
 #### copy
-Creates a copy of an array.
+Creates a **shallow** copy of an array. For 1D arrays this is equivalent to a full copy. For multi-dimensional arrays the inner arrays are shared, so mutating an inner element via the copy also changes the original.
 
 **Signature:**
 ```cln
@@ -40,7 +92,34 @@ copy(arr: Array) -> Array
 - `arr` (Array): Array to copy
 
 **Returns:**
-- Array: New copy of the array
+- Array: Shallow copy of the array
+
+**Note:** Use `deepCopy` when you need an independent copy of a multi-dimensional array.
+
+---
+
+#### deepCopy
+Creates a **deep** copy of an array, recursively copying all nested arrays. Mutating any element of the result (including inner arrays at any depth) does not affect the original.
+
+**Signature:**
+```cln
+deepCopy(arr: Array) -> Array
+```
+
+**Parameters:**
+- `arr` (Array): Array to deep-copy (may be multi-dimensional)
+
+**Returns:**
+- Array: Independent deep copy of the array
+
+**Example:**
+```cln
+var int[][] a = [[1, 2], [3, 4]];
+var int[][] b = deepCopy(a);
+b[0][0] = 99;
+writeLine(intToStr(a[0][0]));   // still 1
+writeLine(intToStr(b[0][0]));   // 99
+```
 
 ---
 

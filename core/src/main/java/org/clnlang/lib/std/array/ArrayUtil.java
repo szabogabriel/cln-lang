@@ -1,7 +1,9 @@
 package org.clnlang.lib.std.array;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.clnlang.compile.declaration.FunctionDeclImpl;
 import org.clnlang.lib.ClnFunction;
@@ -29,12 +31,46 @@ public class ArrayUtil implements ClnFunction {
     }
 
     /**
-     * Copy array
+     * Create a new 2D array (array of arrays) with specified dimensions
+     */
+    private void executeNewArray2D(ExecutionContext context) {
+        long rows = (long) context.getLocalContext().getValue("rows");
+        long cols = (long) context.getLocalContext().getValue("cols");
+        List<Object> result = newArray2D(rows, cols);
+        context.getCurrentFrame().getLocalContext().setVariable("result", result);
+        context.setReturnValues(java.util.Collections.singletonList(result));
+    }
+
+    /**
+     * Create a new 3D array (array of arrays of arrays) with specified dimensions
+     */
+    private void executeNewArray3D(ExecutionContext context) {
+        long depth = (long) context.getLocalContext().getValue("depth");
+        long rows = (long) context.getLocalContext().getValue("rows");
+        long cols = (long) context.getLocalContext().getValue("cols");
+        List<Object> result = newArray3D(depth, rows, cols);
+        context.getCurrentFrame().getLocalContext().setVariable("result", result);
+        context.setReturnValues(java.util.Collections.singletonList(result));
+    }
+
+    /**
+     * Copy array (shallow copy)
      */
     private void executeCopy(ExecutionContext context) {
         @SuppressWarnings("unchecked")
         List<Object> arr = (List<Object>) context.getLocalContext().getValue("arr");
         List<Object> result = copy(arr);
+        context.getCurrentFrame().getLocalContext().setVariable("result", result);
+        context.setReturnValues(java.util.Collections.singletonList(result));
+    }
+
+    /**
+     * Deep copy array (recursively copies nested arrays)
+     */
+    private void executeDeepCopy(ExecutionContext context) {
+        @SuppressWarnings("unchecked")
+        List<Object> arr = (List<Object>) context.getLocalContext().getValue("arr");
+        List<Object> result = deepCopy(arr);
         context.getCurrentFrame().getLocalContext().setVariable("result", result);
         context.setReturnValues(java.util.Collections.singletonList(result));
     }
@@ -193,6 +229,62 @@ public class ArrayUtil implements ClnFunction {
         return arr;
     }
 
+    public static List<Object> newArray2D(long rows, long cols) {
+        if (rows < 0 || cols < 0) {
+            throw new IllegalArgumentException("Array dimensions cannot be negative");
+        }
+        List<Object> outer = new ArrayList<>((int) rows);
+        for (int i = 0; i < rows; i++) {
+            outer.add(newArray(cols));
+        }
+        return outer;
+    }
+
+    public static List<Object> newArray3D(long depth, long rows, long cols) {
+        if (depth < 0 || rows < 0 || cols < 0) {
+            throw new IllegalArgumentException("Array dimensions cannot be negative");
+        }
+        List<Object> outermost = new ArrayList<>((int) depth);
+        for (int i = 0; i < depth; i++) {
+            outermost.add(newArray2D(rows, cols));
+        }
+        return outermost;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static List<Object> deepCopy(List<Object> arr) {
+        if (arr == null) {
+            return new ArrayList<>();
+        }
+        List<Object> result = new ArrayList<>(arr.size());
+        for (Object element : arr) {
+            result.add(deepCopyElement(element));
+        }
+        return result;
+    }
+
+    /**
+     * Recursively deep-copies a single element.
+     * Handles nested arrays (List), struct/union instances (Map), and
+     * primitive values (Long, Boolean, String, BigDecimal) which are immutable.
+     */
+    @SuppressWarnings("unchecked")
+    private static Object deepCopyElement(Object element) {
+        if (element instanceof List) {
+            return deepCopy((List<Object>) element);
+        }
+        if (element instanceof Map) {
+            Map<String, Object> original = (Map<String, Object>) element;
+            Map<String, Object> copy = new HashMap<>(original.size());
+            for (Map.Entry<String, Object> entry : original.entrySet()) {
+                copy.put(entry.getKey(), deepCopyElement(entry.getValue()));
+            }
+            return copy;
+        }
+        // Primitives (Long, Boolean, String, BigDecimal) are immutable – share safely
+        return element;
+    }
+
     public static List<Object> copy(List<Object> arr) {
         if (arr == null) {
             return new ArrayList<>();
@@ -322,9 +414,18 @@ public class ArrayUtil implements ClnFunction {
         registerFunction(registry, "newArray", "Array", "result",
                         new String[]{"int"}, new String[]{"size"}, this::executeNewArray);
         
+        registerFunction(registry, "newArray2D", "Array", "result",
+                        new String[]{"int", "int"}, new String[]{"rows", "cols"}, this::executeNewArray2D);
+
+        registerFunction(registry, "newArray3D", "Array", "result",
+                        new String[]{"int", "int", "int"}, new String[]{"depth", "rows", "cols"}, this::executeNewArray3D);
+
         registerFunction(registry, "copy", "Array", "result",
                         new String[]{"Array"}, new String[]{"arr"}, this::executeCopy);
         
+        registerFunction(registry, "deepCopy", "Array", "result",
+                        new String[]{"Array"}, new String[]{"arr"}, this::executeDeepCopy);
+
         registerFunction(registry, "copyRange", "Array", "result",
                         new String[]{"Array", "int", "int"}, new String[]{"arr", "start", "end"}, this::executeCopyRange);
 

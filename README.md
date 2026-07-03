@@ -18,14 +18,14 @@ An interpreter for **cln**, a small embeddable scripting language with ANTLR4-ba
 - **Parser & Lexer**: Complete ANTLR4-based grammar for cln-lang
 - **AST Construction**: Parse tree to structured Abstract Syntax Tree conversion
 - **Type System**: Primitives (int, bool, string, dec), structs, and unions
-- **Arrays**: Arrays of primitive types (int[], dec[], bool[], string[])
-  - Array literals: `[1, 2, 3]`
-  - Array indexing: `arr[0]`
-  - Array assignment: `arr[0] = 10`
-  - Array length: `arr.length`
+- **Arrays**: Arrays of any type — primitives (`int[]`, `dec[]`, `bool[]`, `string[]`), structs (`Point[]`), unions (`Shape[]`), and multi-dimensional arrays (`int[][]`, `int[][][]`, `Point[][]`, etc.)
+  - Array literals: `[1, 2, 3]`, `[[1,2],[3,4]]`, `[Point(x:0,y:0), Point(x:1,y:1)]`
+  - Array indexing: `arr[0]`, `matrix[1][2]`, `arr[i].field`
+  - Array assignment: `arr[0] = 10`, `matrix[0][1] = 42`, `arr[0].field = value`
+  - Array length at any dimension: `arr.length`, `matrix[0].length`
   - Bounds checking at runtime
   - Arrays as function parameters and return values
-  - **Limitations**: Fixed-size only (no resizing besides copy function), 1D arrays only, primitive type arrays only (no structs/unions)
+  - **Limitation**: Fixed-size after creation (resize via `copy`/`deepCopy` + manual fill)
 - **Runtime Execution**: Full interpreter with execution context and function invocation
 - **Module System**: 
   - Package declarations with hierarchical namespacing
@@ -68,7 +68,7 @@ An interpreter for **cln**, a small embeddable scripting language with ANTLR4-ba
   - **Decimal**: Arbitrary precision decimal numbers with optional precision control (using Java `BigDecimal`, supports `dec`, `dec(precision)`, `dec(precision, roundingMode)`)
 - **Standard Library**: Console I/O, string utilities, array utilities, and math utilities (`std.console.*`, `std.str.*`, `std.array.*`, `std.math.*`)
 - **String Utilities**: `intToStr` function for integer-to-string conversion
-- **Array Utilities**: `std.array.*` (creation, copy, search, slice, concat)
+- **Array Utilities**: `std.array.*` (creation with `newArray`/`newArray2D`/`newArray3D`, shallow `copy`, `deepCopy`, search, slice, concat)
 - **Math Utilities**: `std.math.*` (trig, log/exp, pow/root, rounding, min/max)
 - **Error Handling**: Comprehensive exception handling with detailed error messages
 - **Type Safety**: Runtime type checking for operators and conditionals with strict primitive type validation (case-sensitive: `int`, `bool`, `string`, `dec`)
@@ -79,13 +79,8 @@ An interpreter for **cln**, a small embeddable scripting language with ANTLR4-ba
   - **Implicit Upcasting**: Struct instances can be passed to functions expecting union types
   - **Type Matching**: Runtime type identification using `__type__` metadata
 
-### 🚧 Partially Implemented
-
-- **Arrays of Structs/Unions**: Grammar supports it, but runtime implementation pending for next release
-
 ### ❌ Not Yet Implemented
 
-- **Multi-dimensional Arrays**: Only 1D arrays currently supported
 - **Array Resizing**: Arrays are fixed-size after creation. Resize only available via copy and creating a new array.
 - **Type Checking**: Static type checking not implemented (runtime only)
 - **Semantic Analysis**: No compile-time validation beyond basic type checks
@@ -495,14 +490,16 @@ int add(int a, int b) {
 - **Variables**: `var int x = 10;` or type-inferred `var x = 10;`
 - **Data Types**:
   - Primitives: `int` (64-bit), `bool`, `string`, `dec` (BigDecimal with optional precision: `dec`, `dec(2)`, `dec(2, HALF_UP)`)
-  - Arrays: `int[]`, `string[]`, `bool[]`, `dec[]` with literal syntax `[1, 2, 3]`
+  - Arrays: `int[]`, `string[]`, `bool[]`, `dec[]`, `MyStruct[]`, `MyUnion[]`, `int[][]`, etc. — with literal syntax `[1, 2, 3]`, `[[1,2],[3,4]]`
   - Structs: Declare, instantiate, access, and modify fields
   - Unions: Declare and pattern match with switch/case
 - **Array Operations**:
-  - Creation: `var int[] arr = [1, 2, 3];`
-  - Access: `arr[0]`, `arr[i]`
-  - Assignment: `arr[0] = 10;`
-  - Length: `arr.length`
+  - Creation: `var int[] arr = [1, 2, 3];`, `var int[][] m = [[1,2],[3,4]];`
+  - Dynamic: `newArray(n)`, `newArray2D(rows, cols)`, `newArray3D(d, r, c)` (from `std.array.*`)
+  - Access: `arr[0]`, `matrix[1][2]`, `arr[0].field`
+  - Assignment: `arr[0] = 10;`, `matrix[0][1] = 42;`, `arr[0].field = val;`
+  - Length at any dimension: `arr.length`, `matrix[0].length`
+  - Deep copy: `deepCopy(arr)` (from `std.array.*`) — fully independent clone including struct/union elements
   - String indexing: `"hello"[0]` returns `"h"`
 - **Struct Operations**:
   - Declaration: `struct Point { var int x; var int y; };`
@@ -771,9 +768,7 @@ This ensures consistent precision throughout calculations, making it ideal for f
 ### Known Limitations
 
 - **Arrays**:
-  - Fixed-size only: cannot create pre-sized arrays or resize after creation
-  - No multi-dimensional arrays (only 1D arrays supported)
-  - Only primitive types: arrays of structs/unions not yet implemented
+  - Fixed-size after creation: use `newArray`/`newArray2D`/`newArray3D` for pre-sized arrays; resize via manual copy
   - No array constructor syntax (e.g., `int[](100)` to create array of size 100)
 - **Exit codes**: Process exit codes are 8-bit (0-255), so values > 255 are truncated via modulo operation
 - **Structs**: Represented internally as `Map<String, Object>` with `__type__` metadata
@@ -862,7 +857,7 @@ int main() {
 ### Language Constructs Not Yet Functional
 
 - **Static type checking**: Only runtime type validation is performed
-- **Advanced array features**: Multi-dimensional arrays, array resizing, arrays of structs/unions
+- **Advanced array features**: Array resizing
 
 ## Architecture
 
@@ -996,18 +991,18 @@ Additional test files in `core/src/test/resources/`:
    - ✅ Case-sensitive type names
    - ✅ Mixed numeric operations (int and dec)
 
-3. **Arrays** (NEW!)
-   - ✅ Array literals: `[1, 2, 3]`
-   - ✅ Array types: `int[]`, `string[]`, `bool[]`, `dec[]`
-   - ✅ Index access: `arr[0]`
-   - ✅ Array assignment: `arr[0] = 10`
-   - ✅ Array length property: `arr.length`
+3. **Arrays**
+   - ✅ Array literals: `[1, 2, 3]`, `[[1,2],[3,4]]`, `[Point(x:0,y:0)]`
+   - ✅ Array types: `int[]`, `string[]`, `bool[]`, `dec[]`, `MyStruct[]`, `MyUnion[]`, `int[][]`, `int[][][]`
+   - ✅ Index access: `arr[0]`, `matrix[1][2]`
+   - ✅ Array assignment: `arr[0] = 10`, `matrix[0][1] = 42`, `arr[0].field = val`
+   - ✅ Array length at any dimension: `arr.length`, `matrix[0].length`
    - ✅ String indexing: `str[0]`
    - ✅ Bounds checking
    - ✅ Arrays as function parameters and return values
-   - ❌ Multi-dimensional arrays
-   - ❌ Array resizing/pre-sizing
-   - ❌ Arrays of structs/unions
+   - ✅ Arrays of structs and unions
+   - ✅ Multi-dimensional arrays (`newArray2D`, `newArray3D`, `deepCopy`)
+   - ❌ Array resizing/pre-sizing after creation
 
 4. **Java 21 Upgrade**
    - ✅ Migrated from Java 17 to Java 21 LTS
@@ -1016,9 +1011,7 @@ Additional test files in `core/src/test/resources/`:
 ### 🚧 In Progress / Planned
 
 5. **Advanced Arrays**
-   - Arrays of structs and unions
-   - Multi-dimensional arrays
-   - Array initialization only by size with default values
+   - Array initialization by size with typed default values
    - Built-in array utilities (sort, filter, map)
 
 5. **Union Type Enhancements**
@@ -1070,7 +1063,7 @@ Additional test files in `core/src/test/resources/`:
   - Array literals, indexing, assignment, and length property
   - Arrays as function parameters and return values
   - Bounds checking at runtime
-  - Fixed-size 1D arrays only (no resizing, no multi-dimensional, no struct/union arrays yet)
+  - Fixed-size after creation (no in-place resizing)
 - ✅ **Cross-Package Imports**: Full implementation of cross-package imports with `expose` visibility control
   - Wildcard imports: `import myapp.*;`
   - Visibility enforcement: symbols require `expose` keyword to be accessible from other packages

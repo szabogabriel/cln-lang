@@ -1,0 +1,16 @@
+# Build outputs
+**/target/
+
+# IDE and OS noise
+.idea/
+*.iml
+.DS_Store
+
+# Git
+.git/
+.gitignore
+
+# Vaadin dev-mode caches
+**/node_modules/
+**/node/
+**/frontend/generated/

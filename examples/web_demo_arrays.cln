@@ -1,0 +1,37 @@
+import std.console.*;
+import std.str.*;
+
+struct Circle {
+    var int radius;
+};
+
+struct Square {
+    var int side;
+};
+
+union Shape {
+    Circle;
+    Square;
+};
+
+(var string result = "") describeShape(Shape s) {
+    switch (s) {
+        case Circle c: result = "Circle with radius " + c.radius;
+        case Square q: result = "Square with side " + q.side;
+    }
+    return;
+}
+
+int main() {
+    Circle c = Circle(radius: 5);
+    Square q = Square(side: 7);
+
+    string desc1 = describeShape(c);
+    string desc2 = describeShape(q);
+
+    writeLine(desc1);
+    writeLine(desc2);
+
+    return 0;
+}
+
