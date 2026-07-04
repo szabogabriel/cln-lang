@@ -18,14 +18,17 @@ An interpreter for **cln**, a small embeddable scripting language with ANTLR4-ba
 - **Parser & Lexer**: Complete ANTLR4-based grammar for cln-lang
 - **AST Construction**: Parse tree to structured Abstract Syntax Tree conversion
 - **Type System**: Primitives (int, bool, string, dec), structs, and unions
-- **Arrays**: Arrays of primitive types (int[], dec[], bool[], string[])
-  - Array literals: `[1, 2, 3]`
-  - Array indexing: `arr[0]`
-  - Array assignment: `arr[0] = 10`
-  - Array length: `arr.length`
+- **Arrays**: Arrays of primitives, structs, and unions; multi-dimensional support
+  - Array types: `int[]`, `string[]`, `bool[]`, `dec[]`, `MyStruct[]`, `MyUnion[]`; multi-dimensional: `int[][]`, `int[][][]`
+  - Array literals: `[1, 2, 3]`, `[[1, 2], [3, 4]]`
+  - Array indexing: `arr[0]`, `matrix[1][2]`
+  - Array assignment: `arr[0] = 10`, `matrix[0][1] = 5`
+  - Array length: `arr.length` (available at each dimension level)
   - Bounds checking at runtime
   - Arrays as function parameters and return values
-  - **Limitations**: Fixed-size only (no resizing besides copy function), 1D arrays only, primitive type arrays only (no structs/unions)
+  - Dynamic allocation via `std.array`: `newArray(n)`, `newArray2D(rows, cols)`, `newArray3D(depth, rows, cols)`
+  - Deep copy for multi-dimensional arrays: `deepCopy(arr)` from `std.array`
+  - **Limitations**: Fixed-size only (no resizing after creation)
 - **Runtime Execution**: Full interpreter with execution context and function invocation
 - **Module System**: 
   - Package declarations with hierarchical namespacing
@@ -92,13 +95,8 @@ An interpreter for **cln**, a small embeddable scripting language with ANTLR4-ba
   - **Implicit Upcasting**: Struct instances can be passed to functions expecting union types
   - **Type Matching**: Runtime type identification using `__type__` metadata
 
-### 🚧 Partially Implemented
-
-- **Arrays of Structs/Unions**: Grammar supports it, but runtime implementation pending for next release
-
 ### ❌ Not Yet Implemented
 
-- **Multi-dimensional Arrays**: Only 1D arrays currently supported
 - **Array Resizing**: Arrays are fixed-size after creation. Resize only available via copy and creating a new array.
 - **Type Checking**: Static type checking not implemented (runtime only)
 - **Semantic Analysis**: No compile-time validation beyond basic type checks
@@ -508,14 +506,15 @@ int add(int a, int b) {
 - **Variables**: `var int x = 10;` or type-inferred `var x = 10;`
 - **Data Types**:
   - Primitives: `int` (64-bit), `bool`, `string`, `dec` (BigDecimal with optional precision: `dec`, `dec(2)`, `dec(2, HALF_UP)`)
-  - Arrays: `int[]`, `string[]`, `bool[]`, `dec[]` with literal syntax `[1, 2, 3]`
+  - Arrays: `int[]`, `string[]`, `bool[]`, `dec[]`, `MyStruct[]`, `MyUnion[]`; multi-dimensional: `int[][]`, `int[][][]`; literals: `[1, 2, 3]`, `[[1, 2], [3, 4]]`
   - Structs: Declare, instantiate, access, and modify fields
   - Unions: Declare and pattern match with switch/case
 - **Array Operations**:
-  - Creation: `var int[] arr = [1, 2, 3];`
-  - Access: `arr[0]`, `arr[i]`
-  - Assignment: `arr[0] = 10;`
-  - Length: `arr.length`
+  - Creation: `var int[] arr = [1, 2, 3];`, `var int[][] mat = [[1, 2], [3, 4]];`
+  - Dynamic allocation: `newArray(n)`, `newArray2D(rows, cols)`, `newArray3D(depth, rows, cols)` via `std.array`
+  - Access: `arr[0]`, `arr[i]`, `mat[1][2]`
+  - Assignment: `arr[0] = 10;`, `mat[0][1] = 5;`
+  - Length: `arr.length`, `mat[0].length` (at each dimension)
   - String indexing: `"hello"[0]` returns `"h"`
 - **Struct Operations**:
   - Declaration: `struct Point { var int x; var int y; };`
@@ -784,10 +783,8 @@ This ensures consistent precision throughout calculations, making it ideal for f
 ### Known Limitations
 
 - **Arrays**:
-  - Fixed-size only: cannot create pre-sized arrays or resize after creation
-  - No multi-dimensional arrays (only 1D arrays supported)
-  - Only primitive types: arrays of structs/unions not yet implemented
-  - No array constructor syntax (e.g., `int[](100)` to create array of size 100)
+  - Fixed-size only: cannot resize arrays after creation (use `newArray`/`newArray2D`/`newArray3D` from `std.array` for pre-sized allocation)
+  - No typed array constructor syntax (e.g., `int[](100)` to create a typed array of size 100)
 - **Exit codes**: Process exit codes are 8-bit (0-255), so values > 255 are truncated via modulo operation
 - **Structs**: Represented internally as `Map<String, Object>` with `__type__` metadata
 - **Type names**: Primitive type names are case-sensitive and must be lowercase (`int`, `bool`, `string`)
@@ -861,6 +858,11 @@ int main() {
   - Constant: `int x = 10;` or `string name = "value";`
 - **Structs**: Full declaration, instantiation, field access, and modification support
 - **Unions**: Full declaration, switch/case pattern matching, and implicit upcasting from struct members
+- **Arrays**: 1D and multi-dimensional; primitive, struct, and union element types
+  - Literal syntax: `[1, 2, 3]`, `[[1, 2], [3, 4]]`
+  - Types: `int[]`, `int[][]`, `MyStruct[]`, `MyUnion[]`, etc.
+  - Dynamic allocation via `std.array`: `newArray(n)`, `newArray2D(rows, cols)`, `newArray3D(depth, rows, cols)`
+  - Deep copy for multi-dimensional arrays: `deepCopy(arr)`
 - **Control flow**: `if/else` statements, `while` loops, and `switch/case` on union types
 - **Operators**:
   - Arithmetic: `+`, `-`, `*`, `/` (supports both integer and decimal types)
@@ -875,7 +877,7 @@ int main() {
 ### Language Constructs Not Yet Functional
 
 - **Static type checking**: Only runtime type validation is performed
-- **Advanced array features**: Multi-dimensional arrays, array resizing, arrays of structs/unions
+- **Advanced array features**: Array resizing after creation
 
 ## Architecture
 
@@ -1010,18 +1012,19 @@ Additional test files in `core/src/test/resources/`:
    - ✅ Case-sensitive type names
    - ✅ Mixed numeric operations (int and dec)
 
-3. **Arrays** (NEW!)
-   - ✅ Array literals: `[1, 2, 3]`
-   - ✅ Array types: `int[]`, `string[]`, `bool[]`, `dec[]`
-   - ✅ Index access: `arr[0]`
-   - ✅ Array assignment: `arr[0] = 10`
-   - ✅ Array length property: `arr.length`
+3. **Arrays**
+   - ✅ Array literals: `[1, 2, 3]`, `[[1, 2], [3, 4]]`
+   - ✅ Array types: `int[]`, `string[]`, `bool[]`, `dec[]`, `MyStruct[]`, `MyUnion[]`
+   - ✅ Multi-dimensional arrays: `int[][]`, `int[][][]` with literal and dynamic allocation
+   - ✅ Index access: `arr[0]`, `matrix[1][2]`
+   - ✅ Array assignment: `arr[0] = 10`, `matrix[0][1] = 5`
+   - ✅ Array length property: `arr.length` (at each dimension)
    - ✅ String indexing: `str[0]`
    - ✅ Bounds checking
    - ✅ Arrays as function parameters and return values
-   - ❌ Multi-dimensional arrays
-   - ❌ Array resizing/pre-sizing
-   - ❌ Arrays of structs/unions
+   - ✅ Dynamic allocation: `newArray(n)`, `newArray2D(rows, cols)`, `newArray3D(depth, rows, cols)`
+   - ✅ Deep copy for multi-dimensional arrays: `deepCopy(arr)`
+   - ❌ Array resizing after creation
 
 4. **Java 21 Upgrade**
    - ✅ Migrated from Java 17 to Java 21 LTS
@@ -1030,13 +1033,10 @@ Additional test files in `core/src/test/resources/`:
 ### 🚧 In Progress / Planned
 
 5. **Advanced Arrays**
-   - Arrays of structs and unions
-   - Multi-dimensional arrays
-   - Array initialization only by size with default values
+   - Array initialization with typed default values
    - Built-in array utilities (sort, filter, map)
 
 5. **Union Type Enhancements**
-   - Implicit upcasting from struct to union types
    - Type coercion for function parameters
 
 6. **Static Type Checking**
@@ -1073,6 +1073,13 @@ Additional test files in `core/src/test/resources/`:
 ## Recent Updates
 
 ### July 2026
+- ✅ **Multi-dimensional Arrays and Struct/Union Arrays**: Extended array support beyond 1D primitives
+  - Multi-dimensional array literals: `[[1, 2], [3, 4]]`, `[[[1, 2], [3, 4]], [[5, 6], [7, 8]]]`
+  - Multi-dimensional array types: `int[][]`, `int[][][]`, `MyStruct[][]`, etc.
+  - Arrays of structs and unions: `Point[]`, `Shape[]` with full indexing and assignment
+  - Dynamic allocation via `std.array`: `newArray2D(rows, cols)`, `newArray3D(depth, rows, cols)`
+  - Deep copy for multi-dimensional arrays: `deepCopy(arr)` from `std.array`
+  - Chained indexing: `matrix[1][2]`, `cube[0][1][0]`
 - ✅ **Calendar / Date-Time Standard Library** (`std.calendar.*`): Full date and time support
   - Three structs exposed to CLN programs: `Timestamp` (epoch ms + 8 fields), `Date` (year/month/day), `Time` (hour/minute/second/millisecond/timezone)
   - Current-time snapshots: `now()`, `nowDate()`, `nowTime()`
@@ -1102,7 +1109,7 @@ Additional test files in `core/src/test/resources/`:
   - Array literals, indexing, assignment, and length property
   - Arrays as function parameters and return values
   - Bounds checking at runtime
-  - Fixed-size 1D arrays only (no resizing, no multi-dimensional, no struct/union arrays yet)
+  - Fixed-size only (no resizing)
 - ✅ **Cross-Package Imports**: Full implementation of cross-package imports with `expose` visibility control
   - Wildcard imports: `import myapp.*;`
   - Visibility enforcement: symbols require `expose` keyword to be accessible from other packages
