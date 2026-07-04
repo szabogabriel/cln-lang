@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.clnlang.lib.std.array.ArrayUtil;
+import org.clnlang.lib.std.calendar.Calendar;
 import org.clnlang.lib.std.console.Console;
 import org.clnlang.lib.std.math.DefaultMath;
 import org.clnlang.lib.std.string.StringUtil;
@@ -31,6 +32,9 @@ public class StandardLibrary {
      * Add new standard library classes here as they are implemented.
      */
     private void initializeStandardLibrary() {
+        // Calendar functions and types
+        standardLibraryComponents.add(new Calendar());
+        
         // I/O functions
         standardLibraryComponents.add(new Console());
         

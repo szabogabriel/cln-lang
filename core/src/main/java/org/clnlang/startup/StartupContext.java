@@ -285,6 +285,10 @@ public class StartupContext {
             }
             
             CompilerVisitor compiler = new CompilerVisitor();
+            registry.getAllStructTypes().keySet()
+                .forEach(fqn -> compiler.addExternalTypes(java.util.List.of(fqn.getEntityName())));
+            registry.getAllUnionTypes().keySet()
+                .forEach(fqn -> compiler.addExternalTypes(java.util.List.of(fqn.getEntityName())));
             return compiler.compileProgram(programContext);
         } catch (IOException e) {
             throw new ClnException("Failed to read source: " + source.getName() + " - " + e.getMessage());

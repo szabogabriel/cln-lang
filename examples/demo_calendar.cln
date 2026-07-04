@@ -1,0 +1,243 @@
+import std.calendar.*;
+import std.console.*;
+
+int main() {
+
+    // =========================================================
+    // 1. Current date / time snapshots
+    // =========================================================
+    writeLine("=== 1. Current snapshots ===");
+
+    Timestamp ts = now();
+    writeLine("now()        epoch ms : " + ts.timestamp);
+    writeLine("now()        date     : " + ts.year + "-" + ts.month + "-" + ts.day);
+    writeLine("now()        time     : " + ts.hour + ":" + ts.minute + ":" + ts.second + "." + ts.millisecond);
+    writeLine("now()        timezone : " + ts.timezone);
+
+    Date d = nowDate();
+    writeLine("nowDate()    date     : " + d.year + "-" + d.month + "-" + d.day);
+
+    Time t = nowTime();
+    writeLine("nowTime()    time     : " + t.hour + ":" + t.minute + ":" + t.second + "." + t.millisecond);
+    writeLine("nowTime()    timezone : " + t.timezone);
+
+    // =========================================================
+    // 2. Arithmetic – plus
+    // =========================================================
+    writeLine("");
+    writeLine("=== 2. Arithmetic – plus ===");
+
+    Timestamp tsPlus1Year    = plusYears(ts, 1);
+    Timestamp tsPlus3Months  = plusMonths(ts, 3);
+    Timestamp tsPlus10Days   = plusDays(ts, 10);
+    Timestamp tsPlus6Hours   = plusHours(ts, 6);
+    Timestamp tsPlus30Min    = plusMinutes(ts, 30);
+    Timestamp tsPlus45Sec    = plusSeconds(ts, 45);
+    Timestamp tsPlus500Ms    = plusMilliseconds(ts, 500);
+
+    writeLine("now + 1 year     : " + tsPlus1Year.year   + "-" + tsPlus1Year.month   + "-" + tsPlus1Year.day);
+    writeLine("now + 3 months   : " + tsPlus3Months.year + "-" + tsPlus3Months.month + "-" + tsPlus3Months.day);
+    writeLine("now + 10 days    : " + tsPlus10Days.year  + "-" + tsPlus10Days.month  + "-" + tsPlus10Days.day);
+    writeLine("now + 6 hours    : " + tsPlus6Hours.hour  + ":" + tsPlus6Hours.minute + ":" + tsPlus6Hours.second);
+    writeLine("now + 30 min     : " + tsPlus30Min.hour   + ":" + tsPlus30Min.minute  + ":" + tsPlus30Min.second);
+    writeLine("now + 45 sec     : " + tsPlus45Sec.hour   + ":" + tsPlus45Sec.minute  + ":" + tsPlus45Sec.second);
+    writeLine("now + 500 ms     epoch: " + tsPlus500Ms.timestamp);
+
+    // =========================================================
+    // 3. Arithmetic – minus
+    // =========================================================
+    writeLine("");
+    writeLine("=== 3. Arithmetic – minus ===");
+
+    Timestamp tsMinus2Years  = minusYears(ts, 2);
+    Timestamp tsMinus1Month  = minusMonths(ts, 1);
+    Timestamp tsMinus7Days   = minusDays(ts, 7);
+    Timestamp tsMinus4Hours  = minusHours(ts, 4);
+    Timestamp tsMinus15Min   = minusMinutes(ts, 15);
+    Timestamp tsMinus30Sec   = minusSeconds(ts, 30);
+    Timestamp tsMinus250Ms   = minusMilliseconds(ts, 250);
+
+    writeLine("now - 2 years    : " + tsMinus2Years.year  + "-" + tsMinus2Years.month  + "-" + tsMinus2Years.day);
+    writeLine("now - 1 month    : " + tsMinus1Month.year  + "-" + tsMinus1Month.month  + "-" + tsMinus1Month.day);
+    writeLine("now - 7 days     : " + tsMinus7Days.year   + "-" + tsMinus7Days.month   + "-" + tsMinus7Days.day);
+    writeLine("now - 4 hours    : " + tsMinus4Hours.hour  + ":" + tsMinus4Hours.minute + ":" + tsMinus4Hours.second);
+    writeLine("now - 15 min     : " + tsMinus15Min.hour   + ":" + tsMinus15Min.minute  + ":" + tsMinus15Min.second);
+    writeLine("now - 30 sec     : " + tsMinus30Sec.hour   + ":" + tsMinus30Sec.minute  + ":" + tsMinus30Sec.second);
+    writeLine("now - 250 ms     epoch: " + tsMinus250Ms.timestamp);
+
+    // =========================================================
+    // 4. Comparison
+    // =========================================================
+    writeLine("");
+    writeLine("=== 4. Comparison ===");
+
+    bool past   = isBefore(tsMinus7Days, ts);
+    bool future = isAfter(tsPlus10Days, ts);
+    bool same   = isBefore(ts, ts);
+
+    writeLine("(now-7d) isBefore now  : " + past);
+    writeLine("(now+10d) isAfter now  : " + future);
+    writeLine("now isBefore now       : " + same);
+
+    // =========================================================
+    // 5. Struct conversions
+    // =========================================================
+    writeLine("");
+    writeLine("=== 5. Struct conversions ===");
+
+    Date  extractedDate = timestampToDate(ts);
+    Time  extractedTime = timestampToTime(ts);
+    writeLine("timestampToDate : " + extractedDate.year + "-" + extractedDate.month + "-" + extractedDate.day);
+    writeLine("timestampToTime : " + extractedTime.hour + ":" + extractedTime.minute + ":" + extractedTime.second);
+
+    Timestamp fromDate = dateToTimestamp(d);
+    writeLine("dateToTimestamp epoch  : " + fromDate.timestamp);
+    writeLine("dateToTimestamp (midnight) hour: " + fromDate.hour);
+
+    Timestamp fromTime = timeToTimestamp(t);
+    writeLine("timeToTimestamp epoch  : " + fromTime.timestamp);
+
+    Timestamp combined = dateTimeToTimestamp(extractedDate, extractedTime);
+    writeLine("dateTimeToTimestamp epoch: " + combined.timestamp);
+
+    // =========================================================
+    // 6. Formatting (toStr)
+    // =========================================================
+    writeLine("");
+    writeLine("=== 6. Formatting ===");
+
+    writeLine("FORMAT_DATETIME         : " + timestampToString(ts, FORMAT_DATETIME));
+    writeLine("FORMAT_DATETIME_MILLIS  : " + timestampToString(ts, FORMAT_DATETIME_MILLIS));
+    writeLine("FORMAT_ISO_DATETIME     : " + timestampToString(ts, FORMAT_ISO_DATETIME));
+    writeLine("FORMAT_ISO_OFFSET_DATETIME: " + timestampToString(ts, FORMAT_ISO_OFFSET_DATETIME));
+    writeLine("FORMAT_DDMMYYYY_SLASH   : " + timestampToString(ts, FORMAT_DDMMYYYY_SLASH));
+    writeLine("FORMAT_DDMMYYYY_DOT     : " + timestampToString(ts, FORMAT_DDMMYYYY_DOT));
+    writeLine("FORMAT_DDMMYYYY_DASH    : " + timestampToString(ts, FORMAT_DDMMYYYY_DASH));
+    writeLine("FORMAT_MMDDYYYY_SLASH   : " + timestampToString(ts, FORMAT_MMDDYYYY_SLASH));
+    writeLine("FORMAT_YYYYMMDD_SLASH   : " + timestampToString(ts, FORMAT_YYYYMMDD_SLASH));
+    writeLine("FORMAT_YYYYMMDD_COMPACT : " + timestampToString(ts, FORMAT_YYYYMMDD_COMPACT));
+    writeLine("FORMAT_DATE_LONG        : " + timestampToString(ts, FORMAT_DATE_LONG));
+    writeLine("FORMAT_DATE_MEDIUM      : " + timestampToString(ts, FORMAT_DATE_MEDIUM));
+    writeLine("FORMAT_DAY_OF_WEEK_DATE : " + timestampToString(ts, FORMAT_DAY_OF_WEEK_DATE));
+    writeLine("FORMAT_RFC1123          : " + timestampToString(ts, FORMAT_RFC1123));
+
+    writeLine("dateToString ISO        : " + dateToString(d, FORMAT_DATE));
+    writeLine("dateToString dot        : " + dateToString(d, FORMAT_DDMMYYYY_DOT));
+    writeLine("dateToString long       : " + dateToString(d, FORMAT_DATE_LONG));
+
+    writeLine("timeToString HH:mm:ss   : " + timeToString(t, FORMAT_TIME));
+    writeLine("timeToString millis     : " + timeToString(t, FORMAT_TIME_MILLIS));
+    writeLine("timeToString compact    : " + timeToString(t, FORMAT_HHMMSS_COMPACT));
+
+    // =========================================================
+    // 7. Parsing (toStruct)
+    // =========================================================
+    writeLine("");
+    writeLine("=== 7. Parsing ===");
+
+    Timestamp parsed1 = toTimestamp("2026-01-15 08:30:00", FORMAT_DATETIME);
+    writeLine("toTimestamp ISO    : " + parsed1.year + "-" + parsed1.month + "-" + parsed1.day + " " + parsed1.hour + ":" + parsed1.minute);
+
+    Timestamp parsed2 = toTimestamp("15/07/2026 14:45:00", FORMAT_DDMMYYYY_SLASH_HHMMSS);
+    writeLine("toTimestamp slash  : " + parsed2.year + "-" + parsed2.month + "-" + parsed2.day + " " + parsed2.hour + ":" + parsed2.minute);
+
+    Timestamp parsed3 = toTimestamp("20260301", FORMAT_YYYYMMDD_COMPACT);
+    writeLine("toTimestamp compact: " + parsed3.year + "-" + parsed3.month + "-" + parsed3.day);
+
+    Date parsedDate = toDate("25.12.2026", FORMAT_DDMMYYYY_DOT);
+    writeLine("toDate dot         : " + parsedDate.year + "-" + parsedDate.month + "-" + parsedDate.day);
+
+    Date parsedDate2 = toDate("07/04/2026", FORMAT_MMDDYYYY_SLASH);
+    writeLine("toDate US slash    : " + parsedDate2.year + "-" + parsedDate2.month + "-" + parsedDate2.day);
+
+    Time parsedTime = toTime("23:59:59", FORMAT_TIME);
+    writeLine("toTime HH:mm:ss    : " + parsedTime.hour + ":" + parsedTime.minute + ":" + parsedTime.second);
+
+    Time parsedTime2 = toTime("103045", FORMAT_HHMMSS_COMPACT);
+    writeLine("toTime compact     : " + parsedTime2.hour + ":" + parsedTime2.minute + ":" + parsedTime2.second);
+
+    // =========================================================
+    // 8. Difference
+    // =========================================================
+    writeLine("");
+    writeLine("=== 8. Difference ===");
+
+    Timestamp start = toTimestamp("2026-07-04 10:00:00", FORMAT_DATETIME);
+    Timestamp end   = toTimestamp("2026-07-06 12:30:45", FORMAT_DATETIME);
+
+    writeLine("diffDays         : " + diffDays(start, end));
+    writeLine("diffHours        : " + diffHours(start, end));
+    writeLine("diffMinutes      : " + diffMinutes(start, end));
+    writeLine("diffSeconds      : " + diffSeconds(start, end));
+    writeLine("diffMilliseconds : " + diffMilliseconds(start, end));
+    writeLine("diffDays negative: " + diffDays(end, start));
+
+    // =========================================================
+    // 9. Field setters (with*)
+    // =========================================================
+    writeLine("");
+    writeLine("=== 9. Field setters ===");
+
+    Timestamp base = toTimestamp("2026-07-04 13:33:28", FORMAT_DATETIME);
+
+    Timestamp w1 = withYear(base, 2030);
+    writeLine("withYear  2030   : " + w1.year + "-" + w1.month + "-" + w1.day);
+
+    Timestamp w2 = withMonth(base, 12);
+    writeLine("withMonth 12     : " + w2.year + "-" + w2.month + "-" + w2.day);
+
+    Timestamp w3 = withDay(base, 1);
+    writeLine("withDay   1      : " + w3.year + "-" + w3.month + "-" + w3.day);
+
+    Timestamp w4 = withHour(base, 0);
+    writeLine("withHour  0      : " + w4.hour + ":" + w4.minute + ":" + w4.second);
+
+    Timestamp w5 = withMinute(base, 0);
+    writeLine("withMinute 0     : " + w5.hour + ":" + w5.minute + ":" + w5.second);
+
+    Timestamp w6 = withSecond(base, 0);
+    writeLine("withSecond 0     : " + w6.hour + ":" + w6.minute + ":" + w6.second);
+
+    // =========================================================
+    // 10. Timezone conversion
+    // =========================================================
+    writeLine("");
+    writeLine("=== 10. Timezone ===");
+
+    Timestamp tsLocal = now();
+    Timestamp tsUtc   = toTimezone(tsLocal, "UTC");
+    Timestamp tsNy    = toTimezone(tsLocal, "America/New_York");
+    Timestamp tsTokyo = toTimezone(tsLocal, "Asia/Tokyo");
+
+    writeLine("local    : " + tsLocal.hour + ":" + tsLocal.minute + " " + tsLocal.timezone);
+    writeLine("UTC      : " + tsUtc.hour   + ":" + tsUtc.minute   + " " + tsUtc.timezone);
+    writeLine("New York : " + tsNy.hour    + ":" + tsNy.minute    + " " + tsNy.timezone);
+    writeLine("Tokyo    : " + tsTokyo.hour + ":" + tsTokyo.minute + " " + tsTokyo.timezone);
+
+    // same instant — epoch must be equal
+    writeLine("epoch same (local vs UTC): " + (tsLocal.timestamp == tsUtc.timestamp));
+
+    // =========================================================
+    // 11. Utility
+    // =========================================================
+    writeLine("");
+    writeLine("=== 11. Utility ===");
+
+    Timestamp mon = toTimestamp("2026-07-06", FORMAT_DATE);
+    Timestamp sat = toTimestamp("2026-07-04", FORMAT_DATE);
+    Timestamp sun = toTimestamp("2026-07-05", FORMAT_DATE);
+
+    writeLine("dayOfWeek Mon (expect 1) : " + dayOfWeek(mon));
+    writeLine("dayOfWeek Sat (expect 6) : " + dayOfWeek(sat));
+    writeLine("dayOfWeek Sun (expect 7) : " + dayOfWeek(sun));
+
+    Timestamp fromMs = fromEpoch(0);
+    writeLine("fromEpoch 0 year  : " + fromMs.year);
+    writeLine("fromEpoch 0 month : " + fromMs.month);
+    writeLine("fromEpoch 0 day   : " + fromMs.day);
+
+    Timestamp roundtrip = fromEpoch(ts.timestamp);
+    writeLine("fromEpoch roundtrip epoch: " + roundtrip.timestamp);
+
+    return 0;
+}

@@ -1,12 +1,5 @@
 package org.clnlang.linker;
 
-import org.clnlang.runtime.context.ExecutionContext;
-import org.clnlang.runtime.context.GlobalContext;
-import org.clnlang.runtime.execution.Registry;
-import org.clnlang.runtime.types.FullyQualifiedName;
-import org.clnlang.runtime.types.StructDefinition;
-import org.clnlang.runtime.types.UnionDefinition;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +8,12 @@ import java.util.Set;
 import org.clnlang.compile.declaration.FunctionDeclImpl;
 import org.clnlang.compile.declaration.GlobalVarDeclImpl;
 import org.clnlang.compile.declaration.ImportDeclImpl;
+import org.clnlang.runtime.context.ExecutionContext;
+import org.clnlang.runtime.context.GlobalContext;
+import org.clnlang.runtime.execution.Registry;
+import org.clnlang.runtime.types.FullyQualifiedName;
+import org.clnlang.runtime.types.StructDefinition;
+import org.clnlang.runtime.types.UnionDefinition;
 
 /**
  * Links imported symbols from the Registry into the ExecutionContext.
@@ -102,7 +101,7 @@ public class Linker {
                 if (isAccessible(importingPackage, constDecl.getPackageName(), constDecl.isExposed())) {
                     foundAny = true;
                     if (!resolvedSymbols.contains(simpleName)) {
-                        globalContext.registerGlobalVariable(constDecl, null); // Value will be set during execution
+                        globalContext.registerGlobalVariable(constDecl, evaluateInitializer(constDecl));
                         resolvedSymbols.add(simpleName);
                     }
                 }
@@ -200,7 +199,7 @@ public class Linker {
                 throw new Exception("Import failed: Constant '" + fullPath + "' is not exposed for cross-package import");
             }
             if (!resolvedSymbols.contains(entityName)) {
-                globalContext.registerGlobalVariable(constant, null); // Value will be set during execution
+                globalContext.registerGlobalVariable(constant, evaluateInitializer(constant));
                 resolvedSymbols.add(entityName);
             }
             found = true;
@@ -237,6 +236,22 @@ public class Linker {
         }
     }
     
+    /**
+     * Evaluate the initializer expression of a global variable or constant.
+     * Works for literal-valued constants (string, int, bool) that don't need runtime context.
+     * Returns null if the initializer requires an execution context or is absent.
+     */
+    private static Object evaluateInitializer(GlobalVarDeclImpl decl) {
+        if (decl.getInitializer() == null) {
+            return null;
+        }
+        try {
+            return decl.getInitializer().evaluate(null);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     /**
      * Check if a symbol from targetPackage is accessible from importingPackage.
      * A symbol is accessible if:

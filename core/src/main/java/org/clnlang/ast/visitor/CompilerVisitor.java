@@ -204,6 +204,18 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
     
     // Track defined types for validation
     private Set<String> definedTypes = new HashSet<>();
+
+    // External types pre-registered before compilation (e.g., from stdlib via the registry)
+    private final Set<String> externalTypes = new HashSet<>();
+
+    /**
+     * Pre-register external type names (struct/union) so that validateType
+     * accepts them even though they are not declared in the compiled source file.
+     * Must be called before compileProgram.
+     */
+    public void addExternalTypes(java.util.Collection<String> typeNames) {
+        externalTypes.addAll(typeNames);
+    }
     
     /**
      * Compile a program from the parse tree
@@ -213,6 +225,8 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
         
         // First pass: collect all type definitions
         definedTypes.clear();
+        // Restore any externally pre-registered types (e.g., stdlib structs)
+        definedTypes.addAll(externalTypes);
         for (clnParser.TopLevelDeclContext topLevel : ctx.topLevelDecl()) {
             if (topLevel.decl() != null) {
                 clnParser.DeclContext decl = topLevel.decl();

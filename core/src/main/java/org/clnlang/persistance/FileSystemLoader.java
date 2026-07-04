@@ -63,7 +63,7 @@ public class FileSystemLoader implements ClnLoader {
                 count += loadClnFilesRecursively(file, registry);
             } else if (isClnFile(file.getName())) {
                 try {
-                    ProgramImpl program = compileFile(file);
+                    ProgramImpl program = compileFile(file, registry);
                     String declaredPackage = "default";
                     
                     if (program.getPackageDecl() != null && 
@@ -98,7 +98,7 @@ public class FileSystemLoader implements ClnLoader {
     /**
      * Compile a single .cln file into a ProgramImpl.
      */
-    private ProgramImpl compileFile(File file) throws Exception {
+    private ProgramImpl compileFile(File file, Registry registry) throws Exception {
         CharStream input = CharStreams.fromFileName(file.getAbsolutePath());
         clnLexer lexer = new clnLexer(input);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
@@ -111,6 +111,10 @@ public class FileSystemLoader implements ClnLoader {
         }
         
         CompilerVisitor compiler = new CompilerVisitor();
+        registry.getAllStructTypes().keySet()
+            .forEach(fqn -> compiler.addExternalTypes(java.util.List.of(fqn.getEntityName())));
+        registry.getAllUnionTypes().keySet()
+            .forEach(fqn -> compiler.addExternalTypes(java.util.List.of(fqn.getEntityName())));
         return compiler.compileProgram(programContext);
     }
 

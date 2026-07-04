@@ -60,8 +60,11 @@ public final class ClnCheatSheet {
                 <tr><td><code>bool</code></td><td>true / false</td></tr>
                 <tr><td><code>string</code></td><td>UTF-8 text</td></tr>
                 <tr><td><code>dec</code></td><td>arbitrary-precision decimal</td></tr>
-                <tr><td><code>T[]</code></td><td>array of T</td></tr>
+                <tr><td><code>T[]</code></td><td>1D array of T (any type)</td></tr>
+                <tr><td><code>T[][]</code></td><td>2D array of T</td></tr>
+                <tr><td><code>T[][][]</code></td><td>3D array of T</td></tr>
               </table>
+              <p style="margin:4px 0 0">T may be a primitive, struct, or union type.</p>
             </div>
             """);
     }
@@ -139,13 +142,26 @@ union Shape = Circle | Square;</pre>
     private static Section arrays() {
         return new Section("Arrays", """
             <div style="font-size:0.85em">
-              <pre>int[] nums = [1, 2, 3];
-int len = nums.length;
+              <p><b>1D – primitive:</b></p>
+              <pre>var int[] nums = [1, 2, 3];
+int len   = nums.length;
 int first = nums[0];
-nums[1] = 99;</pre>
+nums[1]   = 99;</pre>
+              <p><b>1D – struct / union:</b></p>
+              <pre>var Point[] pts = [Point(x:1, y:2), Point(x:3, y:4)];
+pts[0].x = 99;
+var Shape[] shapes = [Circle(radius:5), Rectangle(w:3, h:4)];</pre>
+              <p><b>2D literal &amp; access:</b></p>
+              <pre>var int[][] m = [[1, 2], [3, 4]];
+int v = m[1][0];
+m[0][1] = 7;</pre>
+              <p><b>Dynamic allocation (std.array):</b></p>
+              <pre>import std.array.*;
+var int[][] grid = newArray2D(rows, cols);
+var int[][][] vol = newArray3D(depth, rows, cols);</pre>
               <p><b>Iterate:</b></p>
               <pre>var int i = 0;
-while i &lt; nums.length {
+while (i &lt; nums.length) {
     writeLine(intToStr(nums[i]));
     i++;
 }</pre>
@@ -219,19 +235,33 @@ toDegrees(dec rad) → dec</pre>
             <div style="font-size:0.85em">
               <pre>import std.array.*;
 
+// Creation
 newArray(int size) → T[]
-copy(T[] a) → T[]
+newArray2D(int rows, int cols) → T[][]      // NEW
+newArray3D(int d, int r, int c) → T[][][]   // NEW
+
+// Copying
+copy(T[] a) → T[]           // shallow copy
+deepCopy(T[] a) → T[]       // deep copy (arrays + structs/unions) NEW
 copyRange(T[] a, int from, int to) → T[]
+
+// Information
 length(T[] a) → int
 isEmpty(T[] a) → bool
+
+// Search
 indexOf(T[] a, T v) → int
 lastIndexOf(T[] a, T v) → int
 contains(T[] a, T v) → bool
+
+// Modification
 fill(T[] a, T v)       // mutates
 reverse(T[] a)         // mutates
+
+// Comparison &amp; set ops
 equals(T[] a, T[] b) → bool
 concat(T[] a, T[] b) → T[]
-slice(T[] a, int from, int to) → T[]</pre>
+slice(T[] a, int from, int len) → T[]</pre>
             </div>
             """);
     }

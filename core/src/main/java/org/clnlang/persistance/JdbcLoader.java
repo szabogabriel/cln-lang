@@ -193,7 +193,7 @@ public class JdbcLoader implements ClnLoader {
                     String pkg = row.getPackageName();
                     String src = row.getSource();
                     try {
-                        ProgramImpl program = compileSource(pkg, src);
+                        ProgramImpl program = compileSource(pkg, src, registry);
                         String declaredPkg = pkg;
                         if (program.getPackageDecl() != null &&
                                 program.getPackageDecl().getPackageName() != null) {
@@ -275,7 +275,7 @@ public class JdbcLoader implements ClnLoader {
         }
     }
 
-    private ProgramImpl compileSource(String packageId, String source) throws Exception {
+    private ProgramImpl compileSource(String packageId, String source, Registry registry) throws Exception {
         CharStream input = CharStreams.fromString(source, packageId);
         clnLexer lexer = new clnLexer(input);
         lexer.removeErrorListeners();
@@ -290,6 +290,10 @@ public class JdbcLoader implements ClnLoader {
         }
 
         CompilerVisitor compiler = new CompilerVisitor();
+        registry.getAllStructTypes().keySet()
+            .forEach(fqn -> compiler.addExternalTypes(java.util.List.of(fqn.getEntityName())));
+        registry.getAllUnionTypes().keySet()
+            .forEach(fqn -> compiler.addExternalTypes(java.util.List.of(fqn.getEntityName())));
         return compiler.compileProgram(programContext);
     }
 
