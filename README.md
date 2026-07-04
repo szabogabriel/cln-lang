@@ -18,14 +18,14 @@ An interpreter for **cln**, a small embeddable scripting language with ANTLR4-ba
 - **Parser & Lexer**: Complete ANTLR4-based grammar for cln-lang
 - **AST Construction**: Parse tree to structured Abstract Syntax Tree conversion
 - **Type System**: Primitives (int, bool, string, dec), structs, and unions
-- **Arrays**: Arrays of any type — primitives (`int[]`, `dec[]`, `bool[]`, `string[]`), structs (`Point[]`), unions (`Shape[]`), and multi-dimensional arrays (`int[][]`, `int[][][]`, `Point[][]`, etc.)
-  - Array literals: `[1, 2, 3]`, `[[1,2],[3,4]]`, `[Point(x:0,y:0), Point(x:1,y:1)]`
-  - Array indexing: `arr[0]`, `matrix[1][2]`, `arr[i].field`
-  - Array assignment: `arr[0] = 10`, `matrix[0][1] = 42`, `arr[0].field = value`
-  - Array length at any dimension: `arr.length`, `matrix[0].length`
+- **Arrays**: Arrays of primitive types (int[], dec[], bool[], string[])
+  - Array literals: `[1, 2, 3]`
+  - Array indexing: `arr[0]`
+  - Array assignment: `arr[0] = 10`
+  - Array length: `arr.length`
   - Bounds checking at runtime
   - Arrays as function parameters and return values
-  - **Limitation**: Fixed-size after creation (resize via `copy`/`deepCopy` + manual fill)
+  - **Limitations**: Fixed-size only (no resizing besides copy function), 1D arrays only, primitive type arrays only (no structs/unions)
 - **Runtime Execution**: Full interpreter with execution context and function invocation
 - **Module System**: 
   - Package declarations with hierarchical namespacing
@@ -33,7 +33,7 @@ An interpreter for **cln**, a small embeddable scripting language with ANTLR4-ba
   - Cross-package imports with visibility control
   - `expose` keyword for exporting symbols to other packages
   - Eager loading of all source files for comprehensive symbol resolution
-  - Standard library imports (`std.console.*`, `std.str.*`, `std.array.*`, `std.math.*`)
+  - Standard library imports (`std.console.*`, `std.str.*`, `std.array.*`, `std.math.*`, `std.calendar.*`)
   - Duplicate import handling (same package can be imported by multiple files)
 - **Expressions**:
   - Binary operators: `+`, `-`, `*`, `/`, `==`, `!=`, `<`, `<=`, `>`, `>=`, `&&`, `||`
@@ -66,9 +66,22 @@ An interpreter for **cln**, a small embeddable scripting language with ANTLR4-ba
 - **Numeric Types**: 
   - **Integer**: 64-bit signed integers (using Java `long`, range: -2^63 to 2^63-1)
   - **Decimal**: Arbitrary precision decimal numbers with optional precision control (using Java `BigDecimal`, supports `dec`, `dec(precision)`, `dec(precision, roundingMode)`)
-- **Standard Library**: Console I/O, string utilities, array utilities, and math utilities (`std.console.*`, `std.str.*`, `std.array.*`, `std.math.*`)
+- **Standard Library**: Console I/O, string utilities, array utilities, math utilities, and date/time support (`std.console.*`, `std.str.*`, `std.array.*`, `std.math.*`, `std.calendar.*`)
+- **Calendar / Date-Time** (`std.calendar.*`):
+  - Structs: `Timestamp` (9 fields), `Date` (3 fields), `Time` (5 fields)
+  - Current snapshots: `now()`, `nowDate()`, `nowTime()`
+  - Arithmetic: `plus/minusYears/Months/Days/Hours/Minutes/Seconds/Milliseconds`
+  - Comparison: `isBefore`, `isAfter`
+  - Difference: `diffDays/Hours/Minutes/Seconds/Milliseconds`
+  - Field setters: `withYear/Month/Day/Hour/Minute/Second`
+  - Timezone conversion: `toTimezone(ts, tz)`
+  - Utility: `dayOfWeek` (ISO 8601, 1=Mon…7=Sun), `fromEpoch`
+  - Struct conversions: `timestampToDate`, `timestampToTime`, `dateToTimestamp`, `timeToTimestamp`, `dateTimeToTimestamp`
+  - Formatting: `timestampToString`, `dateToString`, `timeToString`
+  - Parsing: `toTimestamp`, `toDate`, `toTime`
+  - 34 format constants (e.g. `FORMAT_DATETIME`, `FORMAT_ISO_OFFSET_DATETIME`, `FORMAT_RFC1123`, …)
 - **String Utilities**: `intToStr` function for integer-to-string conversion
-- **Array Utilities**: `std.array.*` (creation with `newArray`/`newArray2D`/`newArray3D`, shallow `copy`, `deepCopy`, search, slice, concat)
+- **Array Utilities**: `std.array.*` (creation, copy, search, slice, concat)
 - **Math Utilities**: `std.math.*` (trig, log/exp, pow/root, rounding, min/max)
 - **Error Handling**: Comprehensive exception handling with detailed error messages
 - **Type Safety**: Runtime type checking for operators and conditionals with strict primitive type validation (case-sensitive: `int`, `bool`, `string`, `dec`)
@@ -79,8 +92,13 @@ An interpreter for **cln**, a small embeddable scripting language with ANTLR4-ba
   - **Implicit Upcasting**: Struct instances can be passed to functions expecting union types
   - **Type Matching**: Runtime type identification using `__type__` metadata
 
+### 🚧 Partially Implemented
+
+- **Arrays of Structs/Unions**: Grammar supports it, but runtime implementation pending for next release
+
 ### ❌ Not Yet Implemented
 
+- **Multi-dimensional Arrays**: Only 1D arrays currently supported
 - **Array Resizing**: Arrays are fixed-size after creation. Resize only available via copy and creating a new array.
 - **Type Checking**: Static type checking not implemented (runtime only)
 - **Semantic Analysis**: No compile-time validation beyond basic type checks
@@ -490,16 +508,14 @@ int add(int a, int b) {
 - **Variables**: `var int x = 10;` or type-inferred `var x = 10;`
 - **Data Types**:
   - Primitives: `int` (64-bit), `bool`, `string`, `dec` (BigDecimal with optional precision: `dec`, `dec(2)`, `dec(2, HALF_UP)`)
-  - Arrays: `int[]`, `string[]`, `bool[]`, `dec[]`, `MyStruct[]`, `MyUnion[]`, `int[][]`, etc. — with literal syntax `[1, 2, 3]`, `[[1,2],[3,4]]`
+  - Arrays: `int[]`, `string[]`, `bool[]`, `dec[]` with literal syntax `[1, 2, 3]`
   - Structs: Declare, instantiate, access, and modify fields
   - Unions: Declare and pattern match with switch/case
 - **Array Operations**:
-  - Creation: `var int[] arr = [1, 2, 3];`, `var int[][] m = [[1,2],[3,4]];`
-  - Dynamic: `newArray(n)`, `newArray2D(rows, cols)`, `newArray3D(d, r, c)` (from `std.array.*`)
-  - Access: `arr[0]`, `matrix[1][2]`, `arr[0].field`
-  - Assignment: `arr[0] = 10;`, `matrix[0][1] = 42;`, `arr[0].field = val;`
-  - Length at any dimension: `arr.length`, `matrix[0].length`
-  - Deep copy: `deepCopy(arr)` (from `std.array.*`) — fully independent clone including struct/union elements
+  - Creation: `var int[] arr = [1, 2, 3];`
+  - Access: `arr[0]`, `arr[i]`
+  - Assignment: `arr[0] = 10;`
+  - Length: `arr.length`
   - String indexing: `"hello"[0]` returns `"h"`
 - **Struct Operations**:
   - Declaration: `struct Point { var int x; var int y; };`
@@ -768,7 +784,9 @@ This ensures consistent precision throughout calculations, making it ideal for f
 ### Known Limitations
 
 - **Arrays**:
-  - Fixed-size after creation: use `newArray`/`newArray2D`/`newArray3D` for pre-sized arrays; resize via manual copy
+  - Fixed-size only: cannot create pre-sized arrays or resize after creation
+  - No multi-dimensional arrays (only 1D arrays supported)
+  - Only primitive types: arrays of structs/unions not yet implemented
   - No array constructor syntax (e.g., `int[](100)` to create array of size 100)
 - **Exit codes**: Process exit codes are 8-bit (0-255), so values > 255 are truncated via modulo operation
 - **Structs**: Represented internally as `Map<String, Object>` with `__type__` metadata
@@ -786,7 +804,7 @@ cln-lang has a fully functional package system with cross-package import support
 
 **Import Mechanisms:**
 - **Wildcard imports**: `import std.console.*;` imports all accessible symbols from a package
-- **Standard library imports**: `import std.console.*;`, `import std.str.*;`, `import std.array.*;`, `import std.math.*;`
+- **Standard library imports**: `import std.console.*;`, `import std.str.*;`, `import std.array.*;`, `import std.math.*;`, `import std.calendar.*;`
 - **Cross-package imports**: Import from other user-defined packages with visibility control
 - **Duplicate imports**: Multiple files can safely import the same package
 
@@ -833,7 +851,7 @@ int main() {
 
 - **Package declarations**: `package main;` or `package com.example.myapp;`
 - **Imports**: 
-  - Standard library: `import std.console.*;`
+  - Standard library: `import std.console.*;`, `import std.calendar.*;`
   - User packages: `import myapp.*;`
   - Cross-package imports with visibility enforcement
 - **Visibility control**: `expose` keyword for cross-package symbol access
@@ -857,7 +875,7 @@ int main() {
 ### Language Constructs Not Yet Functional
 
 - **Static type checking**: Only runtime type validation is performed
-- **Advanced array features**: Array resizing
+- **Advanced array features**: Multi-dimensional arrays, array resizing, arrays of structs/unions
 
 ## Architecture
 
@@ -938,6 +956,7 @@ Example programs in `examples/` directory:
 - `demo_exit_code.cln` - Main function exit codes
 - `demo_both_syntaxes.cln` - Different syntax variations
 - `demo_decimal.cln` - Decimal type (BigDecimal) arithmetic and operations
+- `demo_calendar.cln` - Full showcase of `std.calendar.*`: snapshots, arithmetic, comparison, difference, field setters, timezone conversion, struct conversions, formatting, and parsing
 - `comprehensive_demo.cln` - Complete showcase of all language features
 
 **Tests:**
@@ -981,7 +1000,7 @@ Additional test files in `core/src/test/resources/`:
    - ✅ Global variables (mutable with `var`, constant without)
    - ✅ Type validation with runtime checking
    - ✅ String concatenation and utilities
-  - ✅ Standard library (console I/O, string utilities, array utilities, math utilities)
+  - ✅ Standard library (console I/O, string utilities, array utilities, math utilities, calendar/date-time)
 
 2. **Type System**
    - ✅ Primitive types (int, bool, string, dec)
@@ -991,18 +1010,18 @@ Additional test files in `core/src/test/resources/`:
    - ✅ Case-sensitive type names
    - ✅ Mixed numeric operations (int and dec)
 
-3. **Arrays**
-   - ✅ Array literals: `[1, 2, 3]`, `[[1,2],[3,4]]`, `[Point(x:0,y:0)]`
-   - ✅ Array types: `int[]`, `string[]`, `bool[]`, `dec[]`, `MyStruct[]`, `MyUnion[]`, `int[][]`, `int[][][]`
-   - ✅ Index access: `arr[0]`, `matrix[1][2]`
-   - ✅ Array assignment: `arr[0] = 10`, `matrix[0][1] = 42`, `arr[0].field = val`
-   - ✅ Array length at any dimension: `arr.length`, `matrix[0].length`
+3. **Arrays** (NEW!)
+   - ✅ Array literals: `[1, 2, 3]`
+   - ✅ Array types: `int[]`, `string[]`, `bool[]`, `dec[]`
+   - ✅ Index access: `arr[0]`
+   - ✅ Array assignment: `arr[0] = 10`
+   - ✅ Array length property: `arr.length`
    - ✅ String indexing: `str[0]`
    - ✅ Bounds checking
    - ✅ Arrays as function parameters and return values
-   - ✅ Arrays of structs and unions
-   - ✅ Multi-dimensional arrays (`newArray2D`, `newArray3D`, `deepCopy`)
-   - ❌ Array resizing/pre-sizing after creation
+   - ❌ Multi-dimensional arrays
+   - ❌ Array resizing/pre-sizing
+   - ❌ Arrays of structs/unions
 
 4. **Java 21 Upgrade**
    - ✅ Migrated from Java 17 to Java 21 LTS
@@ -1011,7 +1030,9 @@ Additional test files in `core/src/test/resources/`:
 ### 🚧 In Progress / Planned
 
 5. **Advanced Arrays**
-   - Array initialization by size with typed default values
+   - Arrays of structs and unions
+   - Multi-dimensional arrays
+   - Array initialization only by size with default values
    - Built-in array utilities (sort, filter, map)
 
 5. **Union Type Enhancements**
@@ -1026,8 +1047,9 @@ Additional test files in `core/src/test/resources/`:
 ### 📋 Future Enhancements
 
 7. **Standard Library Expansion**
-   - String manipulation functions
-   - Math operations (sqrt, pow, abs, etc.)
+   - ✅ String manipulation functions
+   - ✅ Math operations (sqrt, pow, abs, etc.)
+   - ✅ Calendar / date-time (`std.calendar.*`)
    - File I/O operations
    - Collection utilities
 
@@ -1050,6 +1072,23 @@ Additional test files in `core/src/test/resources/`:
 
 ## Recent Updates
 
+### July 2026
+- ✅ **Calendar / Date-Time Standard Library** (`std.calendar.*`): Full date and time support
+  - Three structs exposed to CLN programs: `Timestamp` (epoch ms + 8 fields), `Date` (year/month/day), `Time` (hour/minute/second/millisecond/timezone)
+  - Current-time snapshots: `now()`, `nowDate()`, `nowTime()`
+  - Arithmetic on `Timestamp`: `plus/minus` × 7 units (years, months, days, hours, minutes, seconds, milliseconds)
+  - Comparison: `isBefore(a, b)`, `isAfter(a, b)`
+  - Difference: `diffDays/Hours/Minutes/Seconds/Milliseconds(a, b)` → `int`
+  - Field setters: `withYear/Month/Day/Hour/Minute/Second(ts, value)` → `Timestamp`
+  - Timezone conversion: `toTimezone(ts, tz)` → `Timestamp` (same instant, new zone)
+  - Utility: `dayOfWeek(ts)` → `int` (ISO 8601: 1=Mon…7=Sun), `fromEpoch(millis)` → `Timestamp`
+  - Struct conversions: `timestampToDate`, `timestampToTime`, `dateToTimestamp`, `timeToTimestamp`, `dateTimeToTimestamp`
+  - Formatting: `timestampToString`, `dateToString`, `timeToString` (pattern-based)
+  - Parsing: `toTimestamp`, `toDate`, `toTime` (pattern-based, multi-format fallback for `toTimestamp`)
+  - 34 named format constants (ISO, locale-aware, compact, RFC 1123, and more)
+  - Compiler extended to resolve stdlib struct types (`Timestamp`, `Date`, `Time`) in user programs
+  - Constants resolved at link time so format strings are available as plain `string` values
+
 ### April 2026
 - ✅ **H2 Database Backend**: CLN source files can now be stored in and loaded from an H2 relational database
   - Set `-cp` (or `CLN_PATH`) to any JDBC URL (e.g. `jdbc:h2:./mydb`) to activate the database loader automatically
@@ -1063,7 +1102,7 @@ Additional test files in `core/src/test/resources/`:
   - Array literals, indexing, assignment, and length property
   - Arrays as function parameters and return values
   - Bounds checking at runtime
-  - Fixed-size after creation (no in-place resizing)
+  - Fixed-size 1D arrays only (no resizing, no multi-dimensional, no struct/union arrays yet)
 - ✅ **Cross-Package Imports**: Full implementation of cross-package imports with `expose` visibility control
   - Wildcard imports: `import myapp.*;`
   - Visibility enforcement: symbols require `expose` keyword to be accessible from other packages
