@@ -928,12 +928,17 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
     }
     
     /**
-     * Validate that a type exists (either primitive or user-defined)
+     * Validate that a type exists (either primitive, Any wildcard, or user-defined)
      */
     private void validateType(String typeName, int lineNumber) {
         // Strip array brackets for checking base type
         String baseType = typeName.replaceAll("\\[\\]", "");
-        
+
+        // Any is a wildcard that accepts any type (struct, union, or primitive)
+        if (baseType.equals("Any")) {
+            return;
+        }
+
         if (!isPrimitiveType(baseType) && !definedTypes.contains(baseType)) {
             throw new IllegalArgumentException(
                 "line " + lineNumber + ": Unknown type '" + baseType + "'. " +

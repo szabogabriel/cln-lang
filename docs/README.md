@@ -86,6 +86,47 @@ Array operations for creating, manipulating, and querying arrays.
 
 ---
 
+### std.reflect - Reflection Utilities
+Runtime inspection and dynamic access to struct, union, and primitive values.
+
+**Categories:**
+- Field Access (getField, setField)
+- Type Checks (isStruct, isInt, isDec, isBool, isString)
+- Struct Inspection (getStructName)
+- Typed Getters (getInt, getDec, getBool, getString)
+
+**Total Functions:** 11
+
+**Quick example:**
+```cln
+import std.reflect.*;
+
+struct Point { var int x; var int y; };
+
+int main() {
+    Point p = Point(x: 3, y: 7);
+
+    // Dynamic field read / write
+    Any xVal = getField(p, "x");       // → Any (holds 3)
+    setField(p, "x", 99);
+
+    // Type inspection
+    bool yes = isStruct(p);             // true
+    string n = getStructName(p);        // "Point"
+
+    // Safe typed extraction
+    int x = getInt(getField(p, "x")); // 99
+    return 0;
+}
+```
+
+**Notes:**
+- Struct and union instances are passed as `Any`; the `__type__` metadata is preserved.
+- `setField` mutates the instance in-place regardless of whether the field was declared `var`.
+- Typed getters (`getInt`, `getString`, etc.) throw a runtime error if the actual type does not match.
+
+---
+
 ## Quick Start
 
 To use any standard library in your CLN code, import it using the package name:
@@ -112,6 +153,7 @@ All standard library packages follow the naming pattern `std.<category>`:
 - `std.str` - String utilities
 - `std.sys` - System operations
 - `std.array` - Array utilities
+- `std.reflect` - Reflection utilities
 
 ## Notes
 

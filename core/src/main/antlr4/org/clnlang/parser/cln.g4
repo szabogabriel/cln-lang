@@ -38,6 +38,7 @@ type
 
 baseType
   : primitiveType
+  | ANY_STRUCT
   | qualifiedName
   ;
 
@@ -281,10 +282,11 @@ DEFAULT : 'default';
 RETURN  : 'return';
 
 // Primitive type keywords
-INT_T    : 'int';
-BOOL_T   : 'bool';
-STRING_T : 'string';
-DEC_T    : 'dec';
+INT_T      : 'int';
+BOOL_T     : 'bool';
+STRING_T   : 'string';
+DEC_T      : 'dec';
+ANY_STRUCT : 'AnyStruct';
 
 // Literals
 BOOL_LIT   : 'true' | 'false';

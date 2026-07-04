@@ -36,7 +36,7 @@ An interpreter for **cln**, a small embeddable scripting language with ANTLR4-ba
   - Cross-package imports with visibility control
   - `expose` keyword for exporting symbols to other packages
   - Eager loading of all source files for comprehensive symbol resolution
-  - Standard library imports (`std.console.*`, `std.str.*`, `std.array.*`, `std.math.*`, `std.calendar.*`)
+  - Standard library imports (`std.console.*`, `std.str.*`, `std.array.*`, `std.math.*`, `std.calendar.*`, `std.reflect.*`)
   - Duplicate import handling (same package can be imported by multiple files)
 - **Expressions**:
   - Binary operators: `+`, `-`, `*`, `/`, `==`, `!=`, `<`, `<=`, `>`, `>=`, `&&`, `||`
@@ -69,7 +69,7 @@ An interpreter for **cln**, a small embeddable scripting language with ANTLR4-ba
 - **Numeric Types**: 
   - **Integer**: 64-bit signed integers (using Java `long`, range: -2^63 to 2^63-1)
   - **Decimal**: Arbitrary precision decimal numbers with optional precision control (using Java `BigDecimal`, supports `dec`, `dec(precision)`, `dec(precision, roundingMode)`)
-- **Standard Library**: Console I/O, string utilities, array utilities, math utilities, and date/time support (`std.console.*`, `std.str.*`, `std.array.*`, `std.math.*`, `std.calendar.*`)
+- **Standard Library**: Console I/O, string utilities, array utilities, math utilities, date/time support, and reflection (`std.console.*`, `std.str.*`, `std.array.*`, `std.math.*`, `std.calendar.*`, `std.reflect.*`)
 - **Calendar / Date-Time** (`std.calendar.*`):
   - Structs: `Timestamp` (9 fields), `Date` (3 fields), `Time` (5 fields)
   - Current snapshots: `now()`, `nowDate()`, `nowTime()`
@@ -86,6 +86,7 @@ An interpreter for **cln**, a small embeddable scripting language with ANTLR4-ba
 - **String Utilities**: `intToStr` function for integer-to-string conversion
 - **Array Utilities**: `std.array.*` (creation, copy, search, slice, concat)
 - **Math Utilities**: `std.math.*` (trig, log/exp, pow/root, rounding, min/max)
+- **Reflection Utilities**: `std.reflect.*` (field access, type checks, typed getters)
 - **Error Handling**: Comprehensive exception handling with detailed error messages
 - **Type Safety**: Runtime type checking for operators and conditionals with strict primitive type validation (case-sensitive: `int`, `bool`, `string`, `dec`)
 - **Global Variables**: Full support for mutable global variables with `var` keyword
@@ -801,7 +802,7 @@ cln-lang has a fully functional package system with cross-package import support
 
 **Import Mechanisms:**
 - **Wildcard imports**: `import std.console.*;` imports all accessible symbols from a package
-- **Standard library imports**: `import std.console.*;`, `import std.str.*;`, `import std.array.*;`, `import std.math.*;`, `import std.calendar.*;`
+- **Standard library imports**: `import std.console.*;`, `import std.str.*;`, `import std.array.*;`, `import std.math.*;`, `import std.calendar.*;`, `import std.reflect.*;`
 - **Cross-package imports**: Import from other user-defined packages with visibility control
 - **Duplicate imports**: Multiple files can safely import the same package
 
@@ -959,6 +960,7 @@ Example programs in `examples/` directory:
 - `demo_both_syntaxes.cln` - Different syntax variations
 - `demo_decimal.cln` - Decimal type (BigDecimal) arithmetic and operations
 - `demo_calendar.cln` - Full showcase of `std.calendar.*`: snapshots, arithmetic, comparison, difference, field setters, timezone conversion, struct conversions, formatting, and parsing
+- `demo_reflection.cln` - Full showcase of `std.reflect.*`: `getField`, `setField`, `isStruct`, `getStructName`, type checks (`isInt`, `isDec`, `isBool`, `isString`), and typed getters
 - `comprehensive_demo.cln` - Complete showcase of all language features
 
 **Tests:**
@@ -1050,6 +1052,7 @@ Additional test files in `core/src/test/resources/`:
    - ✅ String manipulation functions
    - ✅ Math operations (sqrt, pow, abs, etc.)
    - ✅ Calendar / date-time (`std.calendar.*`)
+   - ✅ Reflection utilities (`std.reflect.*`)
    - File I/O operations
    - Collection utilities
 
@@ -1093,6 +1096,14 @@ Additional test files in `core/src/test/resources/`:
   - Formatting: `timestampToString`, `dateToString`, `timeToString` (pattern-based)
   - Parsing: `toTimestamp`, `toDate`, `toTime` (pattern-based, multi-format fallback for `toTimestamp`)
   - 34 named format constants (ISO, locale-aware, compact, RFC 1123, and more)
+- ✅ **Reflection Standard Library** (`std.reflect.*`): Runtime inspection and dynamic field access
+  - `getField(Any s, string fieldName) → Any` — read any field from a struct or union by name
+  - `setField(Any s, string fieldName, Any value)` — write any field by name (mutates in-place)
+  - `isStruct(Any s) → bool` — check whether a value is a struct or union instance
+  - `getStructName(Any s) → string` — return the `__type__` name of a struct/union instance
+  - Primitive type checks: `isInt`, `isDec`, `isBool`, `isString` — each `(Any) → bool`
+  - Typed getters: `getInt`, `getDec`, `getBool`, `getString` — each `(Any) → T`, throws on type mismatch
+  - `Any` wildcard type accepted in parameter and variable positions
   - Compiler extended to resolve stdlib struct types (`Timestamp`, `Date`, `Time`) in user programs
   - Constants resolved at link time so format strings are available as plain `string` values
 

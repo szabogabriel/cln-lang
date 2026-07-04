@@ -1,0 +1,104 @@
+import std.console.writeLine;
+import std.str.intToStr;
+import std.str.boolToStr;
+import std.reflect.*;
+
+// ---- Type definitions ----
+
+struct Point {
+    var int x;
+    var int y;
+};
+
+struct Person {
+    var string name;
+    var int age;
+};
+
+// ---- Helper: print a separator line ----
+printSep(string title) {
+    writeLine("=== " + title + " ===");
+    return;
+}
+
+// ---- Demo: getField / setField on a struct ----
+demoFieldAccess() {
+    printSep("getField / setField");
+
+    Point p = Point(x: 10, y: 20);
+
+    // Read fields via reflection
+    Any xVal = getField(p, "x");
+    Any yVal = getField(p, "y");
+    writeLine("p.x = " + intToStr(getInt(xVal)));
+    writeLine("p.y = " + intToStr(getInt(yVal)));
+
+    // Modify a field via reflection
+    setField(p, "x", 99);
+    Any newX = getField(p, "x");
+    writeLine("p.x after setField(p, x, 99) = " + intToStr(getInt(newX)));
+
+    return;
+}
+
+// ---- Demo: isStruct / getStructName ----
+demoStructTypeCheck() {
+    printSep("isStruct / getStructName");
+
+    Person alice = Person(name: "Alice", age: 30);
+
+    writeLine("isStruct(alice) = " + boolToStr(isStruct(alice)));
+    writeLine("getStructName(alice) = " + getStructName(alice));
+
+    return;
+}
+
+// ---- Demo: isInt / isString / isBool / isDec ----
+demoPrimitiveTypeChecks() {
+    printSep("Primitive type checks");
+
+    int n = 42;
+    string s = "hello";
+    bool b = true;
+
+    Any anyN = getField(Point(x: n, y: 0), "x");
+    writeLine("isInt on struct int field  = " + boolToStr(isInt(anyN)));
+    writeLine("isDec on struct int field  = " + boolToStr(isDec(anyN)));
+    writeLine("isBool on struct int field = " + boolToStr(isBool(anyN)));
+
+    return;
+}
+
+// ---- Demo: getInt / getString / getBool via getField ----
+demoTypedGetters() {
+    printSep("Typed getters");
+
+    Person bob = Person(name: "Bob", age: 25);
+
+    Any nameField = getField(bob, "name");
+    Any ageField  = getField(bob, "age");
+
+    writeLine("isString(name field) = " + boolToStr(isString(nameField)));
+    writeLine("isInt(age field)     = " + boolToStr(isInt(ageField)));
+
+    writeLine("getString(name) = " + getString(nameField));
+    writeLine("getInt(age)     = " + intToStr(getInt(ageField)));
+
+    return;
+}
+
+// ---- Entry point ----
+int main() {
+    demoFieldAccess();
+    writeLine("");
+
+    demoStructTypeCheck();
+    writeLine("");
+
+    demoPrimitiveTypeChecks();
+    writeLine("");
+
+    demoTypedGetters();
+
+    return 0;
+}

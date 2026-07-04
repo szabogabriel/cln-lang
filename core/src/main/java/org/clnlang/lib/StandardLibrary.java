@@ -7,6 +7,7 @@ import org.clnlang.lib.std.array.ArrayUtil;
 import org.clnlang.lib.std.calendar.Calendar;
 import org.clnlang.lib.std.console.Console;
 import org.clnlang.lib.std.math.DefaultMath;
+import org.clnlang.lib.std.reflection.Reflection;
 import org.clnlang.lib.std.string.StringUtil;
 import org.clnlang.lib.std.sys.Sys;
 import org.clnlang.runtime.execution.Registry;
@@ -49,6 +50,9 @@ public class StandardLibrary {
         
         // System functions
         standardLibraryComponents.add(new Sys());
+
+        // Reflection utilities
+        standardLibraryComponents.add(new Reflection());
         
         // Future standard library components can be added here:
         // standardLibraryComponents.add(new File());

@@ -28,7 +28,8 @@ public final class ClnCheatSheet {
             stdMath(),
             stdArray(),
             stdSys(),
-            stdCalendar()
+            stdCalendar(),
+            stdReflect()
         );
     }
 
@@ -360,6 +361,40 @@ FORMAT_DATETIME_LONG
 FORMAT_DATETIME_MEDIUM
 FORMAT_DAY_OF_WEEK_DATE          "EEEE, MMMM d, yyyy"
 FORMAT_RFC1123                   "EEE, dd MMM yyyy HH:mm:ss z"</pre>
+            </div>
+            """);
+    }
+
+    private static Section stdReflect() {
+        return new Section("std.reflect", """
+            <div style="font-size:0.85em">
+              <pre>import std.reflect.*;
+
+// Field access
+getField(Any s, string fieldName) → Any
+setField(Any s, string fieldName, Any value)
+
+// Type checks
+isStruct(Any s) → bool
+isInt(Any s)    → bool
+isDec(Any s)    → bool
+isBool(Any s)   → bool
+isString(Any s) → bool
+
+// Struct inspection
+getStructName(Any s) → string
+
+// Typed getters (throw if wrong type)
+getInt(Any s)    → int
+getDec(Any s)    → dec
+getBool(Any s)   → bool
+getString(Any s) → string</pre>
+              <p><b>Example:</b></p>
+              <pre>Any xVal = getField(p, "x");
+setField(p, "x", 99);
+bool yes = isStruct(p);
+string n  = getStructName(p);
+int x     = getInt(xVal);</pre>
             </div>
             """);
     }
