@@ -27,7 +27,8 @@ public final class ClnCheatSheet {
             stdStr(),
             stdMath(),
             stdArray(),
-            stdSys()
+            stdSys(),
+            stdCalendar()
         );
     }
 
@@ -262,6 +263,103 @@ reverse(T[] a)         // mutates
 equals(T[] a, T[] b) → bool
 concat(T[] a, T[] b) → T[]
 slice(T[] a, int from, int len) → T[]</pre>
+            </div>
+            """);
+    }
+
+    private static Section stdCalendar() {
+        return new Section("std.calendar", """
+            <div style="font-size:0.85em">
+              <pre>import std.calendar.*;</pre>
+
+              <p><b>Structs:</b></p>
+              <pre>Timestamp  { timestamp, year, month, day, hour, minute, second, millisecond, timezone }
+Date       { year, month, day }
+Time       { hour, minute, second, millisecond, timezone }</pre>
+
+              <p><b>Current snapshots:</b></p>
+              <pre>now()      → Timestamp
+nowDate()  → Date
+nowTime()  → Time</pre>
+
+              <p><b>Arithmetic (Timestamp):</b></p>
+              <pre>plus/minusYears(Timestamp ts, int n)        → Timestamp
+plus/minusMonths(Timestamp ts, int n)       → Timestamp
+plus/minusDays(Timestamp ts, int n)         → Timestamp
+plus/minusHours(Timestamp ts, int n)        → Timestamp
+plus/minusMinutes(Timestamp ts, int n)      → Timestamp
+plus/minusSeconds(Timestamp ts, int n)      → Timestamp
+plus/minusMilliseconds(Timestamp ts, int n) → Timestamp</pre>
+
+              <p><b>Comparison:</b></p>
+              <pre>isBefore(Timestamp a, Timestamp b) → bool
+isAfter(Timestamp a, Timestamp b)  → bool</pre>
+
+              <p><b>Difference:</b></p>
+              <pre>diffDays(Timestamp a, Timestamp b)         → int
+diffHours(Timestamp a, Timestamp b)        → int
+diffMinutes(Timestamp a, Timestamp b)      → int
+diffSeconds(Timestamp a, Timestamp b)      → int
+diffMilliseconds(Timestamp a, Timestamp b) → int</pre>
+
+              <p><b>Field setters:</b></p>
+              <pre>withYear(Timestamp ts, int v)   → Timestamp
+withMonth(Timestamp ts, int v)  → Timestamp
+withDay(Timestamp ts, int v)    → Timestamp
+withHour(Timestamp ts, int v)   → Timestamp
+withMinute(Timestamp ts, int v) → Timestamp
+withSecond(Timestamp ts, int v) → Timestamp</pre>
+
+              <p><b>Timezone:</b></p>
+              <pre>toTimezone(Timestamp ts, string tz) → Timestamp
+// tz examples: "UTC", "America/New_York", "Asia/Tokyo"</pre>
+
+              <p><b>Utility:</b></p>
+              <pre>dayOfWeek(Timestamp ts) → int   // 1=Mon … 7=Sun (ISO 8601)
+fromEpoch(int millis)   → Timestamp</pre>
+
+              <p><b>Struct conversions:</b></p>
+              <pre>timestampToDate(Timestamp ts)                    → Date
+timestampToTime(Timestamp ts)                    → Time
+dateToTimestamp(Date d)                          → Timestamp  // midnight local
+timeToTimestamp(Time t)                          → Timestamp  // today + given time
+dateTimeToTimestamp(Date d, Time t)              → Timestamp</pre>
+
+              <p><b>Formatting:</b></p>
+              <pre>timestampToString(Timestamp ts, string fmt) → string
+dateToString(Date d, string fmt)            → string
+timeToString(Time t, string fmt)            → string</pre>
+
+              <p><b>Parsing:</b></p>
+              <pre>toTimestamp(string s, string fmt) → Timestamp
+toDate(string s, string fmt)      → Date
+toTime(string s, string fmt)      → Time</pre>
+
+              <p><b>Format constants (import std.calendar.*):</b></p>
+              <pre>FORMAT_DATETIME                  "yyyy-MM-dd HH:mm:ss"
+FORMAT_DATE                      "yyyy-MM-dd"
+FORMAT_TIME                      "HH:mm:ss"
+FORMAT_DATETIME_MILLIS           "yyyy-MM-dd HH:mm:ss.SSS"
+FORMAT_TIME_MILLIS               "HH:mm:ss.SSS"
+FORMAT_ISO_OFFSET_DATETIME       "yyyy-MM-dd'T'HH:mm:ssxxx"
+FORMAT_ISO_OFFSET_DATETIME_MILLIS "yyyy-MM-dd'T'HH:mm:ss.SSSxxx"
+FORMAT_ISO_DATETIME              "yyyy-MM-dd'T'HH:mm:ss"
+FORMAT_ISO_DATETIME_MILLIS       "yyyy-MM-dd'T'HH:mm:ss.SSS"
+FORMAT_DDMMYYYY_SLASH / _HHMM / _HHMMSS
+FORMAT_DDMMYYYY_DOT   / _HHMM / _HHMMSS
+FORMAT_DDMMYYYY_DASH  / _HHMM / _HHMMSS
+FORMAT_MMDDYYYY_SLASH / _HHMM / _HHMMSS
+FORMAT_YYYYMMDD_SLASH / _HHMM / _HHMMSS
+FORMAT_YYYYMMDD_COMPACT          "yyyyMMdd"
+FORMAT_YYYYMMDDHHMMSS_COMPACT    "yyyyMMddHHmmss"
+FORMAT_HHMM_COMPACT              "HHmm"
+FORMAT_HHMMSS_COMPACT            "HHmmss"
+FORMAT_DATE_LONG                 "MMMM d, yyyy"
+FORMAT_DATE_MEDIUM               "MMM d, yyyy"
+FORMAT_DATETIME_LONG
+FORMAT_DATETIME_MEDIUM
+FORMAT_DAY_OF_WEEK_DATE          "EEEE, MMMM d, yyyy"
+FORMAT_RFC1123                   "EEE, dd MMM yyyy HH:mm:ss z"</pre>
             </div>
             """);
     }
