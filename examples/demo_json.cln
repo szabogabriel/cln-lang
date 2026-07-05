@@ -1,0 +1,125 @@
+// Demonstration of the std.json library
+// Shows toJson (serialization) and parseJson (deserialization)
+
+import std.console.writeLine;
+import std.str.intToStr;
+import std.str.boolToStr;
+import std.json.toJson;
+import std.json.parseJson;
+import std.reflect.getField;
+import std.reflect.getInt;
+import std.reflect.getString;
+import std.reflect.getBool;
+
+// ---- Type definitions ----
+
+struct Address {
+    var string street;
+    var string city;
+    var string country;
+};
+
+struct Person {
+    var int id;
+    var string name;
+    var bool active;
+    var Address address;
+};
+
+// ---- Helper ----
+
+printSep(string title) {
+    writeLine("=== " + title + " ===");
+    return;
+}
+
+// ---- Demo: serialize a simple struct to JSON ----
+
+demoToJson() {
+    printSep("Serializing a struct to JSON");
+
+    Address addr = Address(street: "123 Main St", city: "Springfield", country: "USA");
+    Person person = Person(id: 1, name: "Alice", active: true, address: addr);
+
+    string json = toJson(person);
+    writeLine("Person JSON:");
+    writeLine(json);
+    writeLine("");
+
+    return;
+}
+
+// ---- Demo: serialize primitives and arrays ----
+
+demoToJsonPrimitives() {
+    printSep("Serializing primitives");
+
+    int n = 42;
+    string s = "hello, world";
+    bool b = false;
+
+    writeLine("int   -> " + toJson(n));
+    writeLine("string -> " + toJson(s));
+    writeLine("bool  -> " + toJson(b));
+    writeLine("");
+
+    return;
+}
+
+// ---- Demo: deserialize JSON into a struct ----
+
+demoParseJson() {
+    printSep("Parsing JSON into a struct");
+
+    string json = "{\"id\":7,\"name\":\"Bob\",\"active\":false,\"street\":\"42 Elm Ave\"}";
+
+    // Target struct whose fields will be populated
+    var Person target = Person(id: 0, name: "", active: true, address: Address(street: "", city: "", country: ""));
+
+    writeLine("JSON input:");
+    writeLine(json);
+    writeLine("");
+
+    parseJson(json, target);
+
+    writeLine("After parseJson:");
+    writeLine("  id     = " + intToStr(target.id));
+    writeLine("  name   = " + target.name);
+    writeLine("  active = " + boolToStr(target.active));
+    writeLine("");
+
+    return;
+}
+
+// ---- Demo: round-trip (serialize then parse back) ----
+
+demoRoundTrip() {
+    printSep("Round-trip: struct -> JSON -> struct");
+
+    Address src = Address(street: "7 Oak Lane", city: "Shelbyville", country: "USA");
+
+    string json = toJson(src);
+    writeLine("Serialized: " + json);
+
+    var Address dest = Address(street: "", city: "", country: "");
+    parseJson(json, dest);
+
+    writeLine("Restored street  : " + dest.street);
+    writeLine("Restored city    : " + dest.city);
+    writeLine("Restored country : " + dest.country);
+    writeLine("");
+
+    return;
+}
+
+// ---- Entry point ----
+
+int main() {
+    demoToJson();
+    demoToJsonPrimitives();
+    demoParseJson();
+    demoRoundTrip();
+
+    writeLine("JSON demo completed.");
+    return 0;
+}

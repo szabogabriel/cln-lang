@@ -6,6 +6,7 @@ import java.util.List;
 import org.clnlang.lib.std.array.ArrayUtil;
 import org.clnlang.lib.std.calendar.Calendar;
 import org.clnlang.lib.std.console.Console;
+import org.clnlang.lib.std.json.JsonDefaultImpl;
 import org.clnlang.lib.std.math.DefaultMath;
 import org.clnlang.lib.std.reflection.Reflection;
 import org.clnlang.lib.std.string.StringUtil;
@@ -53,6 +54,9 @@ public class StandardLibrary {
 
         // Reflection utilities
         standardLibraryComponents.add(new Reflection());
+
+        // JSON utilities
+        standardLibraryComponents.add(new JsonDefaultImpl());
         
         // Future standard library components can be added here:
         // standardLibraryComponents.add(new File());

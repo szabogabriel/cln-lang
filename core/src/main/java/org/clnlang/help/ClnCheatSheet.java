@@ -23,13 +23,14 @@ public final class ClnCheatSheet {
             structs(),
             unions(),
             arrays(),
-            stdConsole(),
-            stdStr(),
-            stdMath(),
             stdArray(),
-            stdSys(),
             stdCalendar(),
-            stdReflect()
+            stdConsole(),
+            stdJson(),
+            stdMath(),
+            stdReflect(),
+            stdStr(),
+            stdSys()
         );
     }
 
@@ -396,6 +397,20 @@ setField(p, "x", 99);
 bool yes = isStruct(p);
 string n  = getStructName(p);
 int x     = getInt(xVal);</pre>
+            </div>
+            """);
+    }
+
+    private static Section stdJson() {
+        return new Section("std.json", """
+            <div style="font-size:0.85em">
+              <pre>import std.json.*;
+string toJson(Any value) → string
+Any fromJson(string json) → Any</pre>
+              <p><b>Example:</b></p>
+              <pre>var Point p = Point(x: 1, y: 2);
+string jsonStr = toJson(p);
+Any obj = fromJson(jsonStr);</pre>
             </div>
             """);
     }

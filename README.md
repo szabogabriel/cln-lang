@@ -95,6 +95,13 @@ An interpreter for **cln**, a small embeddable scripting language with ANTLR4-ba
   - **Pattern Matching**: Switch/case statements on union types with variable binding
   - **Implicit Upcasting**: Struct instances can be passed to functions expecting union types
   - **Type Matching**: Runtime type identification using `__type__` metadata
+- **Reflection**
+  - Used primarily to allow common reference for serialization libraries.
+  - **Universal reference**: use `Any` as a placeholder for any variable, struct or union.
+  - **Conversion of `Any`**: `isStruct`, `getStructName`, `isInt`, `isDec`, `isBool`, `isString`, `getInt`, `getDec`, `getBool`, `getString`.
+  - **Field manipulation**: `getFields`, `getField` and `setField`
+- **JSON parser**
+  - Simple API for serialization (`std.json.toJson`) and deserialization (`std.json.parseJson`).
 
 ### ❌ Not Yet Implemented
 
