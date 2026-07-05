@@ -251,7 +251,6 @@ public class ArrayUtil implements ClnFunction {
         return outermost;
     }
 
-    @SuppressWarnings("unchecked")
     public static List<Object> deepCopy(List<Object> arr) {
         if (arr == null) {
             return new ArrayList<>();

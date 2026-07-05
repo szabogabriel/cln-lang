@@ -78,8 +78,8 @@ public class Reflection implements ClnFunction {
             @SuppressWarnings("unchecked")
             Map<String, Object> structMap = (Map<String, Object>) s;
             Object typeName = structMap.get("__type__");
-            if (typeName instanceof String) {
-                result = (String) typeName;
+            if (typeName instanceof String string) {
+                result = string;
             }
         }
         context.getCurrentFrame().getLocalContext().setVariable("result", result);
