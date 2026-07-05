@@ -371,6 +371,7 @@ FORMAT_RFC1123                   "EEE, dd MMM yyyy HH:mm:ss z"</pre>
               <pre>import std.reflect.*;
 
 // Field access
+getFields(Any s) → string[]
 getField(Any s, string fieldName) → Any
 setField(Any s, string fieldName, Any value)
 

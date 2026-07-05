@@ -960,7 +960,7 @@ Example programs in `examples/` directory:
 - `demo_both_syntaxes.cln` - Different syntax variations
 - `demo_decimal.cln` - Decimal type (BigDecimal) arithmetic and operations
 - `demo_calendar.cln` - Full showcase of `std.calendar.*`: snapshots, arithmetic, comparison, difference, field setters, timezone conversion, struct conversions, formatting, and parsing
-- `demo_reflection.cln` - Full showcase of `std.reflect.*`: `getField`, `setField`, `isStruct`, `getStructName`, type checks (`isInt`, `isDec`, `isBool`, `isString`), and typed getters
+- `demo_reflection.cln` - Full showcase of `std.reflect.*`: `getFields`, `getField`, `setField`, `isStruct`, `getStructName`, type checks (`isInt`, `isDec`, `isBool`, `isString`), and typed getters
 - `comprehensive_demo.cln` - Complete showcase of all language features
 
 **Tests:**

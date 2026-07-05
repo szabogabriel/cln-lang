@@ -3,6 +3,7 @@ package org.clnlang.lib.std.reflection;
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 
 import org.clnlang.compile.declaration.FunctionDeclImpl;
 import org.clnlang.lib.ClnFunction;
@@ -15,6 +16,20 @@ public class Reflection implements ClnFunction {
     private final String packageName = "std.reflect";
 
     // ========== getField ==========
+
+    private void executeGetFields(ExecutionContext context) {
+        Object s = context.getLocalContext().getValue("s");
+        Object result = null;
+        if (s instanceof Map) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> structMap = (Map<String, Object>) s;
+            Set<String> fieldNames = structMap.keySet();
+            fieldNames.remove("__type__"); // Exclude the __type__ field from the result    
+            result = fieldNames.stream().toList();
+        }
+        context.getCurrentFrame().getLocalContext().setVariable("result", result);
+        context.setReturnValues(Collections.singletonList(result));
+    }
 
     private void executeGetField(ExecutionContext context) {
         Object s = context.getLocalContext().getValue("s");
@@ -145,6 +160,11 @@ public class Reflection implements ClnFunction {
 
     @Override
     public void register(Registry registry) {
+        // getFields(Any s) -> string[] result
+        registerFunction(registry, "getFields", "string[]", "result",
+                new String[]{"Any"}, new String[]{"s"},
+                this::executeGetFields);
+
         // getField(Any s, string fieldName) → Any result
         registerFunction(registry, "getField", "Any", "result",
                 new String[]{"Any", "string"}, new String[]{"s", "fieldName"},

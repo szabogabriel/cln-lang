@@ -1,4 +1,5 @@
 import std.console.writeLine;
+import std.array.*;
 import std.str.intToStr;
 import std.str.boolToStr;
 import std.reflect.*;
@@ -87,6 +88,19 @@ demoTypedGetters() {
     return;
 }
 
+demoReadFieldNames() {
+    printSep("Access to fields");
+
+    Person bob = Person(name: "Jim", age: 32);
+
+    writeLine("Fields in the type Person");
+    string[] fields = getFields(bob);
+    var int i = 0;
+    while (i < length(fields)) {
+        writeLine("  > " + fields[i++]);
+    }
+}
+
 // ---- Entry point ----
 int main() {
     demoFieldAccess();
@@ -99,6 +113,8 @@ int main() {
     writeLine("");
 
     demoTypedGetters();
+
+    demoReadFieldNames();
 
     return 0;
 }
