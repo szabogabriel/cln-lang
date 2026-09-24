@@ -31,6 +31,11 @@ public class IncrementExprImpl implements CompiledExpr {
     }
     
     @Override
+    public String getStaticType() {
+        return "int"; // ++/-- only apply to integer variables
+    }
+    
+    @Override
     public Object evaluate(ExecutionContext context) throws Exception {
         // The operand must be an identifier (simple variable)
         if (!(operand instanceof IdentifierExprImpl)) {
@@ -78,7 +83,10 @@ public class IncrementExprImpl implements CompiledExpr {
         } else {
             boolean updated = context.getLocalContext().updateVariable(varName, newValue);
             if (!updated) {
-                updated = context.getGlobalContext().updateGlobalVariable(varName, newValue);
+                updated = id.updateGlobal(context, newValue);
+                if (!updated) {
+                    updated = context.getGlobalContext().updateGlobalVariable(varName, newValue);
+                }
                 if (!updated) {
                     throw new RuntimeException("Cannot increment/decrement undefined or constant variable: " + varName);
                 }
@@ -125,6 +133,25 @@ public class IncrementExprImpl implements CompiledExpr {
             } else {
                 return currentValue; // x++ returns old value
             }
+        }
+        
+        // Try the cached global registry slot (zero boxing!)
+        int globalIndex = id.resolveGlobalIndexFor(context, "int");
+        if (globalIndex >= 0) {
+            long currentValue = context.getGlobalContext().getLongByIndex(globalIndex);
+            
+            long newValue;
+            if ("++".equals(operator)) {
+                newValue = currentValue + 1;
+            } else if ("--".equals(operator)) {
+                newValue = currentValue - 1;
+            } else {
+                throw new RuntimeException("Unknown increment/decrement operator: " + operator);
+            }
+            
+            context.getGlobalContext().updateLongByIndex(globalIndex, newValue);
+            
+            return isPrefix ? newValue : currentValue;
         }
         
         // Fallback to name-based access

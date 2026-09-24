@@ -14,6 +14,13 @@ public class IdentifierExprImpl implements CompiledExpr {
     private final String name;
     private final String type;  // Can be null if unknown at compile time
     private final int index;    // -1 if not a local variable with known index
+
+    // Lazily-resolved global registry slot (globals are registered once, before any
+    // code executes, so the slot is stable for the rest of this ExecutionContext's
+    // lifetime and safe to cache on the node). -2 = not yet resolved, -1 = confirmed
+    // not a global variable (e.g. a function name).
+    private volatile int globalIndex = -2;
+    private volatile String globalType;
     
     /**
      * Create identifier with name only (fallback to name-based lookup)
@@ -41,6 +48,72 @@ public class IdentifierExprImpl implements CompiledExpr {
     
     public int getIndex() {
         return index;
+    }
+
+    @Override
+    public String getStaticType() {
+        // Normalize the "decimal" backward-compatibility spelling to "dec"
+        return "decimal".equals(type) ? "dec" : type;
+    }
+
+    /**
+     * Resolve this identifier's global registry slot only if it matches the expected type.
+     * Returns -1 if it isn't a global, or is a global of a different type.
+     */
+    public int resolveGlobalIndexFor(ExecutionContext context, String expectedType) {
+        if (resolveGlobal(context) && expectedType.equals(globalType)) {
+            return globalIndex;
+        }
+        return -1;
+    }
+
+    /**
+     * Resolve (and cache) this identifier's global registry slot, if any. Returns false
+     * if this identifier isn't a global (e.g. it's a local, or a function name).
+     */
+    public boolean ensureGlobalResolved(ExecutionContext context) {
+        return resolveGlobal(context);
+    }
+
+    /**
+     * The type of the resolved global slot. Only meaningful after ensureGlobalResolved
+     * returns true.
+     */
+    public String getResolvedGlobalType() {
+        return globalType;
+    }
+
+    /**
+     * The index of the resolved global slot. Only meaningful after ensureGlobalResolved
+     * returns true.
+     */
+    public int getResolvedGlobalIndex() {
+        return globalIndex;
+    }
+
+    /**
+     * Attempt to update this identifier as a global variable, using the cached registry
+     * slot (zero boxing for primitives). Returns false if this identifier isn't a global
+     * (e.g. it's a local, or a constant), in which case the caller should fall back to
+     * the name-based update path.
+     */
+    public boolean updateGlobal(ExecutionContext context, Object value) throws Exception {
+        if (!resolveGlobal(context)) {
+            return false;
+        }
+        switch (globalType) {
+            case "int":
+                return context.getGlobalContext().updateLongByIndex(globalIndex, (Long) value);
+            case "bool":
+                return context.getGlobalContext().updateBoolByIndex(globalIndex, (Boolean) value);
+            case "dec":
+            case "decimal":
+                return context.getGlobalContext().updateDecimalByIndex(globalIndex, (BigDecimal) value);
+            case "string":
+                return context.getGlobalContext().updateStringByIndex(globalIndex, (String) value);
+            default:
+                return context.getGlobalContext().updateObjectByIndex(globalIndex, value);
+        }
     }
 
     @Override
@@ -72,9 +145,21 @@ public class IdentifierExprImpl implements CompiledExpr {
             return context.getLocalContext().getValue(name);
         }
         
-        // Then check global context for variables/constants
-        if (context.getGlobalContext().hasGlobalVariable(name)) {
-            return context.getGlobalContext().getGlobalValue(name);
+        // Then check globals via the cached registry slot (zero boxing for primitives)
+        if (resolveGlobal(context)) {
+            switch (globalType) {
+                case "int":
+                    return context.getGlobalContext().getLongByIndex(globalIndex);
+                case "bool":
+                    return context.getGlobalContext().getBoolByIndex(globalIndex);
+                case "dec":
+                case "decimal":
+                    return context.getGlobalContext().getDecimalByIndex(globalIndex);
+                case "string":
+                    return context.getGlobalContext().getStringByIndex(globalIndex);
+                default:
+                    return context.getGlobalContext().getObjectByIndex(globalIndex);
+            }
         }
         
         // Then check global context for functions
@@ -86,6 +171,32 @@ public class IdentifierExprImpl implements CompiledExpr {
         // If not found, throw an exception
         throw new RuntimeException("Undefined identifier: '" + name + "'");
     }
+
+    /**
+     * Resolve (and cache) this identifier's global registry slot. Safe to cache because
+     * all globals are registered before any code executes, so the slot never changes
+     * for the remaining lifetime of the ExecutionContext this node runs against.
+     */
+    private boolean resolveGlobal(ExecutionContext context) {
+        int cached = globalIndex;
+        if (cached != -2) {
+            return cached != -1;
+        }
+        org.clnlang.compile.declaration.GlobalVarDeclImpl decl = context.getGlobalContext().getGlobalDeclaration(name);
+        if (decl == null) {
+            globalIndex = -1;
+            return false;
+        }
+        String declType = decl.getType();
+        int resolved = context.getGlobalContext().resolveGlobalIndex(name, declType);
+        if (resolved < 0) {
+            globalIndex = -1;
+            return false;
+        }
+        globalType = declType;
+        globalIndex = resolved;
+        return true;
+    }
     
     // ===== Typed evaluation methods (zero-boxing!) =====
     
@@ -94,6 +205,9 @@ public class IdentifierExprImpl implements CompiledExpr {
         // Fast path: direct primitive access via index
         if (index >= 0 && "int".equals(type)) {
             return context.getLocalContext().getLongByIndex(index); // ✅ Zero boxing!
+        }
+        if (index < 0 && resolveGlobal(context) && "int".equals(globalType)) {
+            return context.getGlobalContext().getLongByIndex(globalIndex); // ✅ Zero boxing!
         }
         
         // Fallback: name-based lookup (boxes)
@@ -110,6 +224,9 @@ public class IdentifierExprImpl implements CompiledExpr {
         if (index >= 0 && "bool".equals(type)) {
             return context.getLocalContext().getBoolByIndex(index); // ✅ Zero boxing!
         }
+        if (index < 0 && resolveGlobal(context) && "bool".equals(globalType)) {
+            return context.getGlobalContext().getBoolByIndex(globalIndex); // ✅ Zero boxing!
+        }
         
         // Fallback: name-based lookup (boxes)
         Object value = evaluate(context);
@@ -125,6 +242,9 @@ public class IdentifierExprImpl implements CompiledExpr {
         if (index >= 0 && "dec".equals(type)) {
             return context.getLocalContext().getDecimalByIndex(index);
         }
+        if (index < 0 && resolveGlobal(context) && ("dec".equals(globalType) || "decimal".equals(globalType))) {
+            return context.getGlobalContext().getDecimalByIndex(globalIndex);
+        }
         
         // Fallback: name-based lookup
         Object value = evaluate(context);
@@ -139,6 +259,9 @@ public class IdentifierExprImpl implements CompiledExpr {
         // Fast path: direct access via index
         if (index >= 0 && "string".equals(type)) {
             return context.getLocalContext().getStringByIndex(index);
+        }
+        if (index < 0 && resolveGlobal(context) && "string".equals(globalType)) {
+            return context.getGlobalContext().getStringByIndex(globalIndex);
         }
         
         // Fallback: name-based lookup

@@ -27,4 +27,14 @@ public class DecLiteralExprImpl implements CompiledExpr {
     public Object evaluate(ExecutionContext context) throws Exception {
         return value;
     }
+
+    @Override
+    public BigDecimal decimalValue(ExecutionContext context) {
+        return value;
+    }
+
+    @Override
+    public String getStaticType() {
+        return "dec";
+    }
 }

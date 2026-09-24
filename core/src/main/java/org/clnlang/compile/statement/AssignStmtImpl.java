@@ -1,11 +1,11 @@
 package org.clnlang.compile.statement;
 
+import java.util.List;
+import java.util.Map;
+
 import org.clnlang.compile.CompiledAction;
 import org.clnlang.compile.CompiledExpr;
 import org.clnlang.runtime.context.ExecutionContext;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * Compiled representation of an assignment statement.
@@ -13,6 +13,12 @@ import java.util.Map;
 public class AssignStmtImpl implements CompiledAction {
     private CompiledExpr lvalue;
     private CompiledExpr value;
+
+    // Monomorphic cache for member-access assignments: avoids re-resolving the struct
+    // definition's field mutability on every iteration when the struct type doesn't change
+    // (the member name is fixed per node, so only the runtime struct type can vary, e.g. unions).
+    private String cachedStructType;
+    private boolean cachedFieldMutable;
 
     public AssignStmtImpl(CompiledExpr lvalue, CompiledExpr value) {
         this.lvalue = lvalue;
@@ -29,9 +35,6 @@ public class AssignStmtImpl implements CompiledAction {
 
     @Override
     public void execute(ExecutionContext context) throws Exception {
-        // Evaluate the value once (used by all assignment types)
-        Object val = value.evaluate(context);
-        
         // Handle different types of lvalues
         if (lvalue instanceof org.clnlang.compile.expression.IdentifierExprImpl) {
             // Simple variable assignment: x = value
@@ -39,34 +42,58 @@ public class AssignStmtImpl implements CompiledAction {
                 (org.clnlang.compile.expression.IdentifierExprImpl) lvalue;
             String varName = id.getName();
             
-            // Try index-based update first (zero boxing for primitives!)
-            if (id.getIndex() >= 0 && id.getType() != null) {
-                int index = id.getIndex();
-                boolean updated = false;
+            // Determine the fastest known storage slot: a local index (compile-time
+            // resolved) or, failing that, a cached global registry slot.
+            String targetType = id.getType();
+            int targetIndex = id.getIndex();
+            boolean isGlobal = false;
+            if (targetIndex < 0 && id.ensureGlobalResolved(context)) {
+                isGlobal = true;
+                targetType = id.getResolvedGlobalType();
+                targetIndex = id.getResolvedGlobalIndex();
+            }
+            
+            if (targetIndex >= 0 && targetType != null) {
+                boolean updated;
                 
-                switch (id.getType()) {
-                    case "int":
+                switch (targetType) {
+                    case "int": {
                         long longValue = value.longValue(context);
-                        updated = context.getLocalContext().updateLongByIndex(index, longValue);
+                        updated = isGlobal
+                                ? context.getGlobalContext().updateLongByIndex(targetIndex, longValue)
+                                : context.getLocalContext().updateLongByIndex(targetIndex, longValue);
                         break;
-                    case "bool":
+                    }
+                    case "bool": {
                         boolean boolValue = value.boolValue(context);
-                        updated = context.getLocalContext().updateBoolByIndex(index, boolValue);
+                        updated = isGlobal
+                                ? context.getGlobalContext().updateBoolByIndex(targetIndex, boolValue)
+                                : context.getLocalContext().updateBoolByIndex(targetIndex, boolValue);
                         break;
+                    }
                     case "dec":
-                    case "decimal":  // Backward compatibility
+                    case "decimal": {  // Backward compatibility
                         java.math.BigDecimal decimalValue = value.decimalValue(context);
-                        updated = context.getLocalContext().updateDecimalByIndex(index, decimalValue);
+                        updated = isGlobal
+                                ? context.getGlobalContext().updateDecimalByIndex(targetIndex, decimalValue)
+                                : context.getLocalContext().updateDecimalByIndex(targetIndex, decimalValue);
                         break;
-                    case "string":
+                    }
+                    case "string": {
                         String stringValue = value.stringValue(context);
-                        updated = context.getLocalContext().updateStringByIndex(index, stringValue);
+                        updated = isGlobal
+                                ? context.getGlobalContext().updateStringByIndex(targetIndex, stringValue)
+                                : context.getLocalContext().updateStringByIndex(targetIndex, stringValue);
                         break;
-                    default:
+                    }
+                    default: {
                         // Object type
                         Object objectValue = value.evaluate(context);
-                        updated = context.getLocalContext().updateObjectByIndex(index, objectValue);
+                        updated = isGlobal
+                                ? context.getGlobalContext().updateObjectByIndex(targetIndex, objectValue)
+                                : context.getLocalContext().updateObjectByIndex(targetIndex, objectValue);
                         break;
+                    }
                 }
                 
                 if (updated) {
@@ -76,10 +103,10 @@ public class AssignStmtImpl implements CompiledAction {
             }
             
             // Fallback to name-based update (backward compatibility)
+            Object val = value.evaluate(context);
             boolean updated = context.getLocalContext().updateVariable(varName, val);
             
             if (!updated) {
-                // Try to update in global context
                 updated = context.getGlobalContext().updateGlobalVariable(varName, val);
                 
                 if (!updated) {
@@ -89,6 +116,7 @@ public class AssignStmtImpl implements CompiledAction {
             }
         } else if (lvalue instanceof org.clnlang.compile.expression.MemberAccessExprImpl) {
             // Member access assignment: obj.field = value
+            Object val = value.evaluate(context);
             org.clnlang.compile.expression.MemberAccessExprImpl memberAccess = 
                 (org.clnlang.compile.expression.MemberAccessExprImpl) lvalue;
             
@@ -106,29 +134,36 @@ public class AssignStmtImpl implements CompiledAction {
                 Map<String, Object> structMap = (Map<String, Object>) objValue;
                 
                 String typeName = (String) structMap.get("__type__");
+                String member = memberAccess.getMember();
                 
                 // Check if the field exists
-                if (!structMap.containsKey(memberAccess.getMember())) {
+                if (!structMap.containsKey(member)) {
                     throw new RuntimeException("Struct " + (typeName != null ? typeName : "unknown") + 
-                                             " has no field '" + memberAccess.getMember() + "'");
+                                             " has no field '" + member + "'");
                 }
                 
-                // Check if the field is mutable
-                org.clnlang.runtime.types.StructDefinition structDef = 
-                    context.getGlobalContext().getStructType(typeName);
-                if (structDef != null && !structDef.isFieldMutable(memberAccess.getMember())) {
-                    throw new RuntimeException("Cannot assign to constant field '" + memberAccess.getMember() + 
+                // Check if the field is mutable (cached per struct type - the member name
+                // is fixed for this node, so only the type can change between calls)
+                if (!java.util.Objects.equals(typeName, cachedStructType)) {
+                    org.clnlang.runtime.types.StructDefinition structDef = 
+                        context.getGlobalContext().getStructType(typeName);
+                    cachedFieldMutable = structDef == null || structDef.isFieldMutable(member);
+                    cachedStructType = typeName;
+                }
+                if (!cachedFieldMutable) {
+                    throw new RuntimeException("Cannot assign to constant field '" + member + 
                                              "' of struct " + typeName + " (field not declared with 'var')");
                 }
                 
                 // Assign the new value to the field
-                structMap.put(memberAccess.getMember(), val);
+                structMap.put(member, val);
             } else {
                 throw new RuntimeException("Cannot assign to member '" + memberAccess.getMember() + 
                                          "' on non-struct type: " + objValue.getClass().getSimpleName());
             }
         } else if (lvalue instanceof org.clnlang.compile.expression.IndexAccessExprImpl) {
             // Array index assignment: arr[i] = value
+            Object val = value.evaluate(context);
             org.clnlang.compile.expression.IndexAccessExprImpl indexAccess = 
                 (org.clnlang.compile.expression.IndexAccessExprImpl) lvalue;
             
@@ -139,14 +174,7 @@ public class AssignStmtImpl implements CompiledAction {
                 throw new RuntimeException("Cannot assign to index of null array");
             }
             
-            // Index must be an integer
-            Object indexObj = indexAccess.getIndex().evaluate(context);
-            if (!(indexObj instanceof Long)) {
-                throw new RuntimeException("Array index must be an integer, got: " + 
-                    (indexObj == null ? "null" : indexObj.getClass().getSimpleName()));
-            }
-            
-            long indexValue = (Long) indexObj;
+            long indexValue = indexAccess.getIndex().longValue(context);
             
             // Only arrays (List) support index assignment, not strings
             if (arrayObj instanceof List) {

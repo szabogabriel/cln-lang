@@ -347,9 +347,10 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
                         // Validate return type
                         validateType(type, retVar.type().getStart().getLine());
                         
-                        func.addReturnVar(type, varName);
-                        // Register return variable in scope
+                        // Register return variable in scope and capture its registry slot
                         currentScope.registerVariable(varName, type);
+                        VarInfo varInfo = currentScope.getVariableInfo(varName);
+                        func.addReturnVar(type, varName, varInfo.index, varInfo.decimalTypeInfo);
                     }
                 }
             }
@@ -363,9 +364,10 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
                     // Validate parameter type
                     validateType(type, param.type().getStart().getLine());
                     
-                    func.addParameter(type, paramName);
-                    // Register parameter in scope
+                    // Register parameter in scope and capture its registry slot
                     currentScope.registerVariable(paramName, type);
+                    VarInfo varInfo = currentScope.getVariableInfo(paramName);
+                    func.addParameter(type, paramName, varInfo.index, varInfo.decimalTypeInfo);
                 }
             }
             
@@ -642,16 +644,17 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
                 values.add(compileExpression(exprCtx));
             }
             return new ReturnStmtImpl(values);
-        } else {
-            // No explicit return value - need to look up named return variables
-            // Get the names from the current function being compiled
-            List<String> returnVarNames = new ArrayList<>();
-            if (currentFunction != null) {
-                for (FunctionDeclImpl.ReturnVar retVar : currentFunction.getReturnVars()) {
-                    returnVarNames.add(retVar.getName());
-                }
+        } else if (currentFunction != null && !currentFunction.getReturnVars().isEmpty()) {
+            // No explicit return value - read the named return variables by their
+            // compile-time registry index (zero-boxing fast path) instead of by name.
+            List<CompiledExpr> values = new ArrayList<>();
+            for (FunctionDeclImpl.ReturnVar retVar : currentFunction.getReturnVars()) {
+                values.add(new IdentifierExprImpl(retVar.getName(), retVar.getType(), retVar.getRegistryIndex()));
             }
-            return ReturnStmtImpl.withNamedReturnVars(returnVarNames);
+            return new ReturnStmtImpl(values);
+        } else {
+            // Bare return with no named return vars to fall back on
+            return ReturnStmtImpl.withNamedReturnVars(new ArrayList<>());
         }
     }
     

@@ -25,4 +25,14 @@ public class IntLiteralExprImpl implements CompiledExpr {
     public Object evaluate(ExecutionContext context) throws Exception {
         return value;
     }
+
+    @Override
+    public long longValue(ExecutionContext context) {
+        return value;
+    }
+
+    @Override
+    public String getStaticType() {
+        return "int";
+    }
 }

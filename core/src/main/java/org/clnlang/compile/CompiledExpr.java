@@ -1,7 +1,8 @@
 package org.clnlang.compile;
 
-import org.clnlang.runtime.context.ExecutionContext;
 import java.math.BigDecimal;
+
+import org.clnlang.runtime.context.ExecutionContext;
 
 /**
  * Base interface for compiled expressions.
@@ -66,5 +67,14 @@ public interface CompiledExpr extends CompiledAction {
     @Override
     default void execute(ExecutionContext context) throws Exception {
         evaluate(context);
+    }
+
+    /**
+     * The statically-known result type ("int"/"bool"/"dec"/"string"), or null if it can only
+     * be determined at runtime. Lets composite expressions (e.g. BinaryExprImpl) pick a
+     * zero-boxing evaluation strategy once, without re-checking types on every call.
+     */
+    default String getStaticType() {
+        return null;
     }
 }

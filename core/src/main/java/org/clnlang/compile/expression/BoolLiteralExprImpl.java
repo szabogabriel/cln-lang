@@ -21,4 +21,14 @@ public class BoolLiteralExprImpl implements CompiledExpr {
     public Object evaluate(ExecutionContext context) throws Exception {
         return value;
     }
+
+    @Override
+    public boolean boolValue(ExecutionContext context) {
+        return value;
+    }
+
+    @Override
+    public String getStaticType() {
+        return "bool";
+    }
 }

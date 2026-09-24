@@ -13,10 +13,67 @@ public class BinaryExprImpl implements CompiledExpr {
     private Operator operator;
     private CompiledExpr right;
 
+    // Resolved once from the (already-compiled) operands, since their static type never
+    // changes afterwards - avoids re-checking operand types on every evaluation.
+    private final String staticType;
+    private final boolean intOperands;   // both operands are statically known "int"
+    private final boolean decOperands;   // both operands are statically known int/dec (mixed ok), not both int
+
     public BinaryExprImpl(CompiledExpr left, Operator operator, CompiledExpr right) {
         this.left = left;
         this.operator = operator;
         this.right = right;
+
+        String leftType = left.getStaticType();
+        String rightType = right.getStaticType();
+        this.intOperands = "int".equals(leftType) && "int".equals(rightType);
+        this.decOperands = !intOperands && isNumeric(leftType) && isNumeric(rightType);
+        this.staticType = computeStaticType(operator, leftType, rightType, intOperands, decOperands);
+    }
+
+    private static boolean isNumeric(String type) {
+        return "int".equals(type) || "dec".equals(type);
+    }
+
+    private static String computeStaticType(Operator operator, String leftType, String rightType,
+            boolean intOperands, boolean decOperands) {
+        switch (operator) {
+            case PLUS:
+                if ("string".equals(leftType) || "string".equals(rightType)) {
+                    return "string";
+                }
+                return intOperands ? "int" : (decOperands ? "dec" : null);
+            case MINUS:
+            case STAR:
+            case SLASH:
+                return intOperands ? "int" : (decOperands ? "dec" : null);
+            case LT:
+            case LTE:
+            case GT:
+            case GTE:
+            case EQ:
+            case NEQ:
+            case AND:
+            case OR:
+                return "bool";
+            default:
+                return null;
+        }
+    }
+
+    @Override
+    public String getStaticType() {
+        return staticType;
+    }
+
+    /**
+     * Reads an operand known to be statically int-or-dec as a BigDecimal, promoting ints
+     * without going through the generic (boxing) evaluate()/instanceof dispatch.
+     */
+    private static BigDecimal decOperand(CompiledExpr expr, ExecutionContext context) throws Exception {
+        return "int".equals(expr.getStaticType())
+                ? BigDecimal.valueOf(expr.longValue(context))
+                : expr.decimalValue(context);
     }
 
     public CompiledExpr getLeft() {
@@ -221,91 +278,126 @@ public class BinaryExprImpl implements CompiledExpr {
     
     @Override
     public long longValue(ExecutionContext context) throws Exception {
-        // Optimized path for integer arithmetic (zero boxing!)
-        switch (operator) {
-            case PLUS:
-            case MINUS:
-            case STAR:
-            case SLASH:
-                // Assume both operands are integers - use typed methods (zero boxing!)
-                long leftVal = left.longValue(context);
-                long rightVal = right.longValue(context);
-                
-                switch (operator) {
-                    case PLUS:
-                        return leftVal + rightVal;
-                    case MINUS:
-                        return leftVal - rightVal;
-                    case STAR:
-                        return leftVal * rightVal;
-                    case SLASH:
-                        if (rightVal == 0) {
-                            throw new ArithmeticException("Division by zero");
-                        }
-                        return leftVal / rightVal;
+        if (intOperands) {
+            switch (operator) {
+                case PLUS:
+                    return left.longValue(context) + right.longValue(context);
+                case MINUS:
+                    return left.longValue(context) - right.longValue(context);
+                case STAR:
+                    return left.longValue(context) * right.longValue(context);
+                case SLASH: {
+                    long leftVal = left.longValue(context);
+                    long rightVal = right.longValue(context);
+                    if (rightVal == 0) {
+                        throw new ArithmeticException("Division by zero");
+                    }
+                    return leftVal / rightVal;
                 }
-                break;
-            default:
-                // For non-arithmetic operators, fallback to generic evaluate()
-                Object result = evaluate(context);
-                if (result instanceof Long) {
-                    return (Long) result;
-                }
-                throw new IllegalStateException("Expected long result from operator: " + operator);
+                default:
+                    break;
+            }
         }
-        throw new IllegalStateException("Unreachable");
+        // Fallback: generic evaluate() (decimal/string/unknown operands, or type mismatch)
+        Object result = evaluate(context);
+        if (result instanceof Long) {
+            return (Long) result;
+        }
+        throw new RuntimeException("Expression does not evaluate to long: " + result);
+    }
+    
+    @Override
+    public BigDecimal decimalValue(ExecutionContext context) throws Exception {
+        if (intOperands || decOperands) {
+            BigDecimal leftVal = decOperand(left, context);
+            BigDecimal rightVal = decOperand(right, context);
+            switch (operator) {
+                case PLUS:
+                    return leftVal.add(rightVal);
+                case MINUS:
+                    return leftVal.subtract(rightVal);
+                case STAR:
+                    return leftVal.multiply(rightVal);
+                case SLASH:
+                    if (rightVal.compareTo(BigDecimal.ZERO) == 0) {
+                        throw new ArithmeticException("Division by zero");
+                    }
+                    return leftVal.divide(rightVal, java.math.MathContext.DECIMAL128);
+                default:
+                    break;
+            }
+        }
+        // Fallback: generic evaluate() (string/unknown operands, or type mismatch)
+        Object result = evaluate(context);
+        if (result instanceof BigDecimal) {
+            return (BigDecimal) result;
+        }
+        throw new RuntimeException("Expression does not evaluate to BigDecimal: " + result);
     }
     
     @Override
     public boolean boolValue(ExecutionContext context) throws Exception {
-        // Optimized path for comparisons and logical operations (zero boxing!)
-        switch (operator) {
-            case LT:
-            case LTE:
-            case GT:
-            case GTE:
-            case EQ:
-            case NEQ:
-                // Assume both operands are integers - use typed methods (zero boxing!)
-                long leftVal = left.longValue(context);
-                long rightVal = right.longValue(context);
-                
-                switch (operator) {
-                    case LT:
-                        return leftVal < rightVal;
-                    case LTE:
-                        return leftVal <= rightVal;
-                    case GT:
-                        return leftVal > rightVal;
-                    case GTE:
-                        return leftVal >= rightVal;
-                    case EQ:
-                        return leftVal == rightVal;
-                    case NEQ:
-                        return leftVal != rightVal;
+        if (intOperands) {
+            switch (operator) {
+                case LT:
+                case LTE:
+                case GT:
+                case GTE:
+                case EQ:
+                case NEQ: {
+                    long leftVal = left.longValue(context);
+                    long rightVal = right.longValue(context);
+                    switch (operator) {
+                        case LT: return leftVal < rightVal;
+                        case LTE: return leftVal <= rightVal;
+                        case GT: return leftVal > rightVal;
+                        case GTE: return leftVal >= rightVal;
+                        case EQ: return leftVal == rightVal;
+                        case NEQ: return leftVal != rightVal;
+                        default: break;
+                    }
+                    break;
                 }
-                break;
-            case AND:
-            case OR:
-                // Boolean logical operations
-                boolean leftBool = left.boolValue(context);
-                boolean rightBool = right.boolValue(context);
-                
-                switch (operator) {
-                    case AND:
-                        return leftBool && rightBool;
-                    case OR:
-                        return leftBool || rightBool;
+                default:
+                    break;
+            }
+        } else if (decOperands) {
+            switch (operator) {
+                case LT:
+                case LTE:
+                case GT:
+                case GTE:
+                case EQ:
+                case NEQ: {
+                    BigDecimal leftVal = decOperand(left, context);
+                    BigDecimal rightVal = decOperand(right, context);
+                    switch (operator) {
+                        case LT: return leftVal.compareTo(rightVal) < 0;
+                        case LTE: return leftVal.compareTo(rightVal) <= 0;
+                        case GT: return leftVal.compareTo(rightVal) > 0;
+                        case GTE: return leftVal.compareTo(rightVal) >= 0;
+                        // Match the generic evaluate() path, which uses Object.equals()
+                        // (scale-sensitive for BigDecimal), not compareTo().
+                        case EQ: return leftVal.equals(rightVal);
+                        case NEQ: return !leftVal.equals(rightVal);
+                        default: break;
+                    }
+                    break;
                 }
-                break;
-            default:
-                // For non-boolean operators, fallback to generic evaluate()
-                Object result = evaluate(context);
-                if (result instanceof Boolean) {
-                    return (Boolean) result;
-                }
-                throw new IllegalStateException("Expected boolean result from operator: " + operator);
+                default:
+                    break;
+            }
         }
-        throw new IllegalStateException("Unreachable");
+        if (operator == Operator.AND || operator == Operator.OR) {
+            boolean leftBool = left.boolValue(context);
+            boolean rightBool = right.boolValue(context);
+            return operator == Operator.AND ? (leftBool && rightBool) : (leftBool || rightBool);
+        }
+        // Fallback: generic evaluate() (string operands, or type mismatch)
+        Object result = evaluate(context);
+        if (result instanceof Boolean) {
+            return (Boolean) result;
+        }
+        throw new RuntimeException("Expression does not evaluate to boolean: " + result);
     }
 }

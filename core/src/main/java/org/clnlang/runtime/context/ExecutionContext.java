@@ -1,7 +1,5 @@
 package org.clnlang.runtime.context;
 
-import org.clnlang.runtime.values.ReturnValue;
-
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -86,16 +84,7 @@ public class ExecutionContext {
     public void setReturnValues(List<Object> values) {
         CallFrame frame = callStack.peek();
         if (frame != null) {
-            // For now, create ReturnValue wrappers without metadata
-            // TODO: Pass return variable metadata when available
-            List<ReturnValue> returnValues = new ArrayList<>();
-            for (Object value : values) {
-                // Create a simple ReturnVar without full metadata
-                org.clnlang.compile.declaration.FunctionDeclImpl.ReturnVar returnVar = 
-                    new org.clnlang.compile.declaration.FunctionDeclImpl.ReturnVar("unknown", "return" + returnValues.size());
-                returnValues.add(new ReturnValue(returnVar, value));
-            }
-            frame.setReturnValues(returnValues);
+            frame.setReturnValues(values);
         }
     }
     

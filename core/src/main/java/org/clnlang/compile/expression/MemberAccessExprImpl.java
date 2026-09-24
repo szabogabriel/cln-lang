@@ -53,7 +53,10 @@ public class MemberAccessExprImpl implements CompiledExpr {
             @SuppressWarnings("unchecked")
             Map<String, Object> structMap = (Map<String, Object>) objValue;
             
-            if (!structMap.containsKey(member)) {
+            // Single lookup on the common (found) path; containsKey is only needed to
+            // distinguish "missing field" from "field legitimately holds null".
+            Object result = structMap.get(member);
+            if (result == null && !structMap.containsKey(member)) {
                 String typeName = (String) structMap.get("__type__");
                 
                 // Check if this might be a union type and if the field is a common field
@@ -75,7 +78,7 @@ public class MemberAccessExprImpl implements CompiledExpr {
                 throw new RuntimeException(errorMsg);
             }
             
-            return structMap.get(member);
+            return result;
         }
         
         throw new RuntimeException("Cannot access member '" + member + "' on type: " + 

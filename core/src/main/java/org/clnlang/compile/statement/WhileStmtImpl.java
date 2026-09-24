@@ -26,7 +26,7 @@ public class WhileStmtImpl implements CompiledAction {
 
     @Override
     public void execute(ExecutionContext context) throws Exception {
-        while ((Boolean) condition.evaluate(context)) {
+        while (condition.boolValue(context)) {
             body.execute(context);
         }
     }
