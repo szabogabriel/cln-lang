@@ -30,8 +30,9 @@ public class StructLiteralExprImpl implements CompiledExpr {
 
     @Override
     public Object evaluate(ExecutionContext context) throws Exception {
-        // Create struct instance as a Map with field values
-        Map<String, Object> structInstance = new HashMap<>();
+        // Create struct instance as a Map with field values, sized up front (fields + "__type__")
+        // so the map never has to resize/rehash while it's being populated.
+        Map<String, Object> structInstance = new HashMap<>((int) ((fields.size() + 1) / 0.75f) + 1);
         
         // Store type metadata
         structInstance.put("__type__", typeName);

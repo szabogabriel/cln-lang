@@ -1,5 +1,6 @@
 package org.clnlang.runtime.context;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -8,7 +9,6 @@ import org.clnlang.compile.declaration.GlobalVarDeclImpl;
 import org.clnlang.exception.OverloadingNotSupportedException;
 import org.clnlang.runtime.types.StructDefinition;
 import org.clnlang.runtime.types.UnionDefinition;
-import org.clnlang.runtime.values.GlobalVariable;
 
 /**
  * Global context holding program-wide state
@@ -23,8 +23,14 @@ public class GlobalContext {
     // Storage for global functions
     private final Map<String, FunctionDeclImpl> functions;
     
-    // Storage for global variables with their runtime values
-    private final Map<String, GlobalVariable> globalVariables;
+    // Declaration metadata (type, mutability, exposure) for global variables/constants
+    private final Map<String, GlobalVarDeclImpl> globalDeclarations;
+
+    // Values for global variables/constants, stored index-based (zero-boxing for primitives),
+    // same storage strategy as LocalContext. Indices are assigned once at registration
+    // time (before execution starts) and are stable for the lifetime of this context, so
+    // identifier nodes may resolve and cache their slot on first access.
+    private final LocalContext globalValues;
 
     // Current package name
     private String packageName;
@@ -33,7 +39,8 @@ public class GlobalContext {
         this.structTypes = new HashMap<>();
         this.unionTypes = new HashMap<>();
         this.functions = new HashMap<>();
-        this.globalVariables = new HashMap<>();
+        this.globalDeclarations = new HashMap<>();
+        this.globalValues = new LocalContext();
     }
     
     // Struct type methods
@@ -103,29 +110,26 @@ public class GlobalContext {
      * Register a global variable or constant with its declaration and initial value
      */
     public void registerGlobalVariable(GlobalVarDeclImpl declaration, Object value) {
-        globalVariables.put(declaration.getName(), new GlobalVariable(declaration, value));
-    }
-    
-    /**
-     * Get the global variable wrapper (includes both declaration and value)
-     */
-    public GlobalVariable getGlobalVariable(String name) {
-        return globalVariables.get(name);
+        globalDeclarations.put(declaration.getName(), declaration);
+        if (declaration.isMutable()) {
+            globalValues.setVariable(declaration.getName(), value);
+        } else {
+            globalValues.setConstant(declaration.getName(), value);
+        }
     }
     
     /**
      * Get the value of a global variable or constant
      */
     public Object getGlobalValue(String name) {
-        GlobalVariable var = globalVariables.get(name);
-        return var != null ? var.getValue() : null;
+        return globalValues.getValue(name);
     }
     
     /**
      * Check if a global variable exists
      */
     public boolean hasGlobalVariable(String name) {
-        return globalVariables.containsKey(name);
+        return globalDeclarations.containsKey(name);
     }
     
     /**
@@ -133,30 +137,75 @@ public class GlobalContext {
      * or is a constant.
      */
     public boolean updateGlobalVariable(String name, Object value) {
-        GlobalVariable var = globalVariables.get(name);
-        if (var != null && var.isMutable()) {
-            var.setValue(value);
-            return true;
-        }
-        return false;
+        return globalValues.updateVariable(name, value);
     }
     
     /**
      * Check if a global value is mutable
      */
     public boolean isGlobalMutable(String name) {
-        GlobalVariable var = globalVariables.get(name);
-        return var != null && var.isMutable();
+        GlobalVarDeclImpl decl = globalDeclarations.get(name);
+        return decl != null && decl.isMutable();
     }
     
     /**
      * Get the declaration for a global variable
      */
     public GlobalVarDeclImpl getGlobalDeclaration(String name) {
-        GlobalVariable var = globalVariables.get(name);
-        return var != null ? var.getDeclaration() : null;
+        return globalDeclarations.get(name);
     }
-    
+
+    // ===== Registry-index fast path (for identifier nodes to cache after first resolution) =====
+
+    /**
+     * Resolve the storage slot for a global variable of the given type.
+     * Indices are stable once all globals have been registered (before execution starts),
+     * so callers may cache the result. Returns -1 if not found.
+     */
+    public int resolveGlobalIndex(String name, String type) {
+        return globalValues.resolveIndex(name, type);
+    }
+
+    public long getLongByIndex(int index) {
+        return globalValues.getLongByIndex(index);
+    }
+
+    public boolean getBoolByIndex(int index) {
+        return globalValues.getBoolByIndex(index);
+    }
+
+    public BigDecimal getDecimalByIndex(int index) {
+        return globalValues.getDecimalByIndex(index);
+    }
+
+    public String getStringByIndex(int index) {
+        return globalValues.getStringByIndex(index);
+    }
+
+    public Object getObjectByIndex(int index) {
+        return globalValues.getObjectByIndex(index);
+    }
+
+    public boolean updateLongByIndex(int index, long value) {
+        return globalValues.updateLongByIndex(index, value);
+    }
+
+    public boolean updateBoolByIndex(int index, boolean value) {
+        return globalValues.updateBoolByIndex(index, value);
+    }
+
+    public boolean updateDecimalByIndex(int index, BigDecimal value) {
+        return globalValues.updateDecimalByIndex(index, value);
+    }
+
+    public boolean updateStringByIndex(int index, String value) {
+        return globalValues.updateStringByIndex(index, value);
+    }
+
+    public boolean updateObjectByIndex(int index, Object value) {
+        return globalValues.updateObjectByIndex(index, value);
+    }
+
     // Package methods
     public void setPackageName(String packageName) {
         this.packageName = packageName;

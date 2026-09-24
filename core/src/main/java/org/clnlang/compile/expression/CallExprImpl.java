@@ -40,13 +40,8 @@ public class CallExprImpl implements CompiledExpr {
         
         FunctionDeclImpl funcDecl = (FunctionDeclImpl) funcObj;
         
-        // Evaluate all arguments in the caller's context
-        List<Object> argValues = new ArrayList<>();
-        for (CompiledExpr arg : arguments) {
-            argValues.add(arg.evaluate(context));
-        }
-        
-        // Delegate to runtime invoker for call frame management
-        return FunctionInvoker.invoke(funcDecl, argValues, context);
+        // Arguments are evaluated by FunctionInvoker directly into the callee's
+        // registry slots (by index), avoiding an intermediate boxed List<Object>.
+        return FunctionInvoker.invoke(funcDecl, arguments, context);
     }
 }

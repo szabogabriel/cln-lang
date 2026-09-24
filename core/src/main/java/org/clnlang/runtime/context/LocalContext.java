@@ -2,6 +2,7 @@ package org.clnlang.runtime.context;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
+
 import org.clnlang.compile.types.DecimalTypeInfo;
 
 /**
@@ -493,6 +494,68 @@ public class LocalContext {
     
     // ========== Helper methods for name lookup ==========
     
+    /**
+     * Look up the index of a variable by name and type without allocating a slot.
+     * Returns -1 if not found. Intended for one-time (cached) resolution by callers
+     * such as global-variable identifier nodes, not for repeated per-access use.
+     */
+    public int resolveIndex(String name, String type) {
+        if (type == null) {
+            return -1;
+        }
+        if (type.contains("[]")) {
+            return indexOfObject(name);
+        }
+        switch (type) {
+            case "int":
+                return indexOfLong(name);
+            case "bool":
+                return indexOfBool(name);
+            case "dec":
+            case "decimal":
+                return indexOfDecimal(name);
+            case "string":
+                return indexOfString(name);
+            default:
+                return indexOfObject(name);
+        }
+    }
+
+    private int indexOfLong(String name) {
+        for (int i = 0; i < longCount; i++) {
+            if (name.equals(longNames[i])) return i;
+        }
+        return -1;
+    }
+
+    private int indexOfBool(String name) {
+        for (int i = 0; i < boolCount; i++) {
+            if (name.equals(boolNames[i])) return i;
+        }
+        return -1;
+    }
+
+    private int indexOfDecimal(String name) {
+        for (int i = 0; i < decimalCount; i++) {
+            if (name.equals(decimalNames[i])) return i;
+        }
+        return -1;
+    }
+
+    private int indexOfString(String name) {
+        for (int i = 0; i < stringCount; i++) {
+            if (name.equals(stringNames[i])) return i;
+        }
+        return -1;
+    }
+
+    private int indexOfObject(String name) {
+        for (int i = 0; i < objectCount; i++) {
+            if (name.equals(objectNames[i])) return i;
+        }
+        return -1;
+    }
+
     private int findOrAddLongName(String name) {
         for (int i = 0; i < longCount; i++) {
             if (name.equals(longNames[i])) {
