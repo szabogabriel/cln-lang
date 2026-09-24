@@ -21,4 +21,14 @@ public class StringLiteralExprImpl implements CompiledExpr {
     public Object evaluate(ExecutionContext context) throws Exception {
         return value;
     }
+
+    @Override
+    public String stringValue(ExecutionContext context) {
+        return value;
+    }
+
+    @Override
+    public String getStaticType() {
+        return "string";
+    }
 }

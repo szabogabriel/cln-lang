@@ -31,6 +31,11 @@ public class IncrementExprImpl implements CompiledExpr {
     }
     
     @Override
+    public String getStaticType() {
+        return "int"; // ++/-- only apply to integer variables
+    }
+    
+    @Override
     public Object evaluate(ExecutionContext context) throws Exception {
         // The operand must be an identifier (simple variable)
         if (!(operand instanceof IdentifierExprImpl)) {

@@ -50,6 +50,12 @@ public class IdentifierExprImpl implements CompiledExpr {
         return index;
     }
 
+    @Override
+    public String getStaticType() {
+        // Normalize the "decimal" backward-compatibility spelling to "dec"
+        return "decimal".equals(type) ? "dec" : type;
+    }
+
     /**
      * Resolve this identifier's global registry slot only if it matches the expected type.
      * Returns -1 if it isn't a global, or is a global of a different type.

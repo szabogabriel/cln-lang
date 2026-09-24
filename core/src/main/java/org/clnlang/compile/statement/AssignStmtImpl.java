@@ -174,14 +174,7 @@ public class AssignStmtImpl implements CompiledAction {
                 throw new RuntimeException("Cannot assign to index of null array");
             }
             
-            // Index must be an integer
-            Object indexObj = indexAccess.getIndex().evaluate(context);
-            if (!(indexObj instanceof Long)) {
-                throw new RuntimeException("Array index must be an integer, got: " + 
-                    (indexObj == null ? "null" : indexObj.getClass().getSimpleName()));
-            }
-            
-            long indexValue = (Long) indexObj;
+            long indexValue = indexAccess.getIndex().longValue(context);
             
             // Only arrays (List) support index assignment, not strings
             if (arrayObj instanceof List) {

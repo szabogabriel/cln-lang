@@ -51,32 +51,13 @@ public class LocalContext {
     
     public LocalContext(LocalContext parent) {
         this.parent = parent;
-        
-        // Initialize primitive arrays
-        this.longValues = new long[INITIAL_CAPACITY];
-        this.longMutable = new boolean[INITIAL_CAPACITY];
-        this.longNames = new String[INITIAL_CAPACITY];
+        // Per-type arrays are allocated lazily (see ensure*Capacity) on first use of that
+        // type, since most functions only use a subset of the 5 storage kinds - this avoids
+        // 16 small array allocations on every call frame for types the function never touches.
         this.longCount = 0;
-        
-        this.boolValues = new boolean[INITIAL_CAPACITY];
-        this.boolMutable = new boolean[INITIAL_CAPACITY];
-        this.boolNames = new String[INITIAL_CAPACITY];
         this.boolCount = 0;
-        
-        this.decimalValues = new BigDecimal[INITIAL_CAPACITY];
-        this.decimalMutable = new boolean[INITIAL_CAPACITY];
-        this.decimalNames = new String[INITIAL_CAPACITY];
-        this.decimalTypeInfos = new DecimalTypeInfo[INITIAL_CAPACITY];
         this.decimalCount = 0;
-        
-        this.stringValues = new String[INITIAL_CAPACITY];
-        this.stringMutable = new boolean[INITIAL_CAPACITY];
-        this.stringNames = new String[INITIAL_CAPACITY];
         this.stringCount = 0;
-        
-        this.objectValues = new Object[INITIAL_CAPACITY];
-        this.objectMutable = new boolean[INITIAL_CAPACITY];
-        this.objectNames = new String[INITIAL_CAPACITY];
         this.objectCount = 0;
     }
     
@@ -614,7 +595,12 @@ public class LocalContext {
     // ========== Array growth helpers ==========
     
     private void ensureLongCapacity(int minCapacity) {
-        if (minCapacity > longValues.length) {
+        if (longValues == null) {
+            int initial = Math.max(minCapacity, INITIAL_CAPACITY);
+            longValues = new long[initial];
+            longMutable = new boolean[initial];
+            longNames = new String[initial];
+        } else if (minCapacity > longValues.length) {
             int newCapacity = Math.max(minCapacity, longValues.length * 2);
             longValues = Arrays.copyOf(longValues, newCapacity);
             longMutable = Arrays.copyOf(longMutable, newCapacity);
@@ -623,7 +609,12 @@ public class LocalContext {
     }
     
     private void ensureBoolCapacity(int minCapacity) {
-        if (minCapacity > boolValues.length) {
+        if (boolValues == null) {
+            int initial = Math.max(minCapacity, INITIAL_CAPACITY);
+            boolValues = new boolean[initial];
+            boolMutable = new boolean[initial];
+            boolNames = new String[initial];
+        } else if (minCapacity > boolValues.length) {
             int newCapacity = Math.max(minCapacity, boolValues.length * 2);
             boolValues = Arrays.copyOf(boolValues, newCapacity);
             boolMutable = Arrays.copyOf(boolMutable, newCapacity);
@@ -632,7 +623,13 @@ public class LocalContext {
     }
     
     private void ensureDecimalCapacity(int minCapacity) {
-        if (minCapacity > decimalValues.length) {
+        if (decimalValues == null) {
+            int initial = Math.max(minCapacity, INITIAL_CAPACITY);
+            decimalValues = new BigDecimal[initial];
+            decimalMutable = new boolean[initial];
+            decimalNames = new String[initial];
+            decimalTypeInfos = new DecimalTypeInfo[initial];
+        } else if (minCapacity > decimalValues.length) {
             int newCapacity = Math.max(minCapacity, decimalValues.length * 2);
             decimalValues = Arrays.copyOf(decimalValues, newCapacity);
             decimalMutable = Arrays.copyOf(decimalMutable, newCapacity);
@@ -642,7 +639,12 @@ public class LocalContext {
     }
     
     private void ensureStringCapacity(int minCapacity) {
-        if (minCapacity > stringValues.length) {
+        if (stringValues == null) {
+            int initial = Math.max(minCapacity, INITIAL_CAPACITY);
+            stringValues = new String[initial];
+            stringMutable = new boolean[initial];
+            stringNames = new String[initial];
+        } else if (minCapacity > stringValues.length) {
             int newCapacity = Math.max(minCapacity, stringValues.length * 2);
             stringValues = Arrays.copyOf(stringValues, newCapacity);
             stringMutable = Arrays.copyOf(stringMutable, newCapacity);
@@ -651,7 +653,12 @@ public class LocalContext {
     }
     
     private void ensureObjectCapacity(int minCapacity) {
-        if (minCapacity > objectValues.length) {
+        if (objectValues == null) {
+            int initial = Math.max(minCapacity, INITIAL_CAPACITY);
+            objectValues = new Object[initial];
+            objectMutable = new boolean[initial];
+            objectNames = new String[initial];
+        } else if (minCapacity > objectValues.length) {
             int newCapacity = Math.max(minCapacity, objectValues.length * 2);
             objectValues = Arrays.copyOf(objectValues, newCapacity);
             objectMutable = Arrays.copyOf(objectMutable, newCapacity);

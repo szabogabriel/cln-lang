@@ -30,15 +30,7 @@ public class IndexAccessExprImpl implements CompiledExpr {
     @Override
     public Object evaluate(ExecutionContext context) throws Exception {
         Object arrayObj = array.evaluate(context);
-        Object indexObj = index.evaluate(context);
-        
-        // Index must be an integer
-        if (!(indexObj instanceof Long)) {
-            throw new RuntimeException("Array index must be an integer, got: " + 
-                (indexObj == null ? "null" : indexObj.getClass().getSimpleName()));
-        }
-        
-        long indexValue = (Long) indexObj;
+        long indexValue = index.longValue(context);
         
         // Handle array access
         if (arrayObj instanceof List) {

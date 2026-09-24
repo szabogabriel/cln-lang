@@ -16,6 +16,10 @@ public class CallExprImpl implements CompiledExpr {
     private CompiledExpr function;
     private List<CompiledExpr> arguments;
 
+    // Functions are registered once (before execution starts) and never reassigned/shadowed
+    // afterwards, so a call site's resolved target is stable for the life of the ExecutionContext.
+    private volatile FunctionDeclImpl cachedFunction;
+
     public CallExprImpl(CompiledExpr function, List<CompiledExpr> arguments) {
         this.function = function;
         this.arguments = arguments != null ? arguments : new ArrayList<>();
@@ -31,14 +35,15 @@ public class CallExprImpl implements CompiledExpr {
 
     @Override
     public Object evaluate(ExecutionContext context) throws Exception {
-        // Evaluate the function expression to get the FunctionDeclImpl
-        Object funcObj = function.evaluate(context);
-        
-        if (!(funcObj instanceof FunctionDeclImpl)) {
-            throw new RuntimeException("Cannot call non-function object: " + funcObj);
+        FunctionDeclImpl funcDecl = cachedFunction;
+        if (funcDecl == null) {
+            Object funcObj = function.evaluate(context);
+            if (!(funcObj instanceof FunctionDeclImpl)) {
+                throw new RuntimeException("Cannot call non-function object: " + funcObj);
+            }
+            funcDecl = (FunctionDeclImpl) funcObj;
+            cachedFunction = funcDecl;
         }
-        
-        FunctionDeclImpl funcDecl = (FunctionDeclImpl) funcObj;
         
         // Arguments are evaluated by FunctionInvoker directly into the callee's
         // registry slots (by index), avoiding an intermediate boxed List<Object>.
