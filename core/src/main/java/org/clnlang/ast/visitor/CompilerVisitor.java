@@ -487,6 +487,11 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
         // Extract decimal type info if it's a decimal type
         DecimalTypeInfo decimalTypeInfo = extractDecimalTypeInfo(ctx.type());
         
+        // Compile the initializer before registering the new variable in scope, so a name
+        // that shadows an existing function/variable (e.g. `int sub = sub(7, 8);`) resolves
+        // the initializer against the outer binding instead of the not-yet-initialized local.
+        CompiledExpr initializer = compileExpression(ctx.expr());
+        
         // Register variable in current scope and get the assigned index
         int index = -1;
         if (currentScope != null) {
@@ -496,8 +501,6 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
                 index = varInfo.index;
             }
         }
-        
-        CompiledExpr initializer = compileExpression(ctx.expr());
         
         return new VarDeclStmtImpl(isVar, normalizedType, name, initializer, index, decimalTypeInfo);
     }
@@ -560,14 +563,17 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
             validateType(type, bind.type().getStart().getLine());
             
             bindings.add(new TupleAssignStmtImpl.TupleBind(isVar, type, name));
-            
-            // Register new variables in scope (if VAR is present)
-            if (isVar && currentScope != null) {
-                currentScope.registerVariable(name, type);
-            }
         }
         
+        // Compile the RHS before registering the new bindings in scope, so a bound name that
+        // shadows an existing function/variable resolves the RHS against the outer binding.
         CompiledExpr value = compileExpression(ctx.expr());
+        
+        for (clnParser.TupleBindContext bind : ctx.tupleBind()) {
+            if (bind.VAR() != null && currentScope != null) {
+                currentScope.registerVariable(bind.ID().getText(), bind.type().getText());
+            }
+        }
         
         return new TupleAssignStmtImpl(bindings, value);
     }

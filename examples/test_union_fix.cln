@@ -1,4 +1,3 @@
-package test.union_fix;
 import std.console.*;
 import std.str.*;
 struct Circle { var int radius; };

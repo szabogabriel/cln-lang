@@ -5,7 +5,7 @@ import std.console.*;
 var int WIDTH    = 1200;
 var int HEIGHT   = 800;
 var int MAX_ITER = 2000;
-var int REPS     = 6;      // increase this first to extend runtime
+var int REPS     = 2;      // increase this first to extend runtime
 
 // Map pixel (x,y) into complex plane
 // Typical view: Re in [-2.0, 1.0], Im in [-1.2, 1.2]
