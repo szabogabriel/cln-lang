@@ -1,4 +1,4 @@
-package test;
+//package test;
 
 struct Circle {
     var int radius;

@@ -467,8 +467,10 @@ public class DefaultMath implements ClnFunction {
                         new String[]{"decimal"}, new String[]{"x"}, this::executeCbrt);
 
         // Rounding functions
-        registerFunction(registry, "abs", "decimal", "result",
-                        new String[]{"decimal"}, new String[]{"x"}, this::executeAbs);
+        // abs accepts both int and decimal at runtime (see executeAbs); "Any" avoids
+        // forcing a BigDecimal coercion on int arguments before the handler runs.
+        registerFunction(registry, "abs", "Any", "result",
+                        new String[]{"Any"}, new String[]{"x"}, this::executeAbs);
         registerFunction(registry, "ceil", "decimal", "result",
                         new String[]{"decimal"}, new String[]{"x"}, this::executeCeil);
         registerFunction(registry, "floor", "decimal", "result",
@@ -476,11 +478,11 @@ public class DefaultMath implements ClnFunction {
         registerFunction(registry, "round", "int", "result",
                         new String[]{"decimal"}, new String[]{"x"}, this::executeRound);
 
-        // Min/Max functions - two parameters
-        registerFunction(registry, "min", "decimal", "result",
-                        new String[]{"decimal", "decimal"}, new String[]{"a", "b"}, this::executeMin);
-        registerFunction(registry, "max", "decimal", "result",
-                        new String[]{"decimal", "decimal"}, new String[]{"a", "b"}, this::executeMax);
+        // Min/Max functions - two parameters (accept both int and decimal, see executeMin/executeMax)
+        registerFunction(registry, "min", "Any", "result",
+                        new String[]{"Any", "Any"}, new String[]{"a", "b"}, this::executeMin);
+        registerFunction(registry, "max", "Any", "result",
+                        new String[]{"Any", "Any"}, new String[]{"a", "b"}, this::executeMax);
 
         // Other functions
         registerFunction(registry, "random", "decimal", "result",

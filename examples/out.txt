@@ -1,0 +1,1243 @@
+======================
+Executing benchmark_loop.cln
+
+start
+Done in 376ms.
+======================
+Executing comprehensive_demo.cln
+
+=================================
+CLN Language Comprehensive Feature Demo
+=================================
+
+1. Variables and Types:
+Integer: 42
+Boolean: true/false
+String: Hello, CLN!
+Decimal: 3.14159
+String length: 11
+
+2. Arithmetic Operations:
+a = 10, b = 5
+a + b = 15
+a - b = 5
+a * b = 50
+a / b = 2
+(a + b) * (a - b) / 2 = 37
+
+3. Decimal Type:
+Price: 19.99
+Quantity: 2.5
+Total: 49.975
+Precise division: 10.0 / 3.0 = 3.333333333333333333333333333333333
+Mixed: 5 * 7.25 = 36.25
+
+4. Increment/Decrement Operators:
+counter = 5
+counter++ -> 6
+++counter -> 7
+counter-- -> 6
+--counter -> 5
+
+5. Comparison Operators:
+10 < 20 is true
+10 <= 20 is true
+20 > 10 is true
+20 >= 10 is true
+10 == 10 is true
+10 != 20 is true
+
+6. Logical Operators:
+true && true = true
+true || false = true
+!false = true
+
+7. Function Calls:
+add(15, 25) = 40
+multiply(6, 7) = 42
+addAndSubtract(30, 10) -> sum: 40, diff: 20
+max(42, 17) = 42
+
+8. If-Else Statements:
+testValue is greater than 10
+testValue is not greater than 20
+
+9. While Loops:
+Counting from 1 to 5:
+  1
+  2
+  3
+  4
+  5
+factorial(5) = 120
+
+10. Structs:
+Point: x = 10, y = 20
+After modifying y: x = 10, y = 30
+Person: John Doe, age: 25
+After update: Updated Name, age: 26
+
+11. Arrays:
+Array syntax is defined in the grammar: int[], string[]
+
+12. Global Variables:
+Global message: Global variables work!
+Global counter: 0
+Updated global counter: 42
+
+13. Switch Statements:
+Rectangle area: width=5, height=10
+Area = 50
+Circle area: radius=7
+Approximate area = 147
+Switch/case with unions is defined in the grammar
+
+14. Unary Operators:
+Negation: -42 = -42
+Logical NOT works: !false = true
+
+15. Nested Blocks:
+Outer block: outerVar = 10
+Inner block: innerVar = 20
+Can access outer: outerVar = 10
+
+
+=================================
+All CLN language features demonstrated!
+=================================
+======================
+Executing demo_arrays.cln
+
+=== CLN Array Demonstration ===
+
+1. Integer Arrays:
+Original numbers:
+  [0] = 10
+  [1] = 20
+  [2] = 30
+  [3] = 40
+  [4] = 50
+After modification:
+  [0] = 100
+  [1] = 20
+  [2] = 30
+  [3] = 40
+  [4] = 500
+Sum: 690
+
+2. String Arrays:
+Fruits:
+  1. apple
+  2. banana
+  3. orange
+  4. grape
+
+3. Boolean Arrays:
+Flags:
+  flags[0] = true
+  flags[1] = false
+  flags[2] = true
+  flags[3] = true
+  flags[4] = false
+
+4. Decimal Arrays:
+Prices:
+  $19.99
+  $25.50
+  $12.75
+  $8.25
+  $15.00
+Average price: $16.298
+
+5. Array Algorithms:
+Original data:
+  [0] = 5
+  [1] = 2
+  [2] = 8
+  [3] = 1
+  [4] = 9
+  [5] = 3
+  [6] = 7
+Minimum: 1
+Maximum: 9
+After reversal:
+  [0] = 7
+  [1] = 3
+  [2] = 9
+  [3] = 1
+  [4] = 8
+  [5] = 2
+  [6] = 5
+
+6. String Indexing:
+Text: Hello, World!
+Length: 13
+First character: H
+Last character: !
+
+7. Empty Arrays:
+Empty array length: 0
+
+8. Nested Operations:
+Building multiplication table:
+1 x 3 = 3
+2 x 3 = 6
+3 x 3 = 9
+4 x 3 = 12
+5 x 3 = 15
+
+=== All demonstrations complete! ===
+======================
+Executing demo_array_util.cln
+
+===================================
+  Array Utility Functions Demo
+===================================
+
+=== Test newArray ===
+Created array of size: 5
+
+=== Test copy ===
+Original length: 5
+Copied length: 5
+Are equal: true
+
+=== Test copyRange ===
+Original length: 5
+Range [1-4) length: 3
+First element of range: 20
+Last element of range: 40
+
+=== Test length ===
+Array length: 3
+Empty array length: 0
+
+=== Test isEmpty ===
+Array with elements is empty: false
+Empty array is empty: true
+
+=== Test indexOf ===
+Index of 20: 1
+Index of 30: 2
+Index of 99 (not found): -1
+
+=== Test lastIndexOf ===
+Last index of 20: 3
+Last index of 40: 4
+Last index of 99 (not found): -1
+
+=== Test contains ===
+Contains 'banana': true
+Contains 'grape': false
+
+=== Test fill ===
+After fill with 42:
+arr[0]: 42
+arr[2]: 42
+arr[4]: 42
+
+=== Test reverse ===
+Before reverse:
+First: 1, Last: 5
+After reverse:
+First: 5, Last: 1
+
+=== Test equals ===
+arr1 equals arr2: true
+arr1 equals arr3: false
+
+=== Test concat ===
+Length of arr1: 3
+Length of arr2: 3
+Length of combined: 6
+First element: 1
+Middle element: 4
+Last element: 6
+
+=== Test slice ===
+Original length: 6
+Sliced [2, length=3] length: 3
+Sliced[0]: 30
+Sliced[1]: 40
+Sliced[2]: 50
+
+=== Test String Array Operations ===
+Combined fruits length: 5
+Contains 'banana': true
+Contains 'mango': true
+Index of 'orange': 2
+After reverse, first fruit: mango
+After reverse, last fruit: apple
+
+===================================
+  All tests completed!
+===================================
+======================
+Executing demo_both_syntaxes.cln
+
+Old style sum: 30
+New style sum: 40
+Calculated: 13
+Both syntaxes work!
+======================
+Executing demo_calendar.cln
+
+=== 1. Current snapshots ===
+now()        epoch ms : 1790688189866
+now()        date     : 2026-9-29
+now()        time     : 15:23:9.866
+now()        timezone : Europe/Bratislava
+nowDate()    date     : 2026-9-29
+nowTime()    time     : 15:23:9.876
+nowTime()    timezone : Europe/Bratislava
+
+=== 2. Arithmetic – plus ===
+now + 1 year     : 2027-9-29
+now + 3 months   : 2026-12-29
+now + 10 days    : 2026-10-9
+now + 6 hours    : 21:23:9
+now + 30 min     : 15:53:9
+now + 45 sec     : 15:23:54
+now + 500 ms     epoch: 1790688190366
+
+=== 3. Arithmetic – minus ===
+now - 2 years    : 2024-9-29
+now - 1 month    : 2026-8-29
+now - 7 days     : 2026-9-22
+now - 4 hours    : 11:23:9
+now - 15 min     : 15:8:9
+now - 30 sec     : 15:22:39
+now - 250 ms     epoch: 1790688189616
+
+=== 4. Comparison ===
+(now-7d) isBefore now  : true
+(now+10d) isAfter now  : true
+now isBefore now       : false
+
+=== 5. Struct conversions ===
+timestampToDate : 2026-9-29
+timestampToTime : 15:23:9
+dateToTimestamp epoch  : 1790632800000
+dateToTimestamp (midnight) hour: 0
+timeToTimestamp epoch  : 1790688189876
+dateTimeToTimestamp epoch: 1790688189866
+
+=== 6. Formatting ===
+FORMAT_DATETIME         : 2026-09-29 15:23:09
+FORMAT_DATETIME_MILLIS  : 2026-09-29 15:23:09.866
+FORMAT_ISO_DATETIME     : 2026-09-29T15:23:09
+FORMAT_ISO_OFFSET_DATETIME: 2026-09-29T15:23:09+02:00
+FORMAT_DDMMYYYY_SLASH   : 29/09/2026
+FORMAT_DDMMYYYY_DOT     : 29.09.2026
+FORMAT_DDMMYYYY_DASH    : 29-09-2026
+FORMAT_MMDDYYYY_SLASH   : 09/29/2026
+FORMAT_YYYYMMDD_SLASH   : 2026/09/29
+FORMAT_YYYYMMDD_COMPACT : 20260929
+FORMAT_DATE_LONG        : September 29, 2026
+FORMAT_DATE_MEDIUM      : Sep 29, 2026
+FORMAT_DAY_OF_WEEK_DATE : Tuesday, September 29, 2026
+FORMAT_RFC1123          : Tue, 29 Sep 2026 15:23:09 CEST
+dateToString ISO        : 2026-09-29
+dateToString dot        : 29.09.2026
+dateToString long       : September 29, 2026
+timeToString HH:mm:ss   : 15:23:09
+timeToString millis     : 15:23:09.876
+timeToString compact    : 152309
+
+=== 7. Parsing ===
+toTimestamp ISO    : 2026-1-15 8:30
+toTimestamp slash  : 2026-7-15 14:45
+toTimestamp compact: 2026-3-1
+toDate dot         : 2026-12-25
+toDate US slash    : 2026-7-4
+toTime HH:mm:ss    : 23:59:59
+toTime compact     : 10:30:45
+
+=== 8. Difference ===
+diffDays         : 2
+diffHours        : 50
+diffMinutes      : 3030
+diffSeconds      : 181845
+diffMilliseconds : 181845000
+diffDays negative: -2
+
+=== 9. Field setters ===
+withYear  2030   : 2030-7-4
+withMonth 12     : 2026-12-4
+withDay   1      : 2026-7-1
+withHour  0      : 0:33:28
+withMinute 0     : 13:0:28
+withSecond 0     : 13:33:0
+
+=== 10. Timezone ===
+local    : 15:23 Europe/Bratislava
+UTC      : 13:23 UTC
+New York : 9:23 America/New_York
+Tokyo    : 22:23 Asia/Tokyo
+epoch same (local vs UTC): true
+
+=== 11. Utility ===
+dayOfWeek Mon (expect 1) : 1
+dayOfWeek Sat (expect 6) : 6
+dayOfWeek Sun (expect 7) : 7
+fromEpoch 0 year  : 1970
+fromEpoch 0 month : 1
+fromEpoch 0 day   : 1
+fromEpoch roundtrip epoch: 1790688189866
+======================
+Executing demo_console.cln
+
+Enter some text: You entered: asdf
+======================
+Executing demo_decimal.cln
+
+=== Decimal (dec) Type Demo ===
+
+Price per unit: 19.99
+Tax rate: 0.08
+Quantity: 3.5
+
+Subtotal: 69.965
+Tax: 5.59720
+Total: 75.56220
+
+Mixed calculation (int * dec): 57.50
+
+Precise division: 10.0 / 3.0 = 3.333333333333333333333333333333333
+
+5.5 < 6.0 (true)
+6.0 > 5.5 (true)
+
+=== Demo Complete ===
+======================
+Executing demo_exit_code.cln
+
+Hello, World!
+======================
+Executing demo_functions.cln
+
+no return
+Calculated sum: 11
+Unexpected error: Long variable index out of bounds: 1
+java.lang.RuntimeException: Long variable index out of bounds: 1
+	at org.clnlang.runtime.context.LocalContext.getLongByIndex(LocalContext.java:75)
+	at org.clnlang.compile.expression.IdentifierExprImpl.evaluate(IdentifierExprImpl.java:129)
+	at org.clnlang.compile.expression.CallExprImpl.evaluate(CallExprImpl.java:40)
+	at org.clnlang.compile.CompiledExpr.longValue(CompiledExpr.java:24)
+	at org.clnlang.compile.statement.VarDeclStmtImpl.execute(VarDeclStmtImpl.java:67)
+	at org.clnlang.compile.BlockImpl.execute(BlockImpl.java:29)
+	at org.clnlang.runtime.execution.FunctionInvoker.invoke(FunctionInvoker.java:89)
+	at org.clnlang.ClnRuntime.executeMainFunction(ClnRuntime.java:101)
+	at org.clnlang.ClnRuntime.execute(ClnRuntime.java:92)
+	at org.clnlang.Main.run(Main.java:35)
+	at org.clnlang.Main.main(Main.java:8)
+======================
+Executing demo_json.cln
+
+=== Serializing a struct to JSON ===
+Person JSON:
+{"name":"Alice","active":true,"id":1,"address":{"country":"USA","city":"Springfield","street":"123 Main St"}}
+
+=== Serializing primitives ===
+int   -> 42
+string -> "hello, world"
+bool  -> false
+
+=== Parsing JSON into a struct ===
+JSON input:
+{"id":7,"name":"Bob","active":false,"street":"42 Elm Ave"}
+
+After parseJson:
+  id     = 7
+  name   = Bob
+  active = false
+
+=== Round-trip: struct -> JSON -> struct ===
+Serialized: {"country":"USA","city":"Shelbyville","street":"7 Oak Lane"}
+Restored street  : 7 Oak Lane
+Restored city    : Shelbyville
+Restored country : USA
+
+JSON demo completed.
+======================
+Executing demo_math.cln
+
+==========================================
+  Math Library Functions Demo
+==========================================
+
+=== Trigonometric Functions ===
+sin(π/2) = 1.0
+cos(0) = 1.0
+tan(π/4) = 0.9999999999851034
+asin(1.0) = 1.5707963267948966
+acos(0.0) = 1.5707963267948966
+atan(1.0) = 0.7853981633974483
+atan2(1.0, 1.0) = 0.7853981633974483
+
+=== Exponential and Logarithmic Functions ===
+exp(1.0) = 2.718281828459045
+exp(2.0) = 7.38905609893065
+log(e) = 1.0000000000003513
+log(10) = 2.302585092994046
+log10(10) = 1.0
+log10(100) = 2.0
+log10(1000) = 3.0
+
+=== Power and Root Functions ===
+pow(2, 3) = 8.0
+pow(5, 2) = 25.0
+pow(10, 4) = 10000.0
+sqrt(4) = 2.0
+sqrt(9) = 3.0
+sqrt(16) = 4.0
+sqrt(2) = 1.4142135623730951
+cbrt(8) = 2.0
+cbrt(27) = 3.0
+cbrt(64) = 4.0
+
+=== Rounding Functions ===
+ceil(3.7) = 4
+floor(3.7) = 3
+round(3.7) = 4
+ceil(3.2) = 4
+floor(3.2) = 3
+round(3.2) = 3
+ceil(-2.8) = -2
+floor(-2.8) = -3
+round(-2.8) = -3
+
+=== Absolute Value ===
+Unexpected error: Expression does not evaluate to BigDecimal: 5
+java.lang.RuntimeException: Expression does not evaluate to BigDecimal: 5
+	at org.clnlang.compile.CompiledExpr.decimalValue(CompiledExpr.java:40)
+	at org.clnlang.runtime.execution.FunctionInvoker.invoke(FunctionInvoker.java:63)
+	at org.clnlang.compile.expression.CallExprImpl.evaluate(CallExprImpl.java:50)
+	at org.clnlang.compile.CompiledExpr.longValue(CompiledExpr.java:24)
+	at org.clnlang.runtime.execution.FunctionInvoker.invoke(FunctionInvoker.java:56)
+	at org.clnlang.compile.expression.CallExprImpl.evaluate(CallExprImpl.java:50)
+	at org.clnlang.compile.expression.BinaryExprImpl.evaluate(BinaryExprImpl.java:94)
+	at org.clnlang.runtime.execution.FunctionInvoker.invoke(FunctionInvoker.java:70)
+	at org.clnlang.compile.expression.CallExprImpl.evaluate(CallExprImpl.java:50)
+	at org.clnlang.compile.statement.ExprStmtImpl.execute(ExprStmtImpl.java:23)
+	at org.clnlang.compile.BlockImpl.execute(BlockImpl.java:29)
+	at org.clnlang.runtime.execution.FunctionInvoker.invoke(FunctionInvoker.java:89)
+	at org.clnlang.compile.expression.CallExprImpl.evaluate(CallExprImpl.java:50)
+	at org.clnlang.compile.statement.ExprStmtImpl.execute(ExprStmtImpl.java:23)
+	at org.clnlang.compile.BlockImpl.execute(BlockImpl.java:29)
+	at org.clnlang.runtime.execution.FunctionInvoker.invoke(FunctionInvoker.java:89)
+	at org.clnlang.ClnRuntime.executeMainFunction(ClnRuntime.java:101)
+	at org.clnlang.ClnRuntime.execute(ClnRuntime.java:92)
+	at org.clnlang.Main.run(Main.java:35)
+	at org.clnlang.Main.main(Main.java:8)
+======================
+Executing demo_multidim_arrays.cln
+
+=== Multi-dimensional Array Demo ===
+
+1. Literal 2D array:
+  matrix[1][2] = 6
+  matrix.length = 3
+  matrix[0].length = 3
+
+2. Dynamic 2D array via newArray2D(4, 4):
+  [0, 1, 2, 3]
+  [4, 5, 6, 7]
+  [8, 9, 10, 11]
+  [12, 13, 14, 15]
+
+3. 3D array literal:
+  cube[0][0][1] = 2
+  cube[1][1][0] = 7
+
+4. Dynamic 3D array via newArray3D(2, 3, 4):
+  vol[1][2][3] = 42
+  vol.length = 2
+  vol[0].length = 3
+  vol[0][0].length = 4
+
+5. deepCopy vs copy (shallow):
+  After deepCopy and deep[0][0]=99: srcDeep[0][0] = 10 (unchanged, expected 10)
+  deep[0][0] = 99 (expected 99)
+  After shallow copy and shallow[0][0]=77: srcShallow[0][0] = 77 (also changed! expected 77)
+
+6. 2x2 matrix multiplication:
+  A:
+  [1, 2]
+  [3, 4]
+  B:
+  [5, 6]
+  [7, 8]
+  A * B:
+  [19, 22]
+  [43, 50]
+
+7. Row of 2D array as 1D array parameter:
+  data[1] reversed:
+  [7, 4, 9, 2]
+
+=== Done ===
+======================
+Executing demo_reflection.cln
+
+=== getField / setField ===
+p.x = 10
+p.y = 20
+p.x after setField(p, x, 99) = 99
+
+=== isStruct / getStructName ===
+isStruct(alice) = true
+getStructName(alice) = Person
+
+=== Primitive type checks ===
+isInt on struct int field  = true
+isDec on struct int field  = false
+isBool on struct int field = false
+
+=== Typed getters ===
+isString(name field) = true
+isInt(age field)     = true
+getString(name) = Bob
+getInt(age)     = 25
+=== Access to fields ===
+Fields in the type Person
+  > name
+  > age
+======================
+Executing demo_simple_return.cln
+
+Sum: 8
+Product: 28
+Hello, World!
+Is positive: true
+Number: 42
+======================
+Executing demo_string_util.cln
+
+42
+5
+Hello, World!
+HELLO
+world
+spaces
+This is my return message
+This is my return message
+concat via plus-sign
+this is a string return
+======================
+Executing demo_struct.cln
+
+Name: My Name
+Address: Who knows...
+Name: Changed name
+Address: Still who knows...
+======================
+Executing demo_struct_union_arrays.cln
+
+=== Struct and Union Array Demo ===
+
+1. Point array literal:
+  (1, 2)
+  (3, 4)
+  (5, 6)
+
+2. Point array via newArray(4), filled in a loop:
+  (0, 1)
+  (10, 11)
+  (20, 21)
+  (30, 31)
+
+3. Mutating pts[0].x from 1 to 99:
+  pts[0].x = 99
+
+4. translateAll(pts, +10, +10):
+  (109, 12)
+  (13, 14)
+  (15, 16)
+  original pts[0] unchanged: (99, 2)
+
+5. Shape (union) array:
+  Circle at (0, 0) r=5
+  Rect at (1, 1) 4x3
+  Circle at (10, 20) r=2
+  totalArea (approx r^2 + w*h) = 41
+
+6. Replace shapes[0] with a Rectangle:
+  Rect at (5, 5) 10x10
+
+7. 2D Point array (newArray2D 3x3):
+  matrix[2][1]:
+  (2, 1)
+  after matrix[2][1].x = 42:
+  (42, 1)
+
+8. 2D Shape array (literal):
+  Circle at (0, 0) r=1
+  Rect at (0, 0) 2x2
+  Rect at (1, 1) 3x3
+  Circle at (5, 5) r=4
+
+9. deepCopy of Point array:
+  src[0].x after mutating dst[0].x=77: 1 (unchanged, expected 1)
+  dst[0].x = 77 (expected 77)
+
+=== Done ===
+======================
+Executing demo_switch.cln
+
+line 60:13 mismatched input '5' expecting ID
+line 60:14 mismatched input ':' expecting {'(', '[', ';', '.', '+', '-', '*', '/', '++', '--', '&&', '||', '==', '!=', '<', '<=', '>', '>='}
+line 61:8 extraneous input 'case' expecting {'var', 'if', 'while', 'switch', 'return', 'int', 'bool', 'string', 'dec', 'AnyStruct', BOOL_LIT, INT_LIT, DEC_LIT, STRING_LIT, '(', '{', '}', '[', ';', '-', '++', '--', '!', ID}
+line 61:14 mismatched input ':' expecting {'(', ')', '[', ',', '.', '+', '-', '*', '/', '++', '--', '&&', '||', '==', '!=', '<', '<=', '>', '>='}
+line 62:8 extraneous input 'default' expecting {'var', 'if', 'while', 'switch', 'return', 'int', 'bool', 'string', 'dec', 'AnyStruct', BOOL_LIT, INT_LIT, DEC_LIT, STRING_LIT, '(', '{', '}', '[', ';', '-', '++', '--', '!', ID}
+line 65:4 extraneous input 'return' expecting {<EOF>, 'package', 'import', 'expose', 'struct', 'union', 'var', 'int', 'bool', 'string', 'dec', 'AnyStruct', '(', ID}
+Parsing failed for demo_switch.cln with 6 errors.
+======================
+Executing demo_sys.cln
+
+=== System Library Demo ===
+
+--- Time Functions ---
+Current time (milliseconds): 1790688192864
+Nano time measurement overhead: 6052 nanoseconds
+
+--- System Properties ---
+User name: gszabo
+User home: /home/gszabo
+Current directory: /home/gszabo/Projects/Else/clean/examples
+Operating system: Linux
+OS version: 7.2.5-100.fc43.x86_64
+Java version: 21.0.12.1
+
+--- Property with Default ---
+Custom property (should be default): default_value
+
+--- Environment Variables ---
+PATH is set
+HOME: /home/gszabo
+
+--- Memory Information ---
+Free memory: 492 MB
+Total memory: 504 MB
+Max memory: 7948 MB
+
+Demo completed successfully!
+======================
+Executing demo_sys_exit.cln
+
+This program will exit with code 42...
+======================
+Executing demo_sys_timing.cln
+
+Starting benchmark...
+Elapsed time: 66 milliseconds
+======================
+Executing demo_union_common_vs_switch.cln
+
+=== User Information ===
+ID: 1
+Name: John Doe
+Email: john@example.com
+User Age: 30
+
+=== Company Information ===
+ID: 2
+Name: Acme Corp
+Email: info@acme.com
+Company Employees: 150
+======================
+Executing demo_while.cln
+
+In while loop. Current value: 10
+In while loop. Current value: 9
+In while loop. Current value: 8
+In while loop. Current value: 7
+In while loop. Current value: 6
+In while loop. Current value: 5
+In while loop. Current value: 4
+In while loop. Current value: 3
+In while loop. Current value: 2
+In while loop. Current value: 1
+======================
+Executing hello_world.cln
+
+Hello, World!
+======================
+Executing test_array_basic.cln
+
+Array created: [1, 2, 3, 4, 5]
+First element: 1
+Last element: 5
+Array length: 5
+After modification:
+First element: 10
+Last element: 50
+Empty array length: 0
+String array:
+names[0]: Alice
+names[1]: Bob
+names[2]: Charlie
+names.length: 3
+Boolean array:
+flags[0]: true
+flags[1]: false
+flags[2]: true
+Decimal array:
+prices[0]: 19.99
+prices[1]: 25.50
+prices[2]: 12.75
+All array tests passed!
+======================
+Executing test_array_debug.cln
+
+Testing array element access:
+First element: 15
+Testing addition:
+elem type seems to be int: 15
+sum before: 0
+sum after: 15
+======================
+Executing test_array_decimals.cln
+
+Decimal array operations:
+prices[0] = 19.99
+prices[1] = 25.50
+prices[2] = 12.75
+prices[3] = 8.25
+prices[4] = 15.00
+Total: 81.49
+Average: 16.298
+After 10% discount:
+prices[0] = 17.9910
+prices[1] = 22.9500
+prices[2] = 11.4750
+prices[3] = 7.4250
+prices[4] = 13.5000
+Most expensive (after discount): 22.9500
+Decimal array tests passed!
+======================
+Executing test_array_function_debug.cln
+
+In testSum function
+First element: 15
+Sum: 15
+Result: 15
+======================
+Executing test_array_functions.cln
+
+Array contents:
+  [0] = 15
+  [1] = 8
+  [2] = 23
+  [3] = 4
+  [4] = 42
+  [5] = 16
+Sum: 108
+Minimum: 4
+Array function tests passed!
+======================
+Executing test_array_loops.cln
+
+Array elements:
+numbers[0] = 10
+numbers[1] = 20
+numbers[2] = 30
+numbers[3] = 40
+numbers[4] = 50
+Sum of array elements: 150
+Maximum element: 50
+Reversed array:
+reversed[0] = 50
+reversed[1] = 40
+reversed[2] = 30
+reversed[3] = 20
+reversed[4] = 10
+All loop tests passed!
+======================
+Executing test_array_simple.cln
+
+Array created
+First: 1
+Second: 2
+Third: 3
+Length: 3
+======================
+Executing test_array_strings.cln
+
+String array operations:
+words[0] = hello
+words[1] = world
+words[2] = from
+words[3] = CLN
+Concatenated: hello world from CLN
+Longest word: hello (length: 5)
+After modification:
+words[0] = HELLO
+words[1] = WORLD
+String array tests passed!
+======================
+Executing test_array_util_edge_cases.cln
+
+====================================
+  Array Util Edge Cases Tests
+====================================
+
+=== Test Empty Arrays ===
+Length of empty array: 0
+isEmpty on empty: true
+Two empty arrays equal: true
+indexOf in empty: -1
+contains in empty: false
+Copied empty array length: 0
+
+=== Test Single Element Array ===
+Length: 1
+Element: 42
+indexOf 42: 0
+lastIndexOf 42: 0
+contains 42: true
+After reverse, element: 42
+
+=== Test Reverse Even/Odd Length ===
+Even array before: 1, 4
+Even array after: 4, 1
+Odd array before: 1, 5
+Odd array after: 5, 1
+
+=== Test CopyRange Boundaries ===
+CopyRange [0, 3): length = 3
+First: 10
+CopyRange [2, 5): length = 3
+Last: 50
+CopyRange [2, 3): length = 1
+Element: 30
+
+=== Test Slice Boundaries ===
+Slice(0, 3): length = 3
+Slice(1, 3): length = 3
+Middle[0]: 2
+Slice(3, 10): length = 2
+
+=== Test Concat Variations ===
+Array + Empty: length = 3
+Empty + Array: length = 3
+Empty + Empty: length = 0
+
+=== Test Fill Various Types ===
+Filled strings[0]: test
+Filled strings[2]: test
+Filled bools[0]: true
+Filled bools[3]: true
+
+=== Test Equality Edge Cases ===
+Same content: true
+Different length (shorter): false
+Different length (longer): false
+
+=== Test IndexOf with Duplicates ===
+First occurrence of 5: 0
+Last occurrence of 5: 4
+Contains 5: true
+
+====================================
+  All edge case tests completed!
+====================================
+======================
+Executing test_decimal_precision.cln
+
+Original pi: 3.14159265
+pi2 (2 decimals): 3.14
+pi3 (2 decimals, HALF_UP): 3.14
+Original value: 9.87654321
+Rounded to 3 decimals: 9.877
+Price (2 decimals): 20.00
+Updated price: 15.56
+testVal: 2.125
+HALF_UP: 2.13
+HALF_DOWN: 2.12
+CEILING: 2.13
+FLOOR: 2.12
+Sum: 16.00
+======================
+Executing test_exit_code.cln
+
+This program returns exit code 5
+======================
+Executing test_global_var.cln
+
+Global variable: 123
+Global string: This is global string
+Global variable: 234
+======================
+Executing test_increment.cln
+
+x = 5
+++x = 6
+x = 6
+x++ = 6
+x = 7
+--x = 6
+x = 6
+x-- = 6
+x = 5
+y = 15
+x = 6
+z = 15
+x = 8
+======================
+Executing test_long_range.cln
+
+Large number 1: 5000000000
+Large number 2: 3000000000
+Sum: 8000000000
+8 billion = 8000000000
+======================
+Executing test_math_advanced.cln
+
+===========================================
+  Advanced Math Applications
+===========================================
+
+=== Compound Interest Calculator ===
+Formula: A = P(1 + r/n)^(nt)
+Principal: $1000.0
+Annual Rate: 5.000%
+Compounding: Monthly
+Time: 10.0 years
+Final Amount: $1647.009497690280000
+Interest Earned: $647.009497690280000
+
+=== Circle Calculations ===
+Radius: 5.0
+Circumference: 31.4159265359000
+Area: 78.539816339750
+
+=== Sphere Volume and Surface Area ===
+Radius: 3.0
+Volume: 113.097335529239999999999999999999971725666117690
+Surface Area: 113.0973355292400
+
+=== Triangle Angle Calculations ===
+Law of Cosines: c² = a² + b² - 2ab*cos(C)
+Side a: 5.0
+Side b: 7.0
+Side c: 8.0
+Angle C: 81.78678929826181 degrees
+
+=== Polar to Cartesian Conversion ===
+Polar coordinates:
+  r = 10.0
+  θ = 45 degrees
+Cartesian coordinates:
+  x = 7.07106781186547600
+  y = 7.07106781186547500
+
+=== Cartesian to Polar Conversion ===
+Cartesian coordinates:
+  x = 3.0
+  y = 4.0
+Polar coordinates:
+  r = 5.0
+  θ = 53.13010235415598 degrees
+
+=== Statistical Calculations ===
+Dataset: 12, 15, 18, 22, 25
+Sum: 92.0
+Count: 5.0
+Mean: 18.4
+Variance: 21.840000000000000806
+Standard Deviation: 4.673328578219169
+
+=== Exponential Growth ===
+Population growth: P(t) = P₀ * e^(rt)
+Initial Population: 1000.0
+Growth Rate: 3.000%
+Time: 20.0 years
+Final Population: 1822.11880039050890000
+
+=== Logarithmic Scale (Richter Scale) ===
+Earthquake magnitude comparison
+Magnitude 5.0 earthquake
+Magnitude 7.0 earthquake
+Energy ratio: 1000.0x
+
+=== Newton's Method Approximation ===
+Finding sqrt(2) iteratively
+Iteration 1: 1.5
+Iteration 2: 1.416666666666666666666666666666666
+Iteration 3: 1.414215686274509803921568627450980
+Iteration 4: 1.414213562374689910626295578890135
+Iteration 5: 1.41421356237309504880168962350253
+Actual sqrt(2): 1.4142135623730951
+Difference: 5.119831037649747E-17
+
+=== Edge Cases and Special Values ===
+Unexpected error: Expression does not evaluate to BigDecimal: 5
+java.lang.RuntimeException: Expression does not evaluate to BigDecimal: 5
+	at org.clnlang.compile.CompiledExpr.decimalValue(CompiledExpr.java:40)
+	at org.clnlang.runtime.execution.FunctionInvoker.invoke(FunctionInvoker.java:63)
+	at org.clnlang.compile.expression.CallExprImpl.evaluate(CallExprImpl.java:50)
+	at org.clnlang.compile.CompiledExpr.longValue(CompiledExpr.java:24)
+	at org.clnlang.runtime.execution.FunctionInvoker.invoke(FunctionInvoker.java:56)
+	at org.clnlang.compile.expression.CallExprImpl.evaluate(CallExprImpl.java:50)
+	at org.clnlang.compile.expression.BinaryExprImpl.evaluate(BinaryExprImpl.java:94)
+	at org.clnlang.runtime.execution.FunctionInvoker.invoke(FunctionInvoker.java:70)
+	at org.clnlang.compile.expression.CallExprImpl.evaluate(CallExprImpl.java:50)
+	at org.clnlang.compile.statement.ExprStmtImpl.execute(ExprStmtImpl.java:23)
+	at org.clnlang.compile.BlockImpl.execute(BlockImpl.java:29)
+	at org.clnlang.runtime.execution.FunctionInvoker.invoke(FunctionInvoker.java:89)
+	at org.clnlang.compile.expression.CallExprImpl.evaluate(CallExprImpl.java:50)
+	at org.clnlang.compile.statement.ExprStmtImpl.execute(ExprStmtImpl.java:23)
+	at org.clnlang.compile.BlockImpl.execute(BlockImpl.java:29)
+	at org.clnlang.runtime.execution.FunctionInvoker.invoke(FunctionInvoker.java:89)
+	at org.clnlang.ClnRuntime.executeMainFunction(ClnRuntime.java:101)
+	at org.clnlang.ClnRuntime.execute(ClnRuntime.java:92)
+	at org.clnlang.Main.run(Main.java:35)
+	at org.clnlang.Main.main(Main.java:8)
+======================
+Executing test_math.cln
+
+10 * 10 + 10 = 110
+======================
+Executing test_member_assign.cln
+
+======================
+Executing test_nopackage.cln
+
+Hello, world!
+======================
+Executing test_no_return.cln
+
+This program has no return value
+======================
+Executing test_one_shape.cln
+
+======================
+Executing test_recursion.cln
+
+Calculated factorial for 5: 120
+======================
+Executing test_simple_add.cln
+
+======================
+Executing test_struct.cln
+
+The radius is: 5
+Unexpected error: Cannot assign to constant field 'radius' of struct Circle (field not declared with 'var')
+java.lang.RuntimeException: Cannot assign to constant field 'radius' of struct Circle (field not declared with 'var')
+	at org.clnlang.compile.statement.AssignStmtImpl.execute(AssignStmtImpl.java:154)
+	at org.clnlang.compile.BlockImpl.execute(BlockImpl.java:29)
+	at org.clnlang.runtime.execution.FunctionInvoker.invoke(FunctionInvoker.java:89)
+	at org.clnlang.compile.expression.CallExprImpl.evaluate(CallExprImpl.java:50)
+	at org.clnlang.compile.statement.ExprStmtImpl.execute(ExprStmtImpl.java:23)
+	at org.clnlang.compile.BlockImpl.execute(BlockImpl.java:29)
+	at org.clnlang.runtime.execution.FunctionInvoker.invoke(FunctionInvoker.java:89)
+	at org.clnlang.ClnRuntime.executeMainFunction(ClnRuntime.java:101)
+	at org.clnlang.ClnRuntime.execute(ClnRuntime.java:92)
+	at org.clnlang.Main.run(Main.java:35)
+	at org.clnlang.Main.main(Main.java:8)
+======================
+Executing test_struct_mutability.cln
+
+=== Initial values ===
+ID: 100
+Name: John Doe
+
+=== Modifying mutable field (name) ===
+Name changed to: Jane Smith
+
+=== Testing immutable field (id) - should fail ===
+Unexpected error: Cannot assign to constant field 'id' of struct User (field not declared with 'var')
+java.lang.RuntimeException: Cannot assign to constant field 'id' of struct User (field not declared with 'var')
+	at org.clnlang.compile.statement.AssignStmtImpl.execute(AssignStmtImpl.java:154)
+	at org.clnlang.compile.BlockImpl.execute(BlockImpl.java:29)
+	at org.clnlang.runtime.execution.FunctionInvoker.invoke(FunctionInvoker.java:89)
+	at org.clnlang.ClnRuntime.executeMainFunction(ClnRuntime.java:101)
+	at org.clnlang.ClnRuntime.execute(ClnRuntime.java:92)
+	at org.clnlang.Main.run(Main.java:35)
+	at org.clnlang.Main.main(Main.java:8)
+======================
+Executing test_struct_mutability_success.cln
+
+Point: (10, 20)
+Modified Point: (30, 40)
+
+Circle radius: 5
+Circle center: (0, 0)
+Modified center: (100, 200)
+Modified center fields: (50, 60)
+
+SUCCESS: All mutable operations completed!
+======================
+Executing test_switch_simple.cln
+
+======================
+Executing test_triangle.cln
+
+======================
+Executing test_union_common_fields.cln
+
+User details:
+Name: John Doe
+Address: 123 Main St
+ID: 123
+
+Company details:
+Name: Acme Corp
+Address: 456 Business Ave
+ID: 456
+======================
+Executing test_union_complete.cln
+
+Circle with radius 7
+Area: 147
+
+Rectangle 5x10
+Area: 50
+
+Triangle base=8 height=6
+Area: 24
+======================
+Executing test_union_error_case.cln
+
+Testing common field access:
+Pet name: Fido
+Pet name: Whiskers
+
+Direct access to struct-specific fields still works:
+Dog breed: Golden Retriever
+Cat lives: 9
+======================
+Executing test_union_fix.cln
+
+Circle with radius 5
+Square with side 7
+======================
+Executing test_union_function_access.cln
+
+Circle info:
+Shape ID: 1
+Shape Color: red
+
+Rectangle info:
+Shape ID: 2
+Shape Color: blue
+======================
+Executing test_union_partial_fields.cln
+
+Testing CommonShape (Circle and Rectangle share 'color' field):
+Circle color: red
+Rectangle color: blue
+
+Testing PartialShape (only height is common between Rectangle and Triangle):
+Rectangle height: 10
+Triangle height: 6
+======================
+Executing test_union_upcast.cln
+
+Circle area: 75
+======================
+Executing web_demo_arrays.cln
+
+Circle with radius 5
+Square with side 7

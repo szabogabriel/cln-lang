@@ -1,4 +1,4 @@
-package main;
+//package main;
 
 import std.console.*;
 import std.str.*;
@@ -25,12 +25,12 @@ int main() {
     
     // Test in expression
     var int y = 10 + x++;
-    writeLine("y = " + intToStr(y));
+    writeLine("y = 10 + x++ -> " + intToStr(y));
     writeLine("x = " + intToStr(x));
     
     // Test multiple increments
     var int z = ++x + ++x;
-    writeLine("z = " + intToStr(z));
+    writeLine("z = ++x + ++x -> " + intToStr(z));
     writeLine("x = " + intToStr(x));
     
     return 0;

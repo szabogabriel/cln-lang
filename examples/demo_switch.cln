@@ -1,4 +1,4 @@
-package demo;
+//package demo;
 
 import std.console.writeLine;
 import std.str.*;
@@ -55,12 +55,8 @@ int main() {
     int triArea = (myTri.base * myTri.height) / 2;
     writeLine("Triangle area for base 8 and height 6 is about " + intToStr(triArea));
     
-    int a = 5;
-    switch(a) {
-        case 5: writeLine("Five");
-        case 4: writeLine("Four");
-        default: writeLine("Who knows");
-    }
-    
+    // Note: switch/case only supports union type patterns (case Type name:), not
+    // literal values (case 5:) - see calculateArea() above for the supported form.
+
     return 0;
 }

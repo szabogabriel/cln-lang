@@ -1,4 +1,4 @@
-package test;
+//package test;
 
 (var int exitCode = 0) main() {
     var int a = 75;
