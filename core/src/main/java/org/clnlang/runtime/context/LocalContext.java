@@ -60,6 +60,67 @@ public class LocalContext {
         this.stringCount = 0;
         this.objectCount = 0;
     }
+
+    /**
+     * Pre-sized constructor for pooled call frames: allocates each type's value/mutable
+     * arrays at the exact size the compiler determined the function needs (from
+     * CompilerVisitor.VariableScope), instead of lazily growing from INITIAL_CAPACITY.
+     * Name arrays are NOT allocated here - they're only needed by the name-based fallback
+     * path (globals/closures/switch-case bindings) and stay null until first used.
+     */
+    public LocalContext(int longSlots, int boolSlots, int decimalSlots, int stringSlots, int objectSlots) {
+        this.parent = null;
+        if (longSlots > 0) {
+            longValues = new long[longSlots];
+            longMutable = new boolean[longSlots];
+        }
+        if (boolSlots > 0) {
+            boolValues = new boolean[boolSlots];
+            boolMutable = new boolean[boolSlots];
+        }
+        if (decimalSlots > 0) {
+            decimalValues = new BigDecimal[decimalSlots];
+            decimalMutable = new boolean[decimalSlots];
+            decimalTypeInfos = new DecimalTypeInfo[decimalSlots];
+        }
+        if (stringSlots > 0) {
+            stringValues = new String[stringSlots];
+            stringMutable = new boolean[stringSlots];
+        }
+        if (objectSlots > 0) {
+            objectValues = new Object[objectSlots];
+            objectMutable = new boolean[objectSlots];
+        }
+    }
+
+    /**
+     * Clears this context for reuse by a pooled call frame. Keeps the allocated arrays
+     * (so a recycled frame doesn't re-pay allocation cost) but drops references to the
+     * previous call's object/decimal/string values so they don't stay reachable, and
+     * resets the name-based fallback slots (globals/closures/switch-case bindings) since
+     * those aren't tracked by the compiler's per-function slot counts.
+     */
+    public void reset() {
+        longCount = 0;
+        boolCount = 0;
+        if (decimalValues != null) {
+            Arrays.fill(decimalValues, 0, decimalCount, null);
+        }
+        decimalCount = 0;
+        if (stringValues != null) {
+            Arrays.fill(stringValues, 0, stringCount, null);
+        }
+        stringCount = 0;
+        if (objectValues != null) {
+            Arrays.fill(objectValues, 0, objectCount, null);
+        }
+        objectCount = 0;
+        longNames = null;
+        boolNames = null;
+        decimalNames = null;
+        stringNames = null;
+        objectNames = null;
+    }
     
     public LocalContext getParent() {
         return parent;
@@ -312,33 +373,43 @@ public class LocalContext {
      */
     public Object getValue(String name) {
         // Check longs
-        for (int i = 0; i < longCount; i++) {
-            if (name.equals(longNames[i])) {
-                return longValues[i]; // Boxes here
+        if (longNames != null) {
+            for (int i = 0; i < longCount; i++) {
+                if (name.equals(longNames[i])) {
+                    return longValues[i]; // Boxes here
+                }
             }
         }
         // Check bools
-        for (int i = 0; i < boolCount; i++) {
-            if (name.equals(boolNames[i])) {
-                return boolValues[i]; // Boxes here
+        if (boolNames != null) {
+            for (int i = 0; i < boolCount; i++) {
+                if (name.equals(boolNames[i])) {
+                    return boolValues[i]; // Boxes here
+                }
             }
         }
         // Check decimals
-        for (int i = 0; i < decimalCount; i++) {
-            if (name.equals(decimalNames[i])) {
-                return decimalValues[i];
+        if (decimalNames != null) {
+            for (int i = 0; i < decimalCount; i++) {
+                if (name.equals(decimalNames[i])) {
+                    return decimalValues[i];
+                }
             }
         }
         // Check strings
-        for (int i = 0; i < stringCount; i++) {
-            if (name.equals(stringNames[i])) {
-                return stringValues[i];
+        if (stringNames != null) {
+            for (int i = 0; i < stringCount; i++) {
+                if (name.equals(stringNames[i])) {
+                    return stringValues[i];
+                }
             }
         }
         // Check objects
-        for (int i = 0; i < objectCount; i++) {
-            if (name.equals(objectNames[i])) {
-                return objectValues[i];
+        if (objectNames != null) {
+            for (int i = 0; i < objectCount; i++) {
+                if (name.equals(objectNames[i])) {
+                    return objectValues[i];
+                }
             }
         }
         // Check parent
@@ -352,20 +423,30 @@ public class LocalContext {
      * Check if value exists by name
      */
     public boolean hasValue(String name) {
-        for (int i = 0; i < longCount; i++) {
-            if (name.equals(longNames[i])) return true;
+        if (longNames != null) {
+            for (int i = 0; i < longCount; i++) {
+                if (name.equals(longNames[i])) return true;
+            }
         }
-        for (int i = 0; i < boolCount; i++) {
-            if (name.equals(boolNames[i])) return true;
+        if (boolNames != null) {
+            for (int i = 0; i < boolCount; i++) {
+                if (name.equals(boolNames[i])) return true;
+            }
         }
-        for (int i = 0; i < decimalCount; i++) {
-            if (name.equals(decimalNames[i])) return true;
+        if (decimalNames != null) {
+            for (int i = 0; i < decimalCount; i++) {
+                if (name.equals(decimalNames[i])) return true;
+            }
         }
-        for (int i = 0; i < stringCount; i++) {
-            if (name.equals(stringNames[i])) return true;
+        if (stringNames != null) {
+            for (int i = 0; i < stringCount; i++) {
+                if (name.equals(stringNames[i])) return true;
+            }
         }
-        for (int i = 0; i < objectCount; i++) {
-            if (name.equals(objectNames[i])) return true;
+        if (objectNames != null) {
+            for (int i = 0; i < objectCount; i++) {
+                if (name.equals(objectNames[i])) return true;
+            }
         }
         if (parent != null) {
             return parent.hasValue(name);
@@ -377,20 +458,30 @@ public class LocalContext {
      * Check if value is mutable by name
      */
     public boolean isMutable(String name) {
-        for (int i = 0; i < longCount; i++) {
-            if (name.equals(longNames[i])) return longMutable[i];
+        if (longNames != null) {
+            for (int i = 0; i < longCount; i++) {
+                if (name.equals(longNames[i])) return longMutable[i];
+            }
         }
-        for (int i = 0; i < boolCount; i++) {
-            if (name.equals(boolNames[i])) return boolMutable[i];
+        if (boolNames != null) {
+            for (int i = 0; i < boolCount; i++) {
+                if (name.equals(boolNames[i])) return boolMutable[i];
+            }
         }
-        for (int i = 0; i < decimalCount; i++) {
-            if (name.equals(decimalNames[i])) return decimalMutable[i];
+        if (decimalNames != null) {
+            for (int i = 0; i < decimalCount; i++) {
+                if (name.equals(decimalNames[i])) return decimalMutable[i];
+            }
         }
-        for (int i = 0; i < stringCount; i++) {
-            if (name.equals(stringNames[i])) return stringMutable[i];
+        if (stringNames != null) {
+            for (int i = 0; i < stringCount; i++) {
+                if (name.equals(stringNames[i])) return stringMutable[i];
+            }
         }
-        for (int i = 0; i < objectCount; i++) {
-            if (name.equals(objectNames[i])) return objectMutable[i];
+        if (objectNames != null) {
+            for (int i = 0; i < objectCount; i++) {
+                if (name.equals(objectNames[i])) return objectMutable[i];
+            }
         }
         if (parent != null) {
             return parent.isMutable(name);
@@ -403,55 +494,65 @@ public class LocalContext {
      */
     public boolean updateVariable(String name, Object value) {
         // Check longs
-        for (int i = 0; i < longCount; i++) {
-            if (name.equals(longNames[i])) {
-                if (!longMutable[i]) return false;
-                if (value instanceof Long) {
-                    longValues[i] = (Long) value;
-                    return true;
+        if (longNames != null) {
+            for (int i = 0; i < longCount; i++) {
+                if (name.equals(longNames[i])) {
+                    if (!longMutable[i]) return false;
+                    if (value instanceof Long) {
+                        longValues[i] = (Long) value;
+                        return true;
+                    }
+                    throw new RuntimeException("Type mismatch for variable: " + name);
                 }
-                throw new RuntimeException("Type mismatch for variable: " + name);
             }
         }
         // Check bools
-        for (int i = 0; i < boolCount; i++) {
-            if (name.equals(boolNames[i])) {
-                if (!boolMutable[i]) return false;
-                if (value instanceof Boolean) {
-                    boolValues[i] = (Boolean) value;
-                    return true;
+        if (boolNames != null) {
+            for (int i = 0; i < boolCount; i++) {
+                if (name.equals(boolNames[i])) {
+                    if (!boolMutable[i]) return false;
+                    if (value instanceof Boolean) {
+                        boolValues[i] = (Boolean) value;
+                        return true;
+                    }
+                    throw new RuntimeException("Type mismatch for variable: " + name);
                 }
-                throw new RuntimeException("Type mismatch for variable: " + name);
             }
         }
         // Check decimals
-        for (int i = 0; i < decimalCount; i++) {
-            if (name.equals(decimalNames[i])) {
-                if (!decimalMutable[i]) return false;
-                if (value instanceof BigDecimal) {
-                    decimalValues[i] = (BigDecimal) value;
-                    return true;
+        if (decimalNames != null) {
+            for (int i = 0; i < decimalCount; i++) {
+                if (name.equals(decimalNames[i])) {
+                    if (!decimalMutable[i]) return false;
+                    if (value instanceof BigDecimal) {
+                        decimalValues[i] = (BigDecimal) value;
+                        return true;
+                    }
+                    throw new RuntimeException("Type mismatch for variable: " + name);
                 }
-                throw new RuntimeException("Type mismatch for variable: " + name);
             }
         }
         // Check strings
-        for (int i = 0; i < stringCount; i++) {
-            if (name.equals(stringNames[i])) {
-                if (!stringMutable[i]) return false;
-                if (value instanceof String) {
-                    stringValues[i] = (String) value;
-                    return true;
+        if (stringNames != null) {
+            for (int i = 0; i < stringCount; i++) {
+                if (name.equals(stringNames[i])) {
+                    if (!stringMutable[i]) return false;
+                    if (value instanceof String) {
+                        stringValues[i] = (String) value;
+                        return true;
+                    }
+                    throw new RuntimeException("Type mismatch for variable: " + name);
                 }
-                throw new RuntimeException("Type mismatch for variable: " + name);
             }
         }
         // Check objects
-        for (int i = 0; i < objectCount; i++) {
-            if (name.equals(objectNames[i])) {
-                if (!objectMutable[i]) return false;
-                objectValues[i] = value;
-                return true;
+        if (objectNames != null) {
+            for (int i = 0; i < objectCount; i++) {
+                if (name.equals(objectNames[i])) {
+                    if (!objectMutable[i]) return false;
+                    objectValues[i] = value;
+                    return true;
+                }
             }
         }
         // Try parent
@@ -503,6 +604,7 @@ public class LocalContext {
     }
 
     private int indexOfLong(String name) {
+        if (longNames == null) return -1;
         for (int i = 0; i < longCount; i++) {
             if (name.equals(longNames[i])) return i;
         }
@@ -510,6 +612,7 @@ public class LocalContext {
     }
 
     private int indexOfBool(String name) {
+        if (boolNames == null) return -1;
         for (int i = 0; i < boolCount; i++) {
             if (name.equals(boolNames[i])) return i;
         }
@@ -517,6 +620,7 @@ public class LocalContext {
     }
 
     private int indexOfDecimal(String name) {
+        if (decimalNames == null) return -1;
         for (int i = 0; i < decimalCount; i++) {
             if (name.equals(decimalNames[i])) return i;
         }
@@ -524,6 +628,7 @@ public class LocalContext {
     }
 
     private int indexOfString(String name) {
+        if (stringNames == null) return -1;
         for (int i = 0; i < stringCount; i++) {
             if (name.equals(stringNames[i])) return i;
         }
@@ -531,6 +636,7 @@ public class LocalContext {
     }
 
     private int indexOfObject(String name) {
+        if (objectNames == null) return -1;
         for (int i = 0; i < objectCount; i++) {
             if (name.equals(objectNames[i])) return i;
         }
@@ -538,58 +644,88 @@ public class LocalContext {
     }
 
     private int findOrAddLongName(String name) {
-        for (int i = 0; i < longCount; i++) {
-            if (name.equals(longNames[i])) {
-                return i;
+        if (longNames != null) {
+            for (int i = 0; i < longCount; i++) {
+                if (name.equals(longNames[i])) {
+                    return i;
+                }
             }
         }
         ensureLongCapacity(longCount + 1);
+        longNames = ensureNamesCapacity(longNames, longValues.length);
         longNames[longCount] = name;
         return longCount;
     }
     
     private int findOrAddBoolName(String name) {
-        for (int i = 0; i < boolCount; i++) {
-            if (name.equals(boolNames[i])) {
-                return i;
+        if (boolNames != null) {
+            for (int i = 0; i < boolCount; i++) {
+                if (name.equals(boolNames[i])) {
+                    return i;
+                }
             }
         }
         ensureBoolCapacity(boolCount + 1);
+        boolNames = ensureNamesCapacity(boolNames, boolValues.length);
         boolNames[boolCount] = name;
         return boolCount;
     }
     
     private int findOrAddDecimalName(String name) {
-        for (int i = 0; i < decimalCount; i++) {
-            if (name.equals(decimalNames[i])) {
-                return i;
+        if (decimalNames != null) {
+            for (int i = 0; i < decimalCount; i++) {
+                if (name.equals(decimalNames[i])) {
+                    return i;
+                }
             }
         }
         ensureDecimalCapacity(decimalCount + 1);
+        decimalNames = ensureNamesCapacity(decimalNames, decimalValues.length);
         decimalNames[decimalCount] = name;
         return decimalCount;
     }
     
     private int findOrAddStringName(String name) {
-        for (int i = 0; i < stringCount; i++) {
-            if (name.equals(stringNames[i])) {
-                return i;
+        if (stringNames != null) {
+            for (int i = 0; i < stringCount; i++) {
+                if (name.equals(stringNames[i])) {
+                    return i;
+                }
             }
         }
         ensureStringCapacity(stringCount + 1);
+        stringNames = ensureNamesCapacity(stringNames, stringValues.length);
         stringNames[stringCount] = name;
         return stringCount;
     }
     
     private int findOrAddObjectName(String name) {
-        for (int i = 0; i < objectCount; i++) {
-            if (name.equals(objectNames[i])) {
-                return i;
+        if (objectNames != null) {
+            for (int i = 0; i < objectCount; i++) {
+                if (name.equals(objectNames[i])) {
+                    return i;
+                }
             }
         }
         ensureObjectCapacity(objectCount + 1);
+        objectNames = ensureNamesCapacity(objectNames, objectValues.length);
         objectNames[objectCount] = name;
         return objectCount;
+    }
+
+    /**
+     * Lazily allocates/grows a *Names array to match its sibling values array's length.
+     * Kept separate from ensure*Capacity so the common index-based fast path (which never
+     * touches names) doesn't pay for an array it will never use.
+     */
+    private static String[] ensureNamesCapacity(String[] names, int requiredLength) {
+        if (names == null) {
+            return new String[requiredLength];
+        }
+        if (names.length < requiredLength) {
+            return Arrays.copyOf(names, requiredLength);
+        }
+        return names;
     }
     
     // ========== Array growth helpers ==========
@@ -599,12 +735,10 @@ public class LocalContext {
             int initial = Math.max(minCapacity, INITIAL_CAPACITY);
             longValues = new long[initial];
             longMutable = new boolean[initial];
-            longNames = new String[initial];
         } else if (minCapacity > longValues.length) {
             int newCapacity = Math.max(minCapacity, longValues.length * 2);
             longValues = Arrays.copyOf(longValues, newCapacity);
             longMutable = Arrays.copyOf(longMutable, newCapacity);
-            longNames = Arrays.copyOf(longNames, newCapacity);
         }
     }
     
@@ -613,12 +747,10 @@ public class LocalContext {
             int initial = Math.max(minCapacity, INITIAL_CAPACITY);
             boolValues = new boolean[initial];
             boolMutable = new boolean[initial];
-            boolNames = new String[initial];
         } else if (minCapacity > boolValues.length) {
             int newCapacity = Math.max(minCapacity, boolValues.length * 2);
             boolValues = Arrays.copyOf(boolValues, newCapacity);
             boolMutable = Arrays.copyOf(boolMutable, newCapacity);
-            boolNames = Arrays.copyOf(boolNames, newCapacity);
         }
     }
     
@@ -627,13 +759,11 @@ public class LocalContext {
             int initial = Math.max(minCapacity, INITIAL_CAPACITY);
             decimalValues = new BigDecimal[initial];
             decimalMutable = new boolean[initial];
-            decimalNames = new String[initial];
             decimalTypeInfos = new DecimalTypeInfo[initial];
         } else if (minCapacity > decimalValues.length) {
             int newCapacity = Math.max(minCapacity, decimalValues.length * 2);
             decimalValues = Arrays.copyOf(decimalValues, newCapacity);
             decimalMutable = Arrays.copyOf(decimalMutable, newCapacity);
-            decimalNames = Arrays.copyOf(decimalNames, newCapacity);
             decimalTypeInfos = Arrays.copyOf(decimalTypeInfos, newCapacity);
         }
     }
@@ -643,12 +773,10 @@ public class LocalContext {
             int initial = Math.max(minCapacity, INITIAL_CAPACITY);
             stringValues = new String[initial];
             stringMutable = new boolean[initial];
-            stringNames = new String[initial];
         } else if (minCapacity > stringValues.length) {
             int newCapacity = Math.max(minCapacity, stringValues.length * 2);
             stringValues = Arrays.copyOf(stringValues, newCapacity);
             stringMutable = Arrays.copyOf(stringMutable, newCapacity);
-            stringNames = Arrays.copyOf(stringNames, newCapacity);
         }
     }
     
@@ -657,12 +785,10 @@ public class LocalContext {
             int initial = Math.max(minCapacity, INITIAL_CAPACITY);
             objectValues = new Object[initial];
             objectMutable = new boolean[initial];
-            objectNames = new String[initial];
         } else if (minCapacity > objectValues.length) {
             int newCapacity = Math.max(minCapacity, objectValues.length * 2);
             objectValues = Arrays.copyOf(objectValues, newCapacity);
             objectMutable = Arrays.copyOf(objectMutable, newCapacity);
-            objectNames = Arrays.copyOf(objectNames, newCapacity);
         }
     }
 }

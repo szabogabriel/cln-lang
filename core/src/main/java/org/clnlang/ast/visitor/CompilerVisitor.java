@@ -81,6 +81,26 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
         public VariableScope(VariableScope parent) {
             this.parent = parent;
         }
+
+        public int getLongSlotCount() {
+            return nextLongIndex;
+        }
+
+        public int getBoolSlotCount() {
+            return nextBoolIndex;
+        }
+
+        public int getDecimalSlotCount() {
+            return nextDecimalIndex;
+        }
+
+        public int getStringSlotCount() {
+            return nextStringIndex;
+        }
+
+        public int getObjectSlotCount() {
+            return nextObjectIndex;
+        }
         
         /**
          * Register a variable and assign it an index based on its type.
@@ -374,6 +394,12 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
             // Compile body
             BlockImpl body = compileBlock(ctx.block());
             func.setBlock(body);
+
+            // Record the per-type slot counts this function needs, so pooled call frames
+            // (ExecutionContext.pushCallFrame(FunctionDeclImpl)) can be pre-sized exactly.
+            func.setFrameSlotCounts(currentScope.getLongSlotCount(), currentScope.getBoolSlotCount(),
+                    currentScope.getDecimalSlotCount(), currentScope.getStringSlotCount(),
+                    currentScope.getObjectSlotCount());
             
             return func;
         } finally {

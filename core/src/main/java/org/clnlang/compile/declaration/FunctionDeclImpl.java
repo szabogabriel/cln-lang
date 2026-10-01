@@ -19,6 +19,14 @@ public class FunctionDeclImpl implements CompiledAction {
     private CompiledAction block;
     private boolean isExposed;
 
+    // Per-type local-variable slot counts assigned by CompilerVisitor.VariableScope, used to
+    // pre-size pooled call frames (see ExecutionContext.pushCallFrame(FunctionDeclImpl)).
+    private int longSlotCount;
+    private int boolSlotCount;
+    private int decimalSlotCount;
+    private int stringSlotCount;
+    private int objectSlotCount;
+
     public FunctionDeclImpl(String name, boolean isExposed) {
         this.name = name;
         this.packageName = null; // Will be set later
@@ -81,6 +89,35 @@ public class FunctionDeclImpl implements CompiledAction {
 
     public boolean isExposed() {
         return isExposed;
+    }
+
+    public void setFrameSlotCounts(int longSlotCount, int boolSlotCount, int decimalSlotCount,
+            int stringSlotCount, int objectSlotCount) {
+        this.longSlotCount = longSlotCount;
+        this.boolSlotCount = boolSlotCount;
+        this.decimalSlotCount = decimalSlotCount;
+        this.stringSlotCount = stringSlotCount;
+        this.objectSlotCount = objectSlotCount;
+    }
+
+    public int getLongSlotCount() {
+        return longSlotCount;
+    }
+
+    public int getBoolSlotCount() {
+        return boolSlotCount;
+    }
+
+    public int getDecimalSlotCount() {
+        return decimalSlotCount;
+    }
+
+    public int getStringSlotCount() {
+        return stringSlotCount;
+    }
+
+    public int getObjectSlotCount() {
+        return objectSlotCount;
     }
 
     @Override

@@ -79,5 +79,17 @@ public class UnaryExprImpl implements CompiledExpr {
         throw new IllegalStateException("Expected boolean result from unary operator: " + operator);
     }
 
-
+    @Override
+    public BigDecimal decimalValue(ExecutionContext context) throws Exception {
+        // Optimized path for decimal negation (zero boxing!)
+        if ("-".equals(operator)) {
+            return operand.decimalValue(context).negate();
+        }
+        // Fallback to generic evaluate()
+        Object result = evaluate(context);
+        if (result instanceof BigDecimal) {
+            return (BigDecimal) result;
+        }
+        throw new IllegalStateException("Expected BigDecimal result from unary operator: " + operator);
+    }
 }

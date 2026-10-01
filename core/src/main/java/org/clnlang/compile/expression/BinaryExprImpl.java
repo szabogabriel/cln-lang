@@ -375,6 +375,37 @@ public class BinaryExprImpl implements CompiledExpr {
         }
         throw new RuntimeException("Expression does not evaluate to BigDecimal: " + result);
     }
+
+    @Override
+    public String stringValue(ExecutionContext context) throws Exception {
+        if (operator == Operator.PLUS && "string".equals(staticType)) {
+            return concatOperand(left, context) + concatOperand(right, context);
+        }
+        // Fallback: generic evaluate() (non-PLUS, or unresolved static type)
+        Object result = evaluate(context);
+        if (result instanceof String) {
+            return (String) result;
+        }
+        throw new RuntimeException("Expression does not evaluate to String: " + result);
+    }
+
+    /**
+     * Renders an operand for string concatenation without boxing it into Long/BigDecimal
+     * first, when its static type is known.
+     */
+    private static String concatOperand(CompiledExpr expr, ExecutionContext context) throws Exception {
+        String type = expr.getStaticType();
+        if ("int".equals(type)) {
+            return Long.toString(expr.longValue(context));
+        }
+        if ("dec".equals(type)) {
+            return expr.decimalValue(context).toString();
+        }
+        if ("string".equals(type)) {
+            return expr.stringValue(context);
+        }
+        return String.valueOf(expr.evaluate(context));
+    }
     
     @Override
     public boolean boolValue(ExecutionContext context) throws Exception {

@@ -3,8 +3,11 @@ package org.clnlang.runtime.context;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import org.clnlang.compile.declaration.FunctionDeclImpl;
 import org.clnlang.compile.declaration.ImportDeclImpl;
 
 /**
@@ -20,6 +23,12 @@ public class ExecutionContext {
     private final Deque<CallFrame> callStack;
 
     private final List<ImportDeclImpl> imports = new ArrayList<>();
+
+    // Per-function free lists of recycled call frames (LIFO, since calls nest in a stack
+    // discipline), keyed by the compiled function they were sized for. Avoids re-allocating
+    // CallFrame/LocalContext storage arrays on every call to a function that's already run.
+    // Not thread-safe - each ExecutionContext is expected to run on a single thread at a time.
+    private final Map<FunctionDeclImpl, ArrayDeque<CallFrame>> framePools = new HashMap<>();
     
     public ExecutionContext() {
         this.globalContext = new GlobalContext();
@@ -64,6 +73,19 @@ public class ExecutionContext {
     public void pushCallFrame(String functionName, LocalContext parentContext) {
         callStack.push(new CallFrame(functionName, parentContext));
     }
+
+    /**
+     * Push a call frame for a compiled function, reusing a pooled frame (with its
+     * storage arrays already sized and cleared) when one is available.
+     */
+    public void pushCallFrame(FunctionDeclImpl funcDecl) {
+        ArrayDeque<CallFrame> pool = framePools.get(funcDecl);
+        CallFrame frame = (pool != null) ? pool.poll() : null;
+        if (frame == null) {
+            frame = new CallFrame(funcDecl);
+        }
+        callStack.push(frame);
+    }
     
     /**
      * Pop the current call frame when exiting a function.
@@ -74,7 +96,13 @@ public class ExecutionContext {
             throw new RuntimeException("Cannot pop global frame");
         }
         CallFrame frame = callStack.pop();
-        return frame.getReturnValueObjects();
+        List<Object> returnValues = frame.getReturnValueObjects();
+        FunctionDeclImpl owner = frame.getOwner();
+        if (owner != null) {
+            frame.recycle();
+            framePools.computeIfAbsent(owner, k -> new ArrayDeque<>()).push(frame);
+        }
+        return returnValues;
     }
     
     /**

@@ -70,8 +70,8 @@ public class FunctionInvoker {
             objArgs[i] = argExpr.evaluate(context);
         }
 
-        // Push a new call frame for the function
-        context.pushCallFrame(funcDecl.getName());
+        // Push a new call frame for the function (reused from the per-function pool when possible)
+        context.pushCallFrame(funcDecl);
 
         try {
             // Initialize return variables to their zero value (registered before params in scope)
