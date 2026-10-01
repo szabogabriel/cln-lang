@@ -23,7 +23,8 @@ public enum Operator {
     PLUS("+"),
     MINUS("-"),
     STAR("*"),
-    SLASH("/");
+    SLASH("/"),
+    MODULO("%");
     
     private final String symbol;
     

@@ -1,9 +1,9 @@
 package org.clnlang.compile.expression;
 
+import java.math.BigDecimal;
+
 import org.clnlang.compile.CompiledExpr;
 import org.clnlang.runtime.context.ExecutionContext;
-
-import java.math.BigDecimal;
 
 /**
  * Compiled representation of a binary expression.
@@ -46,6 +46,7 @@ public class BinaryExprImpl implements CompiledExpr {
             case MINUS:
             case STAR:
             case SLASH:
+            case MODULO:
                 return intOperands ? "int" : (decOperands ? "dec" : null);
             case LT:
             case LTE:
@@ -168,6 +169,33 @@ public class BinaryExprImpl implements CompiledExpr {
                     return BigDecimal.valueOf((Long) leftVal).divide((BigDecimal) rightVal, java.math.MathContext.DECIMAL128);
                 }
                 throw new IllegalArgumentException("Invalid operands for / operator");
+
+            case MODULO:
+                if (leftVal instanceof Long && rightVal instanceof Long) {
+                    if ((Long) rightVal == 0) {
+                        throw new ArithmeticException("Modulo by zero");
+                    }
+                    return (Long) leftVal % (Long) rightVal;
+                }
+                if (leftVal instanceof BigDecimal && rightVal instanceof BigDecimal) {
+                    if (((BigDecimal) rightVal).compareTo(BigDecimal.ZERO) == 0) {
+                        throw new ArithmeticException("Modulo by zero");
+                    }
+                    return ((BigDecimal) leftVal).remainder((BigDecimal) rightVal);
+                }
+                if (leftVal instanceof BigDecimal && rightVal instanceof Long) {
+                    if ((Long) rightVal == 0) {
+                        throw new ArithmeticException("Modulo by zero");
+                    }
+                    return ((BigDecimal) leftVal).remainder(BigDecimal.valueOf((Long) rightVal));
+                }
+                if (leftVal instanceof Long && rightVal instanceof BigDecimal) {
+                    if (((BigDecimal) rightVal).compareTo(BigDecimal.ZERO) == 0) {
+                        throw new ArithmeticException("Modulo by zero");
+                    }
+                    return BigDecimal.valueOf((Long) leftVal).remainder((BigDecimal) rightVal);
+                }
+                throw new IllegalArgumentException("Invalid operands for % operator");
             
             case EQ:
                 if (leftVal == null && rightVal == null) {
@@ -294,6 +322,14 @@ public class BinaryExprImpl implements CompiledExpr {
                     }
                     return leftVal / rightVal;
                 }
+                case MODULO: {
+                    long leftVal = left.longValue(context);
+                    long rightVal = right.longValue(context);
+                    if (rightVal == 0) {
+                        throw new ArithmeticException("Modulo by zero");
+                    }
+                    return leftVal % rightVal;
+                }
                 default:
                     break;
             }
@@ -323,6 +359,11 @@ public class BinaryExprImpl implements CompiledExpr {
                         throw new ArithmeticException("Division by zero");
                     }
                     return leftVal.divide(rightVal, java.math.MathContext.DECIMAL128);
+                case MODULO:
+                    if (rightVal.compareTo(BigDecimal.ZERO) == 0) {
+                        throw new ArithmeticException("Modulo by zero");
+                    }
+                    return leftVal.remainder(rightVal);
                 default:
                     break;
             }
