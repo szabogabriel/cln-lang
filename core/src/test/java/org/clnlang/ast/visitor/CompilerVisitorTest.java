@@ -1,12 +1,5 @@
 package org.clnlang.ast.visitor;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNotSame;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.clnlang.compile.BlockImpl;
@@ -35,6 +28,13 @@ import org.clnlang.compile.statement.WhileStmtImpl;
 import org.clnlang.parser.clnLexer;
 import org.clnlang.parser.clnParser;
 import org.clnlang.runtime.context.ExecutionContext;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -410,6 +410,56 @@ public class CompilerVisitorTest {
         assertEquals(Operator.PLUS, binExpr.getOperator());
         assertTrue(binExpr.getLeft() instanceof IntLiteralExprImpl);
         assertTrue(binExpr.getRight() instanceof IntLiteralExprImpl);
+    }
+
+    @Test
+    public void testModuloExpression() throws Exception {
+        ProgramImpl program = compileProgram("""
+            (int result = 0) test() {
+                int x = 17 % 5 * 2;
+            }
+            """);
+        FunctionDeclImpl func = (FunctionDeclImpl) program.getDeclarations().get(0);
+        BlockImpl block = (BlockImpl) func.getBlock();
+        VarDeclStmtImpl varDecl = (VarDeclStmtImpl) block.getStatements().get(0);
+        BinaryExprImpl moduloThenMultiply = (BinaryExprImpl) varDecl.getInitializer();
+
+        assertEquals(Operator.STAR, moduloThenMultiply.getOperator());
+        assertEquals(Operator.MODULO, ((BinaryExprImpl) moduloThenMultiply.getLeft()).getOperator());
+        assertEquals(4L, moduloThenMultiply.evaluate(context));
+    }
+
+    @Test
+    public void testModuloByZero() {
+        ProgramImpl program = compileProgram("""
+            (int result = 0) test() {
+                int x = 17 % 0;
+            }
+            """);
+        FunctionDeclImpl func = (FunctionDeclImpl) program.getDeclarations().get(0);
+        BlockImpl block = (BlockImpl) func.getBlock();
+        VarDeclStmtImpl varDecl = (VarDeclStmtImpl) block.getStatements().get(0);
+
+        ArithmeticException exception = assertThrows(ArithmeticException.class,
+            () -> varDecl.getInitializer().evaluate(context));
+        assertEquals("Modulo by zero", exception.getMessage());
+    }
+
+    @Test
+    public void testDecimalModuloExpression() throws Exception {
+        ProgramImpl program = compileProgram("""
+            (int result = 0) test() {
+                dec x = 17.5 % 5.0;
+            }
+            """);
+        FunctionDeclImpl func = (FunctionDeclImpl) program.getDeclarations().get(0);
+        BlockImpl block = (BlockImpl) func.getBlock();
+        VarDeclStmtImpl varDecl = (VarDeclStmtImpl) block.getStatements().get(0);
+        BinaryExprImpl modulo = (BinaryExprImpl) varDecl.getInitializer();
+
+        assertEquals(Operator.MODULO, modulo.getOperator());
+        assertEquals("2.5", modulo.evaluate(context).toString());
+        assertEquals("2.5", modulo.decimalValue(context).toString());
     }
     
     @Test

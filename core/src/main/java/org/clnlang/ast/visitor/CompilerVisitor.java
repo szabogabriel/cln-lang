@@ -764,7 +764,7 @@ public class CompilerVisitor extends clnBaseVisitor<Object> {
         CompiledExpr left = compileUnaryExpr(ctx.unaryExpr(0));
         
         for (int i = 1; i < ctx.unaryExpr().size(); i++) {
-            Operator op = ctx.STAR(i - 1) != null ? Operator.STAR : Operator.SLASH;
+            Operator op = Operator.fromSymbol(ctx.getChild(i * 2 - 1).getText());
             CompiledExpr right = compileUnaryExpr(ctx.unaryExpr(i));
             left = new BinaryExprImpl(left, op, right);
         }

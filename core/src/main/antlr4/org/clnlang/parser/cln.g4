@@ -200,7 +200,7 @@ addExpr
   ;
 
 mulExpr
-  : unaryExpr ((STAR | SLASH) unaryExpr)*
+  : unaryExpr ((STAR | SLASH | PERCENT) unaryExpr)*
   ;
 
 unaryExpr
@@ -313,6 +313,7 @@ PLUS   : '+';
 MINUS  : '-';
 STAR   : '*';
 SLASH  : '/';
+PERCENT: '%';
 
 INC    : '++';
 DEC    : '--';
