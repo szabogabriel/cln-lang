@@ -9,6 +9,7 @@ import java.util.Set;
 
 import org.clnlang.compreg.commands.Command;
 import org.clnlang.compreg.runtime.CompiledFunction;
+import org.clnlang.compreg.runtime.RegisterBank;
 import org.clnlang.compreg.runtime.StructValue;
 
 public final class LibraryRegistry {
@@ -180,12 +181,7 @@ public final class LibraryRegistry {
     }
 
     private int bankIndex(String type) {
-        return switch (type) {
-            case "int" -> 0;
-            case "dec" -> 1;
-            case "bool" -> 2;
-            case "string" -> 3;
-            default -> -1;
-        };
+        RegisterBank bank = RegisterBank.forType(type);
+        return bank == null ? -1 : bank.getIndex();
     }
 }

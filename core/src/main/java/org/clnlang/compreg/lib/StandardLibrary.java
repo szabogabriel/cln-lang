@@ -193,7 +193,8 @@ public final class StandardLibrary implements JavaLibrary {
         }
 
         private BigDecimal decimalValue(Memory memory, CompiledFunction.Slot slot) {
-                return slot.getType().equals("dec") ? memory.getDec(slot.getOffset())
+                return slot.getRegisterBank() == org.clnlang.compreg.runtime.RegisterBank.DEC
+                                ? memory.getDec(slot.getOffset())
                                 : BigDecimal.valueOf(memory.getInt(slot.getOffset()));
         }
 

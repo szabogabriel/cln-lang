@@ -4,30 +4,36 @@ import java.util.List;
 
 import org.clnlang.compreg.Memory;
 import org.clnlang.compreg.runtime.CompiledFunction;
+import org.clnlang.compreg.runtime.RegisterBank;
 import org.clnlang.compreg.runtime.StructValue;
 
 public final class Call implements Command {
 
     public static final class Register {
-        private final String type;
+        private final RegisterBank registerBank;
         private final int offset;
         private final StructValue structValue;
 
-        public Register(String type, int offset) {
-            this.type = type;
+        public Register(RegisterBank registerBank, int offset) {
+            if (registerBank == null) {
+                throw new IllegalArgumentException("Scalar register bank is required.");
+            }
+            this.registerBank = registerBank;
             this.offset = offset;
             this.structValue = null;
         }
 
-        public Register(String type, StructValue structValue) {
-            this.type = type;
+        public Register(StructValue structValue) {
+            this.registerBank = null;
             this.offset = -1;
             this.structValue = structValue;
         }
 
-        public String getType() {
-            return type;
-        }
+        public RegisterBank getRegisterBank() { return registerBank; }
+
+        public String getTypeName() { return structValue == null ? registerBankTypeName() : structValue.getTypeName(); }
+
+        private String registerBankTypeName() { return registerBank.name().toLowerCase(); }
 
         public int getOffset() {
             return offset;
@@ -72,23 +78,23 @@ public final class Call implements Command {
         for (int i = 0; i < arguments.size(); i++) {
             Register argument = arguments.get(i);
             CompiledFunction.Slot parameter = function.getParameters().get(i);
-            if (!argument.getType().equals(parameter.getType())) {
+            if (argument.getRegisterBank() != parameter.getRegisterBank()) {
                 throw new IllegalArgumentException("Argument " + (i + 1) + " of '" + function.getName()
-                        + "' expects '" + parameter.getType() + "', got '" + argument.getType() + "'.");
+                        + "' expects '" + parameter.getType() + "', got '" + argument.getTypeName() + "'.");
             }
-            argumentAddresses[i] = memory.absoluteOffset(argument.getType(), argument.getOffset());
+            argumentAddresses[i] = argument.getRegisterBank().absoluteOffset(memory, argument.getOffset());
         }
 
         int[] destinationAddresses = new int[results.size()];
         for (int i = 0; i < results.size(); i++) {
             Register destination = results.get(i);
             CompiledFunction.Slot result = function.getReturnValues().get(i);
-            if (!destination.getType().equals(result.getType())) {
+            if (destination.getRegisterBank() != result.getRegisterBank()) {
                 throw new IllegalArgumentException("Result " + (i + 1) + " of '" + function.getName()
                         + "' has type '" + result.getType() + "', destination has type '"
-                        + destination.getType() + "'.");
+                        + destination.getTypeName() + "'.");
             }
-            destinationAddresses[i] = memory.absoluteOffset(destination.getType(), destination.getOffset());
+            destinationAddresses[i] = destination.getRegisterBank().absoluteOffset(memory, destination.getOffset());
         }
 
         int[] resultAddresses = new int[function.getReturnValues().size()];
@@ -96,9 +102,9 @@ public final class Call implements Command {
         try {
             for (int i = 0; i < function.getParameters().size(); i++) {
                 CompiledFunction.Slot parameter = function.getParameters().get(i);
-                memory.copyAbsolute(parameter.getType(), argumentAddresses[i],
-                        memory.absoluteOffset(parameter.getType(), parameter.getOffset()),
-                        parameter.getDecimalTypeInfo());
+                parameter.getRegisterBank().copyAbsolute(memory, argumentAddresses[i],
+                    parameter.getRegisterBank().absoluteOffset(memory, parameter.getOffset()),
+                    parameter.getDecimalTypeInfo());
             }
             function.getInitializers().execute(memory);
             if (!memory.isReturnRequested()) {
@@ -106,7 +112,7 @@ public final class Call implements Command {
             }
             for (int i = 0; i < function.getReturnValues().size(); i++) {
                 CompiledFunction.Slot result = function.getReturnValues().get(i);
-                resultAddresses[i] = memory.absoluteOffset(result.getType(), result.getOffset());
+                resultAddresses[i] = result.getRegisterBank().absoluteOffset(memory, result.getOffset());
             }
         } finally {
             memory.popOffset();
@@ -115,8 +121,8 @@ public final class Call implements Command {
         if (!results.isEmpty()) {
             for (int i = 0; i < function.getReturnValues().size(); i++) {
                 CompiledFunction.Slot result = function.getReturnValues().get(i);
-                memory.copyAbsolute(result.getType(), resultAddresses[i], destinationAddresses[i],
-                        result.getDecimalTypeInfo());
+                result.getRegisterBank().copyAbsolute(memory, resultAddresses[i], destinationAddresses[i],
+                    result.getDecimalTypeInfo());
             }
         }
     }
@@ -137,12 +143,15 @@ public final class Call implements Command {
     private void validateStructuredValues(List<Register> values, List<CompiledFunction.Slot> slots, String role) {
         for (int i = 0; i < values.size(); i++) {
             Register value = values.get(i);
-            String expectedType = slots.get(i).getType();
-            if (!expectedType.equals(value.getType())) {
+            CompiledFunction.Slot expected = slots.get(i);
+            String expectedType = expected.getType();
+                if (expected.getRegisterBank() != value.getRegisterBank()
+                    || (expected.getRegisterBank() == null
+                        && !expectedType.equals(value.getStructValue().getTypeName()))) {
                 throw new IllegalArgumentException("Function '" + function.getName() + "' " + role + " "
-                        + (i + 1) + " expects '" + expectedType + "', got '" + value.getType() + "'.");
+                        + (i + 1) + " expects '" + expectedType + "', got '" + value.getTypeName() + "'.");
             }
-            if (value.isStruct() != isStructType(expectedType)) {
+            if (value.isStruct() != (expected.getRegisterBank() == null)) {
                 throw new IllegalArgumentException("Function '" + function.getName() + "' " + role + " "
                         + (i + 1) + " has incompatible register representation for '" + expectedType + "'.");
             }
@@ -153,7 +162,4 @@ public final class Call implements Command {
         }
     }
 
-    private boolean isStructType(String type) {
-        return !type.equals("int") && !type.equals("dec") && !type.equals("bool") && !type.equals("string");
-    }
 }

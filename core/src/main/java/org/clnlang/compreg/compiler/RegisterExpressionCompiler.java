@@ -6,24 +6,44 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.clnlang.compreg.commands.ArrayIndexOffsets;
-import org.clnlang.compreg.commands.ArrayLoad;
 import org.clnlang.compreg.commands.Call;
 import org.clnlang.compreg.commands.Command;
-import org.clnlang.compreg.commands.Compare;
-import org.clnlang.compreg.commands.ConcatString;
-import org.clnlang.compreg.commands.GlobalLoad;
 import org.clnlang.compreg.commands.JumpIfFalse;
 import org.clnlang.compreg.commands.JumpIfTrue;
 import org.clnlang.compreg.commands.Label;
-import org.clnlang.compreg.commands.Modulo;
 import org.clnlang.compreg.commands.NotBool;
 import org.clnlang.compreg.commands.add.AddDecDec;
 import org.clnlang.compreg.commands.add.AddDecInt;
 import org.clnlang.compreg.commands.add.AddIntInt;
+import org.clnlang.compreg.commands.array.ArrayLoadBool;
+import org.clnlang.compreg.commands.array.ArrayLoadDec;
+import org.clnlang.compreg.commands.array.ArrayLoadInt;
+import org.clnlang.compreg.commands.array.ArrayLoadString;
+import org.clnlang.compreg.commands.compare.Compare;
+import org.clnlang.compreg.commands.compare.CompareBool;
+import org.clnlang.compreg.commands.compare.CompareDecDec;
+import org.clnlang.compreg.commands.compare.CompareDecInt;
+import org.clnlang.compreg.commands.compare.CompareIntDec;
+import org.clnlang.compreg.commands.compare.CompareIntInt;
+import org.clnlang.compreg.commands.compare.CompareString;
+import org.clnlang.compreg.commands.concat.BoolStringifier;
+import org.clnlang.compreg.commands.concat.ConcatString;
+import org.clnlang.compreg.commands.concat.DecStringifier;
+import org.clnlang.compreg.commands.concat.IntStringifier;
+import org.clnlang.compreg.commands.concat.StringRegisterStringifier;
+import org.clnlang.compreg.commands.concat.Stringifier;
 import org.clnlang.compreg.commands.div.DivDecDec;
 import org.clnlang.compreg.commands.div.DivDecInt;
 import org.clnlang.compreg.commands.div.DivIntDec;
 import org.clnlang.compreg.commands.div.DivIntInt;
+import org.clnlang.compreg.commands.global.load.GlobalLoadBool;
+import org.clnlang.compreg.commands.global.load.GlobalLoadDec;
+import org.clnlang.compreg.commands.global.load.GlobalLoadInt;
+import org.clnlang.compreg.commands.global.load.GlobalLoadString;
+import org.clnlang.compreg.commands.modulo.ModuloDecDec;
+import org.clnlang.compreg.commands.modulo.ModuloDecInt;
+import org.clnlang.compreg.commands.modulo.ModuloIntDec;
+import org.clnlang.compreg.commands.modulo.ModuloIntInt;
 import org.clnlang.compreg.commands.move.MoveBool;
 import org.clnlang.compreg.commands.move.MoveDec;
 import org.clnlang.compreg.commands.move.MoveInt;
@@ -40,9 +60,15 @@ import org.clnlang.compreg.commands.sub.SubDecInt;
 import org.clnlang.compreg.commands.sub.SubIntDec;
 import org.clnlang.compreg.commands.sub.SubIntInt;
 import org.clnlang.compreg.runtime.CompiledFunction;
+import org.clnlang.compreg.runtime.RegisterBank;
 import org.clnlang.parser.clnParser;
 
 final class RegisterExpressionCompiler {
+
+    private static final Stringifier INT_STRINGIFIER = new IntStringifier();
+    private static final Stringifier DEC_STRINGIFIER = new DecStringifier();
+    private static final Stringifier BOOL_STRINGIFIER = new BoolStringifier();
+    private static final Stringifier STRING_STRINGIFIER = new StringRegisterStringifier();
 
     private static final class ArrayLiteralContents {
         private final String elementType;
@@ -246,8 +272,8 @@ final class RegisterExpressionCompiler {
         int linearIndex = contextAllocate("int");
         commands.add(new ArrayIndexOffsets(indexOffsets, array.arrayDimensions, linearIndex));
         int target = contextAllocate(elementType);
-        commands.add(new ArrayLoad(elementType, array.offset, array.arrayLength, linearIndex, target,
-                array.globalArray));
+        commands.add(arrayLoad(elementType, array.offset, array.arrayLength, linearIndex, target,
+            array.globalArray));
         return new CompiledValue(elementType, target, commands);
     }
 
@@ -281,9 +307,9 @@ final class RegisterExpressionCompiler {
             requireSameType(value.type, parameter.getType(), line,
                     "argument " + (i + 1) + " to '" + name + "'");
             if (value.structValue != null) {
-                arguments.add(new Call.Register(value.type, value.structValue));
+                arguments.add(new Call.Register(value.structValue));
             } else {
-                arguments.add(new Call.Register(value.type, value.offset));
+                arguments.add(new Call.Register(RegisterBank.forType(value.type), value.offset));
             }
         }
 
@@ -295,9 +321,9 @@ final class RegisterExpressionCompiler {
         if (results.size() == 1) {
             Call.Register result = results.get(0);
             if (result.getStructValue() != null) {
-                return new CompiledValue(result.getType(), -1, commands, result.getStructValue());
+                return new CompiledValue(result.getTypeName(), -1, commands, result.getStructValue());
             }
-            return new CompiledValue(result.getType(), result.getOffset(), commands);
+            return new CompiledValue(result.getTypeName(), result.getOffset(), commands);
         }
         return new CompiledValue(null, -1, commands, results);
     }
@@ -327,7 +353,7 @@ final class RegisterExpressionCompiler {
             int sourceOffset = source.offset + i;
             int targetElementOffset = targetOffset + i;
             if (source.globalArray) {
-                commands.add(new GlobalLoad(elementType, sourceOffset, targetElementOffset));
+                commands.add(globalLoad(elementType, sourceOffset, targetElementOffset));
             } else {
                 commands.add(arrayElementMove(elementType, sourceOffset, targetElementOffset));
             }
@@ -501,7 +527,8 @@ final class RegisterExpressionCompiler {
                 commands.addAll(left.commands);
                 commands.addAll(right.commands);
             }
-            commands.add(new ConcatString(left.type, right.type, left.offset, right.offset, target));
+                commands.add(new ConcatString(stringifier(left.type), stringifier(right.type),
+                    left.offset, right.offset, target));
             return new CompiledValue("string", target, commands);
         }
         if (!isNumeric(left.type) || !isNumeric(right.type)) {
@@ -530,8 +557,20 @@ final class RegisterExpressionCompiler {
         int target = contextAllocate("bool");
         List<Command> commands = new ArrayList<>(left.commands);
         commands.addAll(right.commands);
-        commands.add(new Compare(toCompareOperator(operator), left.type, right.type,
-                left.offset, right.offset, target));
+        Compare.Operator compareOperator = toCompareOperator(operator);
+        if (left.type.equals("int") && right.type.equals("int")) {
+            commands.add(new CompareIntInt(compareOperator, left.offset, right.offset, target));
+        } else if (left.type.equals("dec") && right.type.equals("dec")) {
+            commands.add(new CompareDecDec(compareOperator, left.offset, right.offset, target));
+        } else if (left.type.equals("dec")) {
+            commands.add(new CompareDecInt(compareOperator, left.offset, right.offset, target));
+        } else if (right.type.equals("dec")) {
+            commands.add(new CompareIntDec(compareOperator, left.offset, right.offset, target));
+        } else if (left.type.equals("bool")) {
+            commands.add(new CompareBool(compareOperator, left.offset, right.offset, target));
+        } else {
+            commands.add(new CompareString(compareOperator, left.offset, right.offset, target));
+        }
         return new CompiledValue("bool", target, commands);
     }
 
@@ -544,6 +583,16 @@ final class RegisterExpressionCompiler {
             case ">" -> Compare.Operator.GT;
             case ">=" -> Compare.Operator.GTE;
             default -> throw new IllegalArgumentException("Unknown comparison operator: " + operator);
+        };
+    }
+
+    private Stringifier stringifier(String type) {
+        return switch (type) {
+            case "int" -> INT_STRINGIFIER;
+            case "dec" -> DEC_STRINGIFIER;
+            case "bool" -> BOOL_STRINGIFIER;
+            case "string" -> STRING_STRINGIFIER;
+            default -> throw new IllegalArgumentException("Cannot concatenate value of type '" + type + "'.");
         };
     }
 
@@ -583,13 +632,38 @@ final class RegisterExpressionCompiler {
                 if (rightDec) yield new DivIntDec(target, a, b);
                 yield new DivIntInt(target, a, b);
             }
-            case "%" -> new Modulo(left.type, right.type, target, a, b);
+            case "%" -> {
+                if (leftDec && rightDec) yield new ModuloDecDec(target, a, b);
+                if (leftDec) yield new ModuloDecInt(target, a, b);
+                if (rightDec) yield new ModuloIntDec(target, a, b);
+                yield new ModuloIntInt(target, a, b);
+            }
             default -> throw unsupported(line, "operator '" + operator + "'");
         };
     }
 
     private CompiledValue value(String type, int offset, Command command) {
         return new CompiledValue(type, offset, List.of(command));
+    }
+
+    private Command globalLoad(String type, int source, int target) {
+        return switch (type) {
+            case "int" -> new GlobalLoadInt(source, target);
+            case "dec" -> new GlobalLoadDec(source, target);
+            case "bool" -> new GlobalLoadBool(source, target);
+            case "string" -> new GlobalLoadString(source, target);
+            default -> throw new IllegalArgumentException("Unsupported global register type: " + type);
+        };
+    }
+
+    private Command arrayLoad(String type, int base, int length, int index, int target, boolean global) {
+        return switch (type) {
+            case "int" -> new ArrayLoadInt(base, length, index, target, global);
+            case "dec" -> new ArrayLoadDec(base, length, index, target, global);
+            case "bool" -> new ArrayLoadBool(base, length, index, target, global);
+            case "string" -> new ArrayLoadString(base, length, index, target, global);
+            default -> throw new IllegalArgumentException("Unsupported array element type: " + type);
+        };
     }
 
     private int contextAllocate(String type) {

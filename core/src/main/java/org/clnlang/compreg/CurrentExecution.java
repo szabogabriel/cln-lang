@@ -6,6 +6,7 @@ import java.util.List;
 import org.clnlang.compreg.commands.Call;
 import org.clnlang.compreg.commands.Command;
 import org.clnlang.compreg.runtime.CompiledFunction;
+import org.clnlang.compreg.runtime.RegisterBank;
 
 public class CurrentExecution {
 
@@ -79,7 +80,7 @@ public class CurrentExecution {
             throw new IllegalStateException("main must take no arguments and return one int value.");
         }
         int resultOffset = memory.allocateInt();
-        new Call(main, List.of(), List.of(new Call.Register("int", resultOffset))).execute(memory);
+        new Call(main, List.of(), List.of(new Call.Register(RegisterBank.INT, resultOffset))).execute(memory);
         return memory.getInt(resultOffset);
     }
 }

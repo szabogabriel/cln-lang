@@ -18,6 +18,7 @@ public final class CompiledFunction {
     public static final class Slot {
         private final String name;
         private final String type;
+        private final RegisterBank registerBank;
         private final boolean mutable;
         private final DecimalTypeInfo decimalTypeInfo;
         private int offset = -1;
@@ -29,6 +30,7 @@ public final class CompiledFunction {
         public Slot(String name, String type, boolean mutable, DecimalTypeInfo decimalTypeInfo) {
             this.name = name;
             this.type = type;
+            this.registerBank = RegisterBank.forType(type);
             this.mutable = mutable;
             this.decimalTypeInfo = decimalTypeInfo == null ? DecimalTypeInfo.DEFAULT : decimalTypeInfo;
         }
@@ -40,6 +42,8 @@ public final class CompiledFunction {
         public String getType() {
             return type;
         }
+
+        public RegisterBank getRegisterBank() { return registerBank; }
 
         public boolean isMutable() {
             return mutable;
@@ -111,13 +115,11 @@ public final class CompiledFunction {
 
     private static void assignLibraryOffsets(List<Slot> slots, int[] nextOffset) {
         for (Slot slot : slots) {
-            int bank = switch (slot.getType()) {
-                case "int" -> 0;
-                case "dec" -> 1;
-                case "bool" -> 2;
-                case "string" -> 3;
-                default -> throw new IllegalArgumentException("Unsupported library slot type: " + slot.getType());
-            };
+            RegisterBank registerBank = slot.getRegisterBank();
+            if (registerBank == null) {
+                throw new IllegalArgumentException("Unsupported library slot type: " + slot.getType());
+            }
+            int bank = registerBank.getIndex();
             slot.setOffset(nextOffset[bank]++);
         }
     }

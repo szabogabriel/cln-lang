@@ -14,16 +14,26 @@ import org.clnlang.compile.types.DecimalTypeInfo;
 import org.clnlang.compreg.CurrentExecution;
 import org.clnlang.compreg.Memory;
 import org.clnlang.compreg.commands.ArrayIndexOffsets;
-import org.clnlang.compreg.commands.ArrayStore;
 import org.clnlang.compreg.commands.Call;
 import org.clnlang.compreg.commands.Command;
-import org.clnlang.compreg.commands.GlobalLoad;
-import org.clnlang.compreg.commands.GlobalStore;
-import org.clnlang.compreg.commands.Increment;
 import org.clnlang.compreg.commands.Jump;
 import org.clnlang.compreg.commands.JumpIfFalse;
 import org.clnlang.compreg.commands.Label;
 import org.clnlang.compreg.commands.ReturnCommand;
+import org.clnlang.compreg.commands.array.ArrayStoreBool;
+import org.clnlang.compreg.commands.array.ArrayStoreDec;
+import org.clnlang.compreg.commands.array.ArrayStoreInt;
+import org.clnlang.compreg.commands.array.ArrayStoreString;
+import org.clnlang.compreg.commands.global.load.GlobalLoadBool;
+import org.clnlang.compreg.commands.global.load.GlobalLoadDec;
+import org.clnlang.compreg.commands.global.load.GlobalLoadInt;
+import org.clnlang.compreg.commands.global.load.GlobalLoadString;
+import org.clnlang.compreg.commands.global.store.GlobalStoreBool;
+import org.clnlang.compreg.commands.global.store.GlobalStoreDec;
+import org.clnlang.compreg.commands.global.store.GlobalStoreInt;
+import org.clnlang.compreg.commands.global.store.GlobalStoreString;
+import org.clnlang.compreg.commands.increment.IncrementDec;
+import org.clnlang.compreg.commands.increment.IncrementInt;
 import org.clnlang.compreg.commands.move.MoveBool;
 import org.clnlang.compreg.commands.move.MoveDec;
 import org.clnlang.compreg.commands.move.MoveInt;
@@ -32,6 +42,7 @@ import org.clnlang.compreg.lib.JavaLibrary;
 import org.clnlang.compreg.lib.LibraryRegistry;
 import org.clnlang.compreg.lib.LibraryRegistry.Constant;
 import org.clnlang.compreg.runtime.CompiledFunction;
+import org.clnlang.compreg.runtime.RegisterBank;
 import org.clnlang.compreg.runtime.StructValue;
 import org.clnlang.parser.clnBaseVisitor;
 import org.clnlang.parser.clnParser;
@@ -141,6 +152,7 @@ public class RegisterCompiler extends clnBaseVisitor<Object> {
             return RegisterCompiler.this.resolveFunction(name, line, argumentTypes);
         }
 
+        @Override
         public boolean hasZeroArgumentFunction(String name) {
             return RegisterCompiler.this.hasZeroArgumentFunction(name);
         }
@@ -565,7 +577,7 @@ public class RegisterCompiler extends clnBaseVisitor<Object> {
         CompiledValue value = compileExpression(assignment.expr());
         requireSameType(value.type, type, assignment.expr().getStart().getLine(), "assignment to '" + name + "'");
         List<Command> commands = new ArrayList<>(value.commands);
-        commands.add(global ? new GlobalStore(type, value.offset, target, decimalTypeInfo)
+        commands.add(global ? globalStore(type, value.offset, target, decimalTypeInfo)
             : move(type, value.offset, target, decimalTypeInfo));
         return CommandSequenceCompiler.compile(commands);
     }
@@ -588,7 +600,7 @@ public class RegisterCompiler extends clnBaseVisitor<Object> {
                 "assignment to field '" + fieldName + "'");
         List<Command> commands = new ArrayList<>(value.commands);
         commands.add(field.isGlobal()
-            ? new GlobalStore(field.getType(), value.offset, field.getOffset(), field.getDecimalTypeInfo())
+            ? globalStore(field.getType(), value.offset, field.getOffset(), field.getDecimalTypeInfo())
             : move(field.getType(), value.offset, field.getOffset(), field.getDecimalTypeInfo()));
         return CommandSequenceCompiler.compile(commands);
     }
@@ -654,8 +666,8 @@ public class RegisterCompiler extends clnBaseVisitor<Object> {
         String elementType = arrayBaseType(arrayType);
         requireSameType(value.type, elementType, valueContext.getStart().getLine(), "array element assignment");
         commands.addAll(value.commands);
-        commands.add(new ArrayStore(elementType, value.offset, baseOffset, length, linearIndexOffset,
-                global, decimalTypeInfo));
+        commands.add(arrayStore(elementType, value.offset, baseOffset, length, linearIndexOffset,
+            global, decimalTypeInfo));
         return CommandSequenceCompiler.compile(commands);
     }
 
@@ -663,7 +675,7 @@ public class RegisterCompiler extends clnBaseVisitor<Object> {
         CompiledValue value = compileExpression(assignment.expr());
         List<Call.Register> tupleValues = value.tupleValues;
         if (tupleValues == null && value.type != null) {
-            tupleValues = List.of(new Call.Register(value.type, value.offset));
+            tupleValues = List.of(new Call.Register(RegisterBank.forType(value.type), value.offset));
         }
         if (tupleValues == null || tupleValues.size() != assignment.tupleBind().size()) {
             throw new IllegalArgumentException("line " + assignment.getStart().getLine()
@@ -676,7 +688,7 @@ public class RegisterCompiler extends clnBaseVisitor<Object> {
             String type = normalizeType(binding.type().getText());
             validateRegisterType(type, binding.type().getStart().getLine());
             Call.Register result = tupleValues.get(i);
-            requireSameType(result.getType(), type, binding.type().getStart().getLine(), "tuple result '" + name + "'");
+            requireSameType(result.getTypeName(), type, binding.type().getStart().getLine(), "tuple result '" + name + "'");
             if (localVariables.containsKey(name)) {
                 throw new IllegalArgumentException("line " + binding.ID().getSymbol().getLine()
                         + ": Duplicate local variable '" + name + "'.");
@@ -899,7 +911,7 @@ public class RegisterCompiler extends clnBaseVisitor<Object> {
         }
         int source = globalOffset(offsets, name, type);
         int target = allocate(type);
-        return new CompiledValue(type, target, List.of(new GlobalLoad(type, source, target)));
+        return new CompiledValue(type, target, List.of(globalLoad(type, source, target)));
     }
 
     private CompiledValue compileStructLiteral(clnParser.StructLiteralContext literal, int line) {
@@ -966,7 +978,7 @@ public class RegisterCompiler extends clnBaseVisitor<Object> {
         }
             int target = allocate(field.getType());
         Command load = field.isGlobal()
-                ? new GlobalLoad(field.getType(), field.getOffset(), target)
+                ? globalLoad(field.getType(), field.getOffset(), target)
                 : move(field.getType(), field.getOffset(), target, field.getDecimalTypeInfo());
             return new CompiledValue(field.getType(), target, List.of(load));
     }
@@ -1028,8 +1040,9 @@ public class RegisterCompiler extends clnBaseVisitor<Object> {
         }
 
         int resultOffset = allocate(type);
-        Command command = new Increment(type, variableOffset, resultOffset, global, increment, prefix,
-                decimalTypeInfo);
+        Command command = type.equals("int")
+            ? new IncrementInt(variableOffset, resultOffset, global, increment, prefix)
+            : new IncrementDec(variableOffset, resultOffset, global, increment, prefix, decimalTypeInfo);
         return new CompiledValue(type, resultOffset, List.of(command));
     }
 
@@ -1037,9 +1050,9 @@ public class RegisterCompiler extends clnBaseVisitor<Object> {
         List<Call.Register> results = new ArrayList<>();
         for (CompiledFunction.Slot result : function.getReturnValues()) {
             if (isStructType(result.getType())) {
-                results.add(new Call.Register(result.getType(), allocateStructValue(result.getType(), false)));
+                results.add(new Call.Register(allocateStructValue(result.getType(), false)));
             } else {
-                results.add(new Call.Register(result.getType(), allocate(result.getType())));
+                results.add(new Call.Register(result.getRegisterBank(), allocate(result.getType())));
             }
         }
         return results;
@@ -1090,6 +1103,37 @@ public class RegisterCompiler extends clnBaseVisitor<Object> {
             case "bool" -> new MoveBool(source, target);
             case "string" -> new MoveString(source, target);
             default -> throw new IllegalArgumentException("Unsupported register type: " + type);
+        };
+    }
+
+    private Command globalLoad(String type, int source, int target) {
+        return switch (type) {
+            case "int" -> new GlobalLoadInt(source, target);
+            case "dec" -> new GlobalLoadDec(source, target);
+            case "bool" -> new GlobalLoadBool(source, target);
+            case "string" -> new GlobalLoadString(source, target);
+            default -> throw new IllegalArgumentException("Unsupported global register type: " + type);
+        };
+    }
+
+    private Command globalStore(String type, int source, int target, DecimalTypeInfo decimalTypeInfo) {
+        return switch (type) {
+            case "int" -> new GlobalStoreInt(source, target);
+            case "dec" -> new GlobalStoreDec(source, target, decimalTypeInfo);
+            case "bool" -> new GlobalStoreBool(source, target);
+            case "string" -> new GlobalStoreString(source, target);
+            default -> throw new IllegalArgumentException("Unsupported global register type: " + type);
+        };
+    }
+
+    private Command arrayStore(String type, int source, int base, int length, int index,
+            boolean global, DecimalTypeInfo decimalTypeInfo) {
+        return switch (type) {
+            case "int" -> new ArrayStoreInt(source, base, length, index, global);
+            case "dec" -> new ArrayStoreDec(source, base, length, index, global, decimalTypeInfo);
+            case "bool" -> new ArrayStoreBool(source, base, length, index, global);
+            case "string" -> new ArrayStoreString(source, base, length, index, global);
+            default -> throw new IllegalArgumentException("Unsupported array element type: " + type);
         };
     }
 

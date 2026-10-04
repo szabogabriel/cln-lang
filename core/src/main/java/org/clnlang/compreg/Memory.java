@@ -5,8 +5,6 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Stack;
 
-import org.clnlang.compile.types.DecimalTypeInfo;
-
 public class Memory {
 
     private static final int TYPE_INT = 0;
@@ -205,47 +203,10 @@ public class Memory {
         memStr[offset] = value;
     }
 
-    public int absoluteOffset(String type, int offset) {
-        return switch (type) {
-            case "int" -> baseOffset.intOffset + offset;
-            case "dec" -> baseOffset.decOffset + offset;
-            case "bool" -> baseOffset.boolOffset + offset;
-            case "string" -> baseOffset.strOffset + offset;
-            default -> throw new IllegalArgumentException("Unknown register type: " + type);
-        };
-    }
-
-    public void copyAbsolute(String type, int source, int target) {
-        copyAbsolute(type, source, target, DecimalTypeInfo.DEFAULT);
-    }
-
-    public void copyAbsolute(String type, int source, int target, DecimalTypeInfo decimalTypeInfo) {
-        switch (type) {
-            case "int" -> memInt[target] = memInt[source];
-            case "dec" -> memDec[target] = decimalTypeInfo.applyConstraints(memDec[source]);
-            case "bool" -> memBool[target] = memBool[source];
-            case "string" -> memStr[target] = memStr[source];
-            default -> throw new IllegalArgumentException("Unknown register type: " + type);
-        }
-    }
-
-    public void copyGlobalToCurrent(String type, int globalOffset, int currentOffset) {
-        copyAbsolute(type, globalOffset, absoluteOffset(type, currentOffset));
-    }
-
-    public void copyCurrentToGlobal(String type, int currentOffset, int globalOffset) {
-        copyCurrentToGlobal(type, currentOffset, globalOffset, DecimalTypeInfo.DEFAULT);
-    }
-
-    public void copyCurrentToGlobal(String type, int currentOffset, int globalOffset,
-            DecimalTypeInfo decimalTypeInfo) {
-        int source = absoluteOffset(type, currentOffset);
-        if (type.equals("dec")) {
-            memDec[globalOffset] = decimalTypeInfo.applyConstraints(memDec[source]);
-        } else {
-            copyAbsolute(type, source, globalOffset);
-        }
-    }
+    public int absoluteIntOffset(int offset) { return baseOffset.intOffset + offset; }
+    public int absoluteDecOffset(int offset) { return baseOffset.decOffset + offset; }
+    public int absoluteBoolOffset(int offset) { return baseOffset.boolOffset + offset; }
+    public int absoluteStringOffset(int offset) { return baseOffset.strOffset + offset; }
 
     public FrameLayout currentFrameLayout() {
         return new FrameLayout(currentOffset.intOffset, currentOffset.decOffset, currentOffset.boolOffset,
