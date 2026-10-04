@@ -6,7 +6,9 @@ import org.clnlang.compreg.Memory;
 public enum RegisterBank {
     INT(0) {
         @Override
-        public int absoluteOffset(Memory memory, int offset) { return memory.absoluteIntOffset(offset); }
+        public int baseOffset(Memory memory) { return memory.absoluteIntOffset(0); }
+        @Override
+        public int absoluteOffset(Memory memory, int offset) { return baseOffset(memory) + offset; }
         @Override
         public void copyAbsolute(Memory memory, int source, int target, DecimalTypeInfo info) {
             memory.setIntAbsolute(target, memory.getIntAbsolute(source));
@@ -14,7 +16,9 @@ public enum RegisterBank {
     },
     DEC(1) {
         @Override
-        public int absoluteOffset(Memory memory, int offset) { return memory.absoluteDecOffset(offset); }
+        public int baseOffset(Memory memory) { return memory.absoluteDecOffset(0); }
+        @Override
+        public int absoluteOffset(Memory memory, int offset) { return baseOffset(memory) + offset; }
         @Override
         public void copyAbsolute(Memory memory, int source, int target, DecimalTypeInfo info) {
             memory.setDecAbsolute(target, info.applyConstraints(memory.getDecAbsolute(source)));
@@ -22,7 +26,9 @@ public enum RegisterBank {
     },
     BOOL(2) {
         @Override
-        public int absoluteOffset(Memory memory, int offset) { return memory.absoluteBoolOffset(offset); }
+        public int baseOffset(Memory memory) { return memory.absoluteBoolOffset(0); }
+        @Override
+        public int absoluteOffset(Memory memory, int offset) { return baseOffset(memory) + offset; }
         @Override
         public void copyAbsolute(Memory memory, int source, int target, DecimalTypeInfo info) {
             memory.setBoolAbsolute(target, memory.getBoolAbsolute(source));
@@ -30,7 +36,9 @@ public enum RegisterBank {
     },
     STRING(3) {
         @Override
-        public int absoluteOffset(Memory memory, int offset) { return memory.absoluteStringOffset(offset); }
+        public int baseOffset(Memory memory) { return memory.absoluteStringOffset(0); }
+        @Override
+        public int absoluteOffset(Memory memory, int offset) { return baseOffset(memory) + offset; }
         @Override
         public void copyAbsolute(Memory memory, int source, int target, DecimalTypeInfo info) {
             memory.setStrAbsolute(target, memory.getStrAbsolute(source));
@@ -43,7 +51,11 @@ public enum RegisterBank {
 
     public int getIndex() { return index; }
 
+    public abstract int baseOffset(Memory memory);
+
     public abstract int absoluteOffset(Memory memory, int offset);
+
+    public int absoluteOffset(int baseOffset, int offset) { return baseOffset + offset; }
 
     public abstract void copyAbsolute(Memory memory, int source, int target, DecimalTypeInfo decimalTypeInfo);
 

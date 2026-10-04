@@ -65,44 +65,53 @@ public final class Call implements Command {
             function.getStructuredLibraryBody().execute(memory, arguments, results);
             return;
         }
-        if (arguments.size() != function.getParameters().size()) {
+        List<CompiledFunction.Slot> parameters = function.getParameters();
+        List<CompiledFunction.Slot> returnValues = function.getReturnValues();
+        if (arguments.size() != parameters.size()) {
             throw new IllegalArgumentException("Function '" + function.getName() + "' expects "
-                    + function.getParameters().size() + " arguments, got " + arguments.size() + ".");
+                    + parameters.size() + " arguments, got " + arguments.size() + ".");
         }
-        if (!results.isEmpty() && results.size() != function.getReturnValues().size()) {
+        if (!results.isEmpty() && results.size() != returnValues.size()) {
             throw new IllegalArgumentException("Function '" + function.getName() + "' returns "
-                    + function.getReturnValues().size() + " values, got " + results.size() + " result registers.");
+                    + returnValues.size() + " values, got " + results.size() + " result registers.");
         }
 
-        int[] argumentAddresses = new int[arguments.size()];
+        int callerIntBase = RegisterBank.INT.baseOffset(memory);
+        int callerDecBase = RegisterBank.DEC.baseOffset(memory);
+        int callerBoolBase = RegisterBank.BOOL.baseOffset(memory);
+        int callerStringBase = RegisterBank.STRING.baseOffset(memory);
         for (int i = 0; i < arguments.size(); i++) {
             Register argument = arguments.get(i);
-            CompiledFunction.Slot parameter = function.getParameters().get(i);
+            CompiledFunction.Slot parameter = parameters.get(i);
             if (argument.getRegisterBank() != parameter.getRegisterBank()) {
                 throw new IllegalArgumentException("Argument " + (i + 1) + " of '" + function.getName()
                         + "' expects '" + parameter.getType() + "', got '" + argument.getTypeName() + "'.");
             }
-            argumentAddresses[i] = argument.getRegisterBank().absoluteOffset(memory, argument.getOffset());
         }
 
-        int[] destinationAddresses = new int[results.size()];
         for (int i = 0; i < results.size(); i++) {
             Register destination = results.get(i);
-            CompiledFunction.Slot result = function.getReturnValues().get(i);
+            CompiledFunction.Slot result = returnValues.get(i);
             if (destination.getRegisterBank() != result.getRegisterBank()) {
                 throw new IllegalArgumentException("Result " + (i + 1) + " of '" + function.getName()
                         + "' has type '" + result.getType() + "', destination has type '"
                         + destination.getTypeName() + "'.");
             }
-            destinationAddresses[i] = destination.getRegisterBank().absoluteOffset(memory, destination.getOffset());
         }
 
-        int[] resultAddresses = new int[function.getReturnValues().size()];
         memory.pushFrame(function.getFrameLayout());
         try {
-            for (int i = 0; i < function.getParameters().size(); i++) {
-                CompiledFunction.Slot parameter = function.getParameters().get(i);
-                parameter.getRegisterBank().copyAbsolute(memory, argumentAddresses[i],
+            for (int i = 0; i < parameters.size(); i++) {
+                Register argument = arguments.get(i);
+                CompiledFunction.Slot parameter = parameters.get(i);
+                int callerBase = switch (argument.getRegisterBank()) {
+                    case INT -> callerIntBase;
+                    case DEC -> callerDecBase;
+                    case BOOL -> callerBoolBase;
+                    case STRING -> callerStringBase;
+                };
+                parameter.getRegisterBank().copyAbsolute(memory,
+                    argument.getRegisterBank().absoluteOffset(callerBase, argument.getOffset()),
                     parameter.getRegisterBank().absoluteOffset(memory, parameter.getOffset()),
                     parameter.getDecimalTypeInfo());
             }
@@ -110,20 +119,24 @@ public final class Call implements Command {
             if (!memory.isReturnRequested()) {
                 function.getBody().execute(memory);
             }
-            for (int i = 0; i < function.getReturnValues().size(); i++) {
-                CompiledFunction.Slot result = function.getReturnValues().get(i);
-                resultAddresses[i] = result.getRegisterBank().absoluteOffset(memory, result.getOffset());
+            if (!results.isEmpty()) {
+                for (int i = 0; i < returnValues.size(); i++) {
+                    CompiledFunction.Slot result = returnValues.get(i);
+                    Register destination = results.get(i);
+                    int callerBase = switch (destination.getRegisterBank()) {
+                        case INT -> callerIntBase;
+                        case DEC -> callerDecBase;
+                        case BOOL -> callerBoolBase;
+                        case STRING -> callerStringBase;
+                    };
+                    result.getRegisterBank().copyAbsolute(memory,
+                            result.getRegisterBank().absoluteOffset(memory, result.getOffset()),
+                            destination.getRegisterBank().absoluteOffset(callerBase, destination.getOffset()),
+                            result.getDecimalTypeInfo());
+                }
             }
         } finally {
             memory.popOffset();
-        }
-
-        if (!results.isEmpty()) {
-            for (int i = 0; i < function.getReturnValues().size(); i++) {
-                CompiledFunction.Slot result = function.getReturnValues().get(i);
-                result.getRegisterBank().copyAbsolute(memory, resultAddresses[i], destinationAddresses[i],
-                    result.getDecimalTypeInfo());
-            }
         }
     }
 

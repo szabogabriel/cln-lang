@@ -1,6 +1,5 @@
 package org.clnlang.compreg.runtime;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.clnlang.compile.types.DecimalTypeInfo;
@@ -77,8 +76,8 @@ public final class CompiledFunction {
         this.packageName = packageName == null ? "" : packageName;
         this.name = name;
         this.exposed = exposed;
-        this.parameters = new ArrayList<>(parameters);
-        this.returnValues = new ArrayList<>(returnValues);
+        this.parameters = List.copyOf(parameters);
+        this.returnValues = List.copyOf(returnValues);
         this.frameLayout = Memory.FrameLayout.empty();
         this.initializers = memory -> {
         };
@@ -137,11 +136,11 @@ public final class CompiledFunction {
     }
 
     public List<Slot> getParameters() {
-        return List.copyOf(parameters);
+        return parameters;
     }
 
     public List<Slot> getReturnValues() {
-        return List.copyOf(returnValues);
+        return returnValues;
     }
 
     public void setParameterOffset(int index, int offset) {
