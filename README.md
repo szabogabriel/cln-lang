@@ -1,6 +1,6 @@
 # cln-lang
 
-An interpreter for **cln**, a small embeddable scripting language with ANTLR4-based parsing, AST construction, compilation, and execution capabilities.
+An interpreter for **cln**, a small embeddable scripting language with ANTLR4-based parsing, compilation, and execution capabilities.
 
 ## Why cln exists
 
@@ -16,7 +16,7 @@ An interpreter for **cln**, a small embeddable scripting language with ANTLR4-ba
 ### ✅ Fully Implemented
 
 - **Parser & Lexer**: Complete ANTLR4-based grammar for cln-lang
-- **AST Construction**: Parse tree to structured Abstract Syntax Tree conversion
+- **Compilation**: ANTLR parse trees are compiled directly into executable representations
 - **Type System**: Primitives (int, bool, string, dec), structs, and unions
 - **Arrays**: Arrays of primitives, structs, and unions; multi-dimensional support
   - Array types: `int[]`, `string[]`, `bool[]`, `dec[]`, `MyStruct[]`, `MyUnion[]`; multi-dimensional: `int[][]`, `int[][][]`
@@ -122,17 +122,13 @@ core/
 │   │   └── java/
 │   │       └── org/clnlang/
 │   │           ├── Main.java                  # Main entry point & CLI
-│   │           ├── ast/                       # Abstract Syntax Tree nodes
-│   │           │   ├── declaration/           # Program, function, struct declarations
-│   │           │   ├── expression/            # All expression types
-│   │           │   ├── statement/             # Statements (if, return, var decl, etc.)
-│   │           │   └── visitor/               # AST visitors (printer, compiler)
+│   │           ├── ast/visitor/               # Parse-tree compiler
 │   │           ├── compile/                   # Compiled representations
 │   │           │   ├── declaration/           # Compiled declarations
 │   │           │   ├── expression/            # Compiled expressions
 │   │           │   └── statement/             # Compiled statements
 │   │           ├── exception/                 # Custom exceptions
-│   │           ├── parser/                    # AST builder from parse trees
+│   │           ├── parser/                    # ANTLR grammar and generated parser
 │   │           └── runtime/                   # Execution engine
 │   │               ├── lib/                   # Standard library
 │   │               ├── ExecutionContext.java  # Variable and function contexts
@@ -892,15 +888,13 @@ int main() {
 The interpreter follows a multi-stage pipeline:
 
 1. **Lexing & Parsing** (ANTLR4): Source code → Parse Tree
-2. **AST Construction** (ClnASTBuilder): Parse Tree → Abstract Syntax Tree
-3. **Compilation** (CompilerVisitor): AST → Compiled Representations
-4. **Linking** (Linker): Resolve imports and populate execution context
-5. **Execution** (FunctionInvoker): Execute the main function
+2. **Compilation** (CompilerVisitor): Parse Tree → Compiled Representations
+3. **Linking** (Linker): Resolve imports and populate execution context
+4. **Execution** (FunctionInvoker): Execute the main function
 
 ### Key Components
 
-- **ClnASTBuilder**: Converts ANTLR parse trees to AST nodes
-- **CompilerVisitor**: Transforms AST into executable compiled forms
+- **CompilerVisitor**: Compiles ANTLR parse trees into executable forms
 - **ExecutionContext**: Manages variable scopes and function registry
 - **Linker**: Resolves imports and connects modules
 - **StandardLibrary**: Provides built-in functions (console I/O)
@@ -999,7 +993,7 @@ Additional test files in `core/src/test/resources/`:
 
 1. **Core Language Features**
    - ✅ ANTLR4 parser and lexer
-   - ✅ AST construction and compilation
+  - ✅ Parse-tree compilation
    - ✅ Runtime execution engine
    - ✅ Function calls and multiple return values
    - ✅ Binary operators (arithmetic, comparison, logical)

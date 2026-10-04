@@ -97,6 +97,16 @@ public interface clnListener extends ParseTreeListener {
 	 */
 	void exitPrimitiveType(clnParser.PrimitiveTypeContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link clnParser#decimalType}.
+	 * @param ctx the parse tree
+	 */
+	void enterDecimalType(clnParser.DecimalTypeContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link clnParser#decimalType}.
+	 * @param ctx the parse tree
+	 */
+	void exitDecimalType(clnParser.DecimalTypeContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link clnParser#structDecl}.
 	 * @param ctx the parse tree
 	 */
@@ -146,6 +156,16 @@ public interface clnListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitFunctionDecl(clnParser.FunctionDeclContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link clnParser#returnType}.
+	 * @param ctx the parse tree
+	 */
+	void enterReturnType(clnParser.ReturnTypeContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link clnParser#returnType}.
+	 * @param ctx the parse tree
+	 */
+	void exitReturnType(clnParser.ReturnTypeContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link clnParser#namedReturnSig}.
 	 * @param ctx the parse tree
@@ -456,6 +476,16 @@ public interface clnListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitPrimaryExpr(clnParser.PrimaryExprContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link clnParser#arrayLiteral}.
+	 * @param ctx the parse tree
+	 */
+	void enterArrayLiteral(clnParser.ArrayLiteralContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link clnParser#arrayLiteral}.
+	 * @param ctx the parse tree
+	 */
+	void exitArrayLiteral(clnParser.ArrayLiteralContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link clnParser#structLiteral}.
 	 * @param ctx the parse tree

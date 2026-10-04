@@ -1,0 +1,159 @@
+package org.clnlang.compreg.commands;
+
+import java.util.List;
+
+import org.clnlang.compreg.Memory;
+import org.clnlang.compreg.runtime.CompiledFunction;
+import org.clnlang.compreg.runtime.StructValue;
+
+public final class Call implements Command {
+
+    public static final class Register {
+        private final String type;
+        private final int offset;
+        private final StructValue structValue;
+
+        public Register(String type, int offset) {
+            this.type = type;
+            this.offset = offset;
+            this.structValue = null;
+        }
+
+        public Register(String type, StructValue structValue) {
+            this.type = type;
+            this.offset = -1;
+            this.structValue = structValue;
+        }
+
+        public String getType() {
+            return type;
+        }
+
+        public int getOffset() {
+            return offset;
+        }
+
+        public StructValue getStructValue() {
+            return structValue;
+        }
+
+        public boolean isStruct() {
+            return structValue != null;
+        }
+    }
+
+    private final CompiledFunction function;
+    private final List<Register> arguments;
+    private final List<Register> results;
+
+    public Call(CompiledFunction function, List<Register> arguments, List<Register> results) {
+        this.function = function;
+        this.arguments = List.copyOf(arguments);
+        this.results = List.copyOf(results);
+    }
+
+    @Override
+    public void execute(Memory memory) {
+        if (function.getStructuredLibraryBody() != null) {
+            validateStructuredCall();
+            function.getStructuredLibraryBody().execute(memory, arguments, results);
+            return;
+        }
+        if (arguments.size() != function.getParameters().size()) {
+            throw new IllegalArgumentException("Function '" + function.getName() + "' expects "
+                    + function.getParameters().size() + " arguments, got " + arguments.size() + ".");
+        }
+        if (!results.isEmpty() && results.size() != function.getReturnValues().size()) {
+            throw new IllegalArgumentException("Function '" + function.getName() + "' returns "
+                    + function.getReturnValues().size() + " values, got " + results.size() + " result registers.");
+        }
+
+        int[] argumentAddresses = new int[arguments.size()];
+        for (int i = 0; i < arguments.size(); i++) {
+            Register argument = arguments.get(i);
+            CompiledFunction.Slot parameter = function.getParameters().get(i);
+            if (!argument.getType().equals(parameter.getType())) {
+                throw new IllegalArgumentException("Argument " + (i + 1) + " of '" + function.getName()
+                        + "' expects '" + parameter.getType() + "', got '" + argument.getType() + "'.");
+            }
+            argumentAddresses[i] = memory.absoluteOffset(argument.getType(), argument.getOffset());
+        }
+
+        int[] destinationAddresses = new int[results.size()];
+        for (int i = 0; i < results.size(); i++) {
+            Register destination = results.get(i);
+            CompiledFunction.Slot result = function.getReturnValues().get(i);
+            if (!destination.getType().equals(result.getType())) {
+                throw new IllegalArgumentException("Result " + (i + 1) + " of '" + function.getName()
+                        + "' has type '" + result.getType() + "', destination has type '"
+                        + destination.getType() + "'.");
+            }
+            destinationAddresses[i] = memory.absoluteOffset(destination.getType(), destination.getOffset());
+        }
+
+        int[] resultAddresses = new int[function.getReturnValues().size()];
+        memory.pushFrame(function.getFrameLayout());
+        try {
+            for (int i = 0; i < function.getParameters().size(); i++) {
+                CompiledFunction.Slot parameter = function.getParameters().get(i);
+                memory.copyAbsolute(parameter.getType(), argumentAddresses[i],
+                        memory.absoluteOffset(parameter.getType(), parameter.getOffset()),
+                        parameter.getDecimalTypeInfo());
+            }
+            function.getInitializers().execute(memory);
+            if (!memory.isReturnRequested()) {
+                function.getBody().execute(memory);
+            }
+            for (int i = 0; i < function.getReturnValues().size(); i++) {
+                CompiledFunction.Slot result = function.getReturnValues().get(i);
+                resultAddresses[i] = memory.absoluteOffset(result.getType(), result.getOffset());
+            }
+        } finally {
+            memory.popOffset();
+        }
+
+        if (!results.isEmpty()) {
+            for (int i = 0; i < function.getReturnValues().size(); i++) {
+                CompiledFunction.Slot result = function.getReturnValues().get(i);
+                memory.copyAbsolute(result.getType(), resultAddresses[i], destinationAddresses[i],
+                        result.getDecimalTypeInfo());
+            }
+        }
+    }
+
+    private void validateStructuredCall() {
+        if (arguments.size() != function.getParameters().size()) {
+            throw new IllegalArgumentException("Function '" + function.getName() + "' expects "
+                    + function.getParameters().size() + " arguments, got " + arguments.size() + ".");
+        }
+        if (results.size() != function.getReturnValues().size()) {
+            throw new IllegalArgumentException("Function '" + function.getName() + "' returns "
+                    + function.getReturnValues().size() + " values, got " + results.size() + " result registers.");
+        }
+        validateStructuredValues(arguments, function.getParameters(), "argument");
+        validateStructuredValues(results, function.getReturnValues(), "result");
+    }
+
+    private void validateStructuredValues(List<Register> values, List<CompiledFunction.Slot> slots, String role) {
+        for (int i = 0; i < values.size(); i++) {
+            Register value = values.get(i);
+            String expectedType = slots.get(i).getType();
+            if (!expectedType.equals(value.getType())) {
+                throw new IllegalArgumentException("Function '" + function.getName() + "' " + role + " "
+                        + (i + 1) + " expects '" + expectedType + "', got '" + value.getType() + "'.");
+            }
+            if (value.isStruct() != isStructType(expectedType)) {
+                throw new IllegalArgumentException("Function '" + function.getName() + "' " + role + " "
+                        + (i + 1) + " has incompatible register representation for '" + expectedType + "'.");
+            }
+            if (value.isStruct() && !value.getStructValue().getTypeName().equals(expectedType)) {
+                throw new IllegalArgumentException("Function '" + function.getName() + "' " + role + " "
+                        + (i + 1) + " expects struct '" + expectedType + "'.");
+            }
+        }
+    }
+
+    private boolean isStructType(String type) {
+        return !type.equals("int") && !type.equals("dec") && !type.equals("bool") && !type.equals("string");
+    }
+}

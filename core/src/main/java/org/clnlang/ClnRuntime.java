@@ -1,5 +1,6 @@
 package org.clnlang;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -10,11 +11,15 @@ import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.clnlang.compile.declaration.FunctionDeclImpl;
 import org.clnlang.compile.declaration.ProgramImpl;
+import org.clnlang.compreg.CurrentExecution;
+import org.clnlang.compreg.Memory;
+import org.clnlang.compreg.compiler.RegisterCompiler;
 import org.clnlang.exception.ClnException;
 import org.clnlang.lib.StandardLibrary;
 import org.clnlang.linker.Linker;
 import org.clnlang.parser.clnLexer;
 import org.clnlang.parser.clnParser;
+import org.clnlang.persistance.ClnSourceFile;
 import org.clnlang.runtime.context.ExecutionContext;
 import org.clnlang.runtime.execution.FunctionInvoker;
 import org.clnlang.runtime.execution.Registry;
@@ -69,6 +74,12 @@ public final class ClnRuntime {
                               boolean registerStdLib,
                               Consumer<String> logger) throws Exception {
         boolean verbose = config.isVerbose();
+        if (config.getCompilerMode() == RuntimeConfiguration.CompilerMode.REGISTER) {
+            if (registry != null) {
+                throw new IllegalArgumentException("A legacy Registry cannot be used with the register runtime.");
+            }
+            return executeRegisterFile(config, registerStdLib, logger);
+        }
         Registry actualRegistry = registry != null ? registry : new Registry();
 
         if (registerStdLib) {
@@ -145,6 +156,12 @@ public final class ClnRuntime {
                                     boolean registerStdLib,
                                     Consumer<String> logger) throws Exception {
         boolean verbose = config.isVerbose();
+        if (config.getCompilerMode() == RuntimeConfiguration.CompilerMode.REGISTER) {
+            if (registry != null) {
+                throw new IllegalArgumentException("A legacy Registry cannot be used with the register runtime.");
+            }
+            return executeRegisterSource(script, registerStdLib, logger, verbose);
+        }
         Registry actualRegistry = registry != null ? registry : new Registry();
 
         if (registerStdLib) {
@@ -171,6 +188,44 @@ public final class ClnRuntime {
 
         FunctionDeclImpl mainFunction = findMainFunction(context);
         return executeMainFunction(context, mainFunction, logger, verbose);
+    }
+
+    private static int executeRegisterFile(RuntimeConfiguration config, boolean registerStdLib,
+            Consumer<String> logger) throws Exception {
+        List<ClnSourceFile> sources = config.getClnLoader().getSourceFiles();
+        if (sources.size() != 1 || !sources.get(0).isSourceFile()) {
+            throw new ClnException("The register runtime currently requires exactly one explicit .cln source file; "
+                    + "package, JDBC, and multi-file startup are not supported yet.");
+        }
+        try (var input = sources.get(0).getInputStream()) {
+            String source = new String(input.readAllBytes(), StandardCharsets.UTF_8);
+            return executeRegisterSource(source, registerStdLib, logger, config.isVerbose());
+        }
+    }
+
+    private static int executeRegisterSource(String source, boolean registerStdLib,
+            Consumer<String> logger, boolean verbose) throws Exception {
+        if (source == null || source.trim().isEmpty()) {
+            throw new ClnException("Source is empty");
+        }
+        CharStream input = CharStreams.fromString(source);
+        clnLexer lexer = new clnLexer(input);
+        CommonTokenStream tokens = new CommonTokenStream(lexer);
+        clnParser parser = new clnParser(tokens);
+        clnParser.ProgramContext programContext = parser.program();
+        if (parser.getNumberOfSyntaxErrors() > 0) {
+            throw new ClnException("Parsing failed with " + parser.getNumberOfSyntaxErrors() + " errors.");
+        }
+
+        RegisterCompiler compiler = new RegisterCompiler();
+        if (registerStdLib) {
+            log(logger, verbose, "Registering register-native standard library...");
+            compiler.addLibrary(new org.clnlang.compreg.lib.StandardLibrary());
+        }
+        CurrentExecution execution = compiler.compileProgram(programContext);
+        long result = execution.executeMain(new Memory());
+        log(logger, verbose, "Register runtime main returned: " + result);
+        return (int) result;
     }
 
     private static void log(Consumer<String> logger, boolean verbose, String message) {

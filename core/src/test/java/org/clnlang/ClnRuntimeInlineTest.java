@@ -1,11 +1,10 @@
 package org.clnlang;
 
+import org.clnlang.exception.ClnException;
+import org.clnlang.exception.OverloadingNotSupportedException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import org.clnlang.exception.ClnException;
-import org.clnlang.exception.OverloadingNotSupportedException;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -24,6 +23,18 @@ class ClnRuntimeInlineTest {
 
         int exitCode = ClnRuntime.executeInline(script);
         assertEquals(7, exitCode);
+    }
+
+    @Test
+    void executeInlineUsesRegisterCompilerWhenSelected() throws Exception {
+        RuntimeConfiguration config = new RuntimeConfiguration();
+        config.parse(new String[] {"--compile-register"});
+
+        String script = "package app; import std.str.*; "
+                + "int main() { return strLen(intToStr(17)); }";
+        int exitCode = ClnRuntime.executeInline(script, config, null, true, null);
+
+        assertEquals(2, exitCode);
     }
 
     @Test

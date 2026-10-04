@@ -1,11 +1,5 @@
 package org.clnlang;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.io.TempDir;
-import static org.junit.jupiter.api.Assertions.*;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -13,6 +7,16 @@ import java.nio.file.Path;
 import java.util.List;
 
 import org.clnlang.persistance.ClnSourceFile;
+import org.junit.jupiter.api.AfterEach;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 /**
  * Test class for RuntimeConfiguration parsing.
@@ -40,9 +44,46 @@ public class RuntimeConfigurationTest {
         RuntimeConfiguration config = new RuntimeConfiguration();
         
         assertFalse(config.isVerbose());
+        assertEquals(RuntimeConfiguration.CompilerMode.LEGACY, config.getCompilerMode());
         assertTrue(config.getClnLoader().getSourceFiles().isEmpty());
         assertFalse(config.hasSourceFiles());
         assertNotNull(config.getClnLoader()); // Loader should still be created from environment
+    }
+
+    @Test
+    public void testCompileRegisterFlag() {
+        RuntimeConfiguration config = new RuntimeConfiguration();
+        config.parse(new String[] {"--compile-register", "hello.cln"});
+
+        assertEquals(RuntimeConfiguration.CompilerMode.REGISTER, config.getCompilerMode());
+    }
+
+    @Test
+    public void testRegisterCompilerExecutesSingleFile(@TempDir Path tempDir) throws Exception {
+        Path source = tempDir.resolve("register-main.cln");
+        Files.writeString(source, "int main() { return 23; }");
+        RuntimeConfiguration config = new RuntimeConfiguration();
+        config.parse(new String[] {"--compile-register", source.toString()});
+
+        assertEquals(23, ClnRuntime.execute(config));
+    }
+
+    @Test
+    public void testCompileLegacyFlag() {
+        RuntimeConfiguration config = new RuntimeConfiguration();
+        config.parse(new String[] {"--compile-legacy", "hello.cln"});
+
+        assertEquals(RuntimeConfiguration.CompilerMode.LEGACY, config.getCompilerMode());
+    }
+
+    @Test
+    public void testCompilerFlagsAreMutuallyExclusive() {
+        RuntimeConfiguration config = new RuntimeConfiguration();
+
+        IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
+                () -> config.parse(new String[] {"--compile-register", "--compile-legacy", "hello.cln"}));
+
+        assertTrue(error.getMessage().contains("mutually exclusive"));
     }
     
     @Test

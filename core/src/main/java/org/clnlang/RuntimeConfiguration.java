@@ -18,11 +18,18 @@ import org.clnlang.persistance.ClnLoaderFactory;
  *   - CLN_PATH: Default library paths loaded at construction time
  */
 public class RuntimeConfiguration {
+    public enum CompilerMode {
+        LEGACY,
+        REGISTER
+    }
+
     private boolean verbose;
+    private CompilerMode compilerMode;
+    private boolean compilerModeSpecified;
     private String clnHome;
     private String cpArg; // Raw -cp argument
     private String dbDriverArg; // Raw -cdd argument
-    private List<String> sourceArgs; // Raw source file/package arguments
+    private final List<String> sourceArgs = new ArrayList<>(); // Raw source file/package arguments
     private ClnLoader clnLoader; // Cached loader instance
     
     /**
@@ -31,7 +38,8 @@ public class RuntimeConfiguration {
      */
     public RuntimeConfiguration() {
         this.verbose = false;
-        this.sourceArgs = new ArrayList<>();
+        this.compilerMode = CompilerMode.LEGACY;
+        this.compilerModeSpecified = false;
         this.clnHome = System.getenv("CLN_HOME");
         this.cpArg = null;
         this.dbDriverArg = null;
@@ -49,6 +57,10 @@ public class RuntimeConfiguration {
             
             if (arg.equals("-v") || arg.equals("--verbose")) {
                 this.verbose = true;
+            } else if (arg.equals("--compile-register")) {
+                setCompilerMode(CompilerMode.REGISTER);
+            } else if (arg.equals("--compile-legacy")) {
+                setCompilerMode(CompilerMode.LEGACY);
             } else if (arg.equals("-cp") || arg.equals("--cln_path")) {
                 // Next argument should be the path(s)
                 if (i + 1 >= args.length) {
@@ -73,6 +85,18 @@ public class RuntimeConfiguration {
                 throw new IllegalArgumentException("Unknown option: " + arg);
             }
         }
+    }
+
+    private void setCompilerMode(CompilerMode mode) {
+        if (compilerModeSpecified && compilerMode != mode) {
+            throw new IllegalArgumentException("Options --compile-register and --compile-legacy are mutually exclusive");
+        }
+        compilerMode = mode;
+        compilerModeSpecified = true;
+    }
+
+    public CompilerMode getCompilerMode() {
+        return compilerMode;
     }
     
     /**
@@ -128,6 +152,8 @@ public class RuntimeConfiguration {
         System.err.println();
         System.err.println("Options:");
         System.err.println("  -v, --verbose              Enable verbose output");
+        System.err.println("      --compile-legacy       Use the legacy compiler/runtime (default)");
+        System.err.println("      --compile-register     Use the register compiler/runtime");
         System.err.println("  -cp, --cln_path <path>     Set path(s) for source files/libraries, or a JDBC URL");
         System.err.println("                             Multiple file-system paths separated by '" + File.pathSeparator + "'");
         System.err.println("  -cdd, --cln-db-driver <class>  JDBC driver class to load (database mode)");
@@ -179,6 +205,7 @@ public class RuntimeConfiguration {
         return "RuntimeConfiguration{" +
                 "verbose=" + verbose +
                 ", cpArg='" + cpArg + '\'' +
+                ", compilerMode=" + compilerMode +
                 ", dbDriverArg='" + dbDriverArg + '\'' +
                 ", sourceArgs=" + sourceArgs +
                 ", clnHome='" + clnHome + '\'' +
